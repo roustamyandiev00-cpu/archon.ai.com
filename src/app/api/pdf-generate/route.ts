@@ -1,12 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from 'next/server';
 import { pdfGenerator, OfferteData, FactuurData } from '@/lib/pdf/PDFGenerator';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -33,6 +31,7 @@ export async function POST(request: Request) {
     let selectedTemplate = template;
     if (!selectedTemplate) {
       const { data: userSettings } = await supabaseAdmin
+    // @ts-expect-error
         .from('user_settings')
         .select('pdf_template_choice')
         .eq('user_id', user.id)

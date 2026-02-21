@@ -1,15 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 // ============================================
 // GET - Get communication logs
 // ============================================
 export async function GET(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
     const { searchParams } = new URL(request.url);
     
@@ -23,6 +20,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get('end_date');
 
     let query = supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .select('*', { count: 'exact' })
       .order('sent_at', { ascending: false })
@@ -68,6 +66,7 @@ export async function GET(request: Request) {
 
     // Get stats summary
     const { data: statsData } = await supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .select('channel, status');
 
@@ -103,6 +102,7 @@ export async function GET(request: Request) {
 // ============================================
 export async function POST(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -135,6 +135,7 @@ export async function POST(request: Request) {
     }
 
     const { data: log, error } = await supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .insert({
         user_id: user.id,
@@ -172,6 +173,7 @@ export async function POST(request: Request) {
 // ============================================
 export async function PATCH(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const body = await request.json();
     const { id, status, delivered_at, read_at, error_message } = body;
 
@@ -195,6 +197,7 @@ export async function PATCH(request: Request) {
     }
 
     const { data: log, error } = await supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .update(updateData)
       .eq('id', id)

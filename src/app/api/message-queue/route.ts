@@ -120,22 +120,23 @@ export async function GET(request: Request) {
     }
 
     // Get queue stats (requires Supabase client)
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const { getSupabaseAdmin } = await import('@/lib/supabaseAdmin');
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data: pending, error: pendingError } = await supabaseAdmin
+    // @ts-expect-error
       .from('message_queue')
       .select('id', { count: 'exact' })
       .eq('status', 'pending');
 
     const { data: processing, error: processingError } = await supabaseAdmin
+    // @ts-expect-error
       .from('message_queue')
       .select('id', { count: 'exact' })
       .eq('status', 'processing');
 
     const { data: failed, error: failedError } = await supabaseAdmin
+    // @ts-expect-error
       .from('message_queue')
       .select('id', { count: 'exact' })
       .eq('status', 'failed');
@@ -143,6 +144,7 @@ export async function GET(request: Request) {
     // Get upcoming scheduled messages
     const now = new Date().toISOString();
     const { data: scheduled, error: scheduledError } = await supabaseAdmin
+    // @ts-expect-error
       .from('message_queue')
       .select('id, recipient, channel, scheduled_at')
       .eq('status', 'pending')

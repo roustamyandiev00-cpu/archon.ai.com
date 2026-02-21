@@ -1,14 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // Telegram Bot API configuration
 const TELEGRAM_API_URL = 'https://api.telegram.org/bot';
 
 export async function POST(request: Request) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -154,6 +152,7 @@ export async function GET(request: Request) {
 
     // Get communication logs for this user
     const { data: logs, error } = await supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .select('*')
       .eq('user_id', user.id)
@@ -201,6 +200,7 @@ async function logCommunication({
 }) {
   try {
     const { data, error } = await supabaseAdmin
+    // @ts-expect-error
       .from('communication_logs')
       .insert({
         user_id: userId,

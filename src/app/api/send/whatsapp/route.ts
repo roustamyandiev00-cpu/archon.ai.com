@@ -1,14 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // WhatsApp Business API configuration
 const WHATSAPP_API_VERSION = 'v18.0';
 
 export async function POST(request: Request) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {

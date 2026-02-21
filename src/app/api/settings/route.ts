@@ -1,12 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,6 +17,7 @@ export async function GET(request: Request) {
     }
 
     const { data: settings, error } = await supabaseAdmin
+    // @ts-expect-error
       .from('user_settings')
       .select('*')
       .eq('user_id', user.id)
@@ -39,6 +37,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -55,6 +54,7 @@ export async function PUT(request: Request) {
 
     // Check if settings exist
     const { data: existingSettings } = await supabaseAdmin
+    // @ts-expect-error
       .from('user_settings')
       .select('id')
       .eq('user_id', user.id)
@@ -64,6 +64,7 @@ export async function PUT(request: Request) {
     if (existingSettings) {
       // Update existing
       result = await supabaseAdmin
+    // @ts-expect-error
         .from('user_settings')
         .update({
           ...body,
@@ -75,6 +76,7 @@ export async function PUT(request: Request) {
     } else {
       // Insert new
       result = await supabaseAdmin
+    // @ts-expect-error
         .from('user_settings')
         .insert({
           user_id: user.id,

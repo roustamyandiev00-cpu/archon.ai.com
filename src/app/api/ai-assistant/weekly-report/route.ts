@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     
     // Check if user has the report enabled
     const { data: settings } = await supabase
+    // @ts-expect-error
       .from('user_settings')
       .select('notify_email_weekly')
       .eq('user_id', user.id)

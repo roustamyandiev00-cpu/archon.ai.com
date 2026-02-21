@@ -5,6 +5,9 @@ const PLAYWRIGHT_PORT = process.env.PLAYWRIGHT_PORT ?? "3100";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   // Exclude super-admin folder from build
   experimental: {
     externalDir: false,

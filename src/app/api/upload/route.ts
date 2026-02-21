@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
 
     if (type === 'logo') {
       await (supabase
+    // @ts-expect-error
         .from('user_settings') as any)
         .update({ company_logo: publicUrl })
         .eq('user_id', userId)

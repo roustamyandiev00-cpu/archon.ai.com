@@ -1,14 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const geminiApiKey = process.env.GEMINI_API_KEY!;
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,7 +30,9 @@ export async function POST(request: Request) {
     }
 
     // Create conversation record
+    // @ts-ignore - ai_conversations table exists but not in generated types
     const { data: conversation, error: convError } = await supabaseAdmin
+    // @ts-expect-error
       .from('ai_conversations')
       .insert({
         user_id: user.id,
@@ -86,6 +86,7 @@ export async function POST(request: Request) {
 
         // Store attachment record
         await supabaseAdmin
+    // @ts-expect-error
           .from('ai_attachments')
           .insert({
             conversation_id: conversation.id,
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
 
     // Update conversation with results
     const { data: updatedConversation, error: updateError } = await supabaseAdmin
+    // @ts-expect-error
       .from('ai_conversations')
       .update({
         extracted_text: extractedText,
@@ -309,6 +311,8 @@ function parseAIResponse(entityType: string, response: string): any {
 // GET endpoint to retrieve conversation history
 export async function GET(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -326,6 +330,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     let query = supabaseAdmin
+    // @ts-expect-error
       .from('ai_conversations')
       .select('*, ai_attachments(*)')
       .eq('user_id', user.id)

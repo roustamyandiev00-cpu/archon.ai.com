@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseAdmin } from './supabaseAdmin';
 
 // ============================================
 // Types
@@ -65,7 +61,8 @@ export async function queueMessage({
   maxRetries?: number;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
-    const { data, error } = await supabaseAdmin
+    const supabaseAdmin = getSupabaseAdmin();
+  const { data, error } = await supabaseAdmin
       .from('message_queue')
       .insert({
         user_id: userId || null,
@@ -104,6 +101,7 @@ export async function processMessageQueue(batchSize = 10): Promise<{
   sent: number;
   failed: number;
 }> {
+  const supabaseAdmin = getSupabaseAdmin();
   const stats = { processed: 0, sent: 0, failed: 0 };
 
   try {
