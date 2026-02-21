@@ -1,0 +1,41 @@
+version: 2
+updates:
+  # Node.js dependencies
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "innovarslabo"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-major: "chore(deps)!"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    # Group related updates
+    groups:
+      development-dependencies:
+        dependency-type: "dev"
+        update-types:
+          - "minor"
+          - "patch"
+      production-minor:
+        dependencies:
+          - dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      production-major:
+        dependencies:
+          - dependency-type: "production"
+        update-types:
+          - "major"
+        allow-multiple-dependency-updates: false
+    # Ignore certain packages
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x"]  # Stick with 18 LTS

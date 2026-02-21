@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.experimental.cloudChanges.partialMatches.enabled": true,
+		"typescript.disableAutomaticTypeAcquisition": true,
+		"prisma.pinToPrisma6": true
+	}
+}
