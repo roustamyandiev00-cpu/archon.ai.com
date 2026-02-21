@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     // 1. Sla op in de database als Support Ticket
-    const { data: ticket, error: ticketError } = await supabase
-      .from('support_tickets')
+    const { data: ticket, error: ticketError } = await (supabase
+      .from('support_tickets') as any)
       .insert({
         user_id: user.id,
         user_email: user.email,
@@ -31,12 +31,12 @@ export async function POST(request: NextRequest) {
         priority: priority || 'medium'
       })
       .select()
-      .single() as any;
+      .single();
 
     if (ticketError) throw ticketError;
 
     // Voeg het eerste bericht toe aan de ticket_messages
-    await supabase.from('support_ticket_messages').insert({
+    await (supabase.from('support_ticket_messages') as any).insert({
       ticket_id: ticket.id,
       sender_id: user.id,
       sender: 'user',

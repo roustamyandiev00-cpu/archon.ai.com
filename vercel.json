@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+
+  "regions": ["arn1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}

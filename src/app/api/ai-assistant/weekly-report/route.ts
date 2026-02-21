@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const [
-      { data: deals },
-      { data: facturen },
+      { data: dealsRaw },
+      { data: facturenRaw },
       { data: newContacts }
     ] = await Promise.all([
       supabase.from('deals').select('*').eq('user_id', user.id).gte('created_at', lastWeek),
@@ -37,9 +37,12 @@ export async function GET(request: NextRequest) {
       supabase.from('contacts').select('*').eq('user_id', user.id).gte('created_at', lastWeek)
     ]);
 
+    const deals = (dealsRaw || []) as any[];
+    const facturen = (facturenRaw || []) as any[];
+
     // 2. Prepare Context for AI
-    const wonDeals = (deals || []).filter(d => d.status.toLowerCase() === 'gewonnen');
-    const paidInvoices = (facturen || []).filter(f => f.status.toLowerCase() === 'betaald');
+    const wonDeals = deals.filter(d => d.status.toLowerCase() === 'gewonnen');
+    const paidInvoices = facturen.filter(f => f.status.toLowerCase() === 'betaald');
     const totalRevenue = paidInvoices.reduce((sum, f) => sum + (Number(f.totaal_bedrag) || 0), 0);
 
     const reportContext = `

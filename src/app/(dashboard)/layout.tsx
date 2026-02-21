@@ -122,6 +122,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem('archonpro.activePage')
         window.localStorage.removeItem('archonpro.desktopSidebarOpen')
+        window.sessionStorage.removeItem('archonpro.isAdmin')
       }
 
       // Harde redirect — wist de Next.js router-cache en alle client state
@@ -153,33 +154,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        console.log('Checking admin status...')
+        // Use cached result from sessionStorage to avoid repeated API calls
+        const cached = typeof window !== 'undefined' ? window.sessionStorage.getItem('archonpro.isAdmin') : null
+        if (cached !== null) {
+          setIsAdmin(cached === '1')
+          return
+        }
+
         const { data: { session } } = await supabase.auth.getSession()
-        
-        console.log('Session:', session ? 'Found' : 'Not found')
-        console.log('User:', session?.user?.email)
-        
         if (!session?.user) return
 
-        console.log('Calling /api/auth/me with token...')
         const response = await fetch('/api/auth/me', {
           headers: { 
             'Authorization': `Bearer ${session.access_token}` 
           }
         });
 
-        console.log('Response status:', response.status)
-
         if (response.ok) {
           const result = await response.json();
-          console.log('API result:', result)
           const role = result.data?.role;
-          console.log('User role:', role)
           const isAdminUser = role === 'admin' || role === 'ceo'
-          console.log('Is admin:', isAdminUser)
           setIsAdmin(isAdminUser)
-        } else {
-          console.error('API error:', response.status, response.statusText)
+          window.sessionStorage.setItem('archonpro.isAdmin', isAdminUser ? '1' : '0')
         }
       } catch (error) {
         console.error('Error checking admin status:', error)

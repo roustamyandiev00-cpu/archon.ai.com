@@ -14,16 +14,21 @@ export async function GET(request: NextRequest) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const [
-      { data: appointments },
-      { data: facturen },
-      { data: deals },
-      { data: projects }
+      { data: appointmentsRaw },
+      { data: facturenRaw },
+      { data: dealsRaw },
+      { data: projectsRaw }
     ] = await Promise.all([
       supabase.from('events').select('id, title, startTime').eq('user_id', user.id).gte('startTime', now.split('T')[0]).lte('startTime', now.split('T')[0] + 'T23:59:59'),
       supabase.from('facturen').select('totaal_bedrag, datum, status').eq('user_id', user.id).gte('datum', sevenDaysAgo),
       supabase.from('deals').select('status, value').eq('user_id', user.id),
       supabase.from('projecten').select('id, name, status, endDate').eq('user_id', user.id)
     ]);
+
+    const appointments = (appointmentsRaw || []) as any[];
+    const facturen = (facturenRaw || []) as any[];
+    const deals = (dealsRaw || []) as any[];
+    const projects = (projectsRaw || []) as any[];
 
     // 1. Calculate Stats
     const stats = {
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Format Revenue Data (Last 7 Days)
     const days = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
-    const revenueData = [];
+    const revenueData: { day: string; amount: number }[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
@@ -72,6 +77,10 @@ export async function GET(request: NextRequest) {
       stats,
       revenueData,
       dealsData: dealsChartData
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=30'
+      }
     });
 
   } catch (error: any) {
