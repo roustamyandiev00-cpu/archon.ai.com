@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ interface Module {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<"account" | "module">("account");
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,8 +49,29 @@ export default function RegisterPage() {
   };
 
   useEffect(() => {
-    fetchModules();
+    Promise.resolve().then(() => {
+      fetchModules();
+    });
   }, []);
+
+  useEffect(() => {
+    const plan = searchParams.get("plan")?.toLowerCase();
+    if (!plan) return;
+    if (!modules.length) return;
+    if (selectedModule) return;
+
+    const match = modules.find((m: any) => {
+      const name = String(m.name || "").toLowerCase();
+      const slug = String(m.slug || "").toLowerCase();
+      return name.includes(plan) || slug.includes(plan);
+    });
+
+    if (match?.id) {
+      Promise.resolve().then(() => {
+        setSelectedModule(match.id);
+      });
+    }
+  }, [modules, searchParams, selectedModule]);
 
   const handleAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,34 +117,13 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        // 2. Get module details for Stripe
-        const targetModule = modules.find(m => m.id === selectedModule);
+        // Tijdelijke oplossing: redirect naar dashboard zonder Stripe
+        toast.success("Account succesvol aangemaakt!");
         
-        // 3. Create Stripe Checkout Session
-        const stripeResponse = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: data.user.id,
-            email: accountData.email,
-            moduleId: selectedModule,
-            moduleName: targetModule?.name,
-            // We gebruiken hier een fallback price ID als er geen in de database staat
-            // In een productieomgeving moet elke module een stripe_price_id hebben
-            priceId: (targetModule as any).stripe_price_id || "price_placeholder", 
-          }),
-        });
-
-        const stripeResult = await stripeResponse.json();
-
-        if (stripeResult.url) {
-          // Redirect to Stripe
-          window.location.href = stripeResult.url;
-        } else {
-          toast.error("Kon betalingssessie niet starten. Neem contact op met support.");
-          console.error("Stripe Error:", stripeResult.error);
-          setLoading(false);
-        }
+        // Wacht even op user creation en redirect
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
       }
     } catch (error) {
       toast.error("Er is een fout opgetreden tijdens de registratie");
@@ -197,7 +198,7 @@ export default function RegisterPage() {
             </h2>
             <p className="text-white/60">
               {step === "account" 
-                ? "Start gratis en ontdek alle mogelijkheden" 
+                ? "Start met ArchonPro - testversie (geen betaling vereist)" 
                 : "Selecteer het plan dat bij jou past"}
             </p>
           </div>
@@ -403,7 +404,10 @@ export default function RegisterPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-2">
+                  <div className="mt-2 text-xs text-white/60">
+                    Testversie: Geen betaling vereist. Direct toegang tot alle features.
+                  </div>
+                  <div className="flex gap-3 pt-3">
                     <Button
                       type="button"
                       variant="outline"

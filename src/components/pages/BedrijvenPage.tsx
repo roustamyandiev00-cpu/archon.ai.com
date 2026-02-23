@@ -10,6 +10,10 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Mail,
+  Phone,
+  Globe,
+  FileText,
 } from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -31,6 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import AddCompanyModal from '@/components/modals/AddCompanyModal'
 import EditCompanyModal from '@/components/modals/EditCompanyModal'
 import { PageEmptyState, PageInlineError, PagePanel } from '@/components/dashboard/PageStates'
@@ -118,6 +128,7 @@ export default function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boo
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedCompany, setSelectedCompany] = useState<Bedrijf | null>(null)
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false)
 
   useEffect(() => {
     if (autoOpenCreate && !isModalOpen) {
@@ -384,7 +395,15 @@ export default function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boo
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setSelectedCompany(bedrijf)
+                            setIsDetailSheetOpen(true)
+                          }}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                         <Button
@@ -472,6 +491,106 @@ export default function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boo
           company={selectedCompany}
         />
       )}
+
+      {/* Detail Sheet */}
+      <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          {selectedCompany && (
+            <>
+              <SheetHeader>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500/20 to-sky-500/10 flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-500/20">
+                    {selectedCompany.naam.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <SheetTitle className="text-xl">{selectedCompany.naam}</SheetTitle>
+                    <p className="text-sm text-muted-foreground">{selectedCompany.sector}</p>
+                  </div>
+                </div>
+                <StatusBadge status={selectedCompany.status} />
+              </SheetHeader>
+
+              <div className="mt-6 space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Bedrijfsgegevens</h4>
+                  <div className="grid gap-3">
+                    {selectedCompany.locatie && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                        <Building2 className="w-5 h-5 text-blue-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">Locatie</p>
+                          <p className="text-sm font-medium truncate">{selectedCompany.locatie}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedCompany.email && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                        <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">E-mail</p>
+                          <p className="text-sm font-medium truncate">{selectedCompany.email}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedCompany.telefoon && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                        <Phone className="w-5 h-5 text-amber-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">Telefoon</p>
+                          <p className="text-sm font-medium truncate">{selectedCompany.telefoon}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedCompany.website && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                        <Globe className="w-5 h-5 text-violet-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">Website</p>
+                          <a href={selectedCompany.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium truncate hover:underline">{selectedCompany.website}</a>
+                        </div>
+                      </div>
+                    )}
+                    {selectedCompany.vatNumber && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                        <FileText className="w-5 h-5 text-slate-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">BTW-nummer</p>
+                          <p className="text-sm font-medium truncate">{selectedCompany.vatNumber}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {selectedCompany.beschrijving && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Beschrijving</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedCompany.beschrijving}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                    <p className="text-2xl font-bold text-foreground">{selectedCompany.contacten}</p>
+                    <p className="text-xs text-muted-foreground">Contacten</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                    <p className="text-2xl font-bold text-foreground">{selectedCompany.deals}</p>
+                    <p className="text-xs text-muted-foreground">Deals</p>
+                  </div>
+                </div>
+
+                {selectedCompany.dealValue > 0 && (
+                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <p className="text-xs text-emerald-600 font-medium">Totale dealwaarde</p>
+                    <p className="text-2xl font-bold text-emerald-600">€{selectedCompany.dealValue.toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

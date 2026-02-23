@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
@@ -16,9 +16,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: settings, error } = await supabaseAdmin
-    // @ts-expect-error
-      .from('user_settings')
+    const { data: settings, error } = await (supabaseAdmin
+      .from('user_settings') as any)
       .select('*')
       .eq('user_id', user.id)
       .single();
@@ -35,7 +34,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
@@ -53,9 +52,8 @@ export async function PUT(request: Request) {
     const body = await request.json();
 
     // Check if settings exist
-    const { data: existingSettings } = await supabaseAdmin
-    // @ts-expect-error
-      .from('user_settings')
+    const { data: existingSettings } = await (supabaseAdmin
+      .from('user_settings') as any)
       .select('id')
       .eq('user_id', user.id)
       .single();
@@ -63,9 +61,8 @@ export async function PUT(request: Request) {
     let result;
     if (existingSettings) {
       // Update existing
-      result = await supabaseAdmin
-    // @ts-expect-error
-        .from('user_settings')
+      result = await (supabaseAdmin
+        .from('user_settings') as any)
         .update({
           ...body,
           updated_at: new Date().toISOString()
@@ -75,9 +72,8 @@ export async function PUT(request: Request) {
         .single();
     } else {
       // Insert new
-      result = await supabaseAdmin
-    // @ts-expect-error
-        .from('user_settings')
+      result = await (supabaseAdmin
+        .from('user_settings') as any)
         .insert({
           user_id: user.id,
           ...body,

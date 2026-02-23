@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,11 @@ import {
   Paperclip,
   X
 } from "lucide-react";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface AIAssistantProps {
   entityType: 'offerte' | 'factuur' | 'project' | 'artikel';
@@ -111,8 +117,9 @@ export default function AIAssistant({ entityType, onGenerated }: AIAssistantProp
     setIsGenerating(true);
 
     try {
-      const token = localStorage.getItem('supabase_access_token') || 
-                   sessionStorage.getItem('supabase_access_token');
+      // Get session from Supabase (not localStorage - tokens are stored as cookies)
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
       if (!token) {
         toast.error("Niet ingelogd");

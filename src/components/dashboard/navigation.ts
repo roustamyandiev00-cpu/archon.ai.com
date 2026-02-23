@@ -65,12 +65,12 @@ export const navigationItems: NavigationItem[] = [
   { icon: FolderKanban, label: 'Projecten', page: 'projecten', module: 'projecten', minTier: 'groei' },
   { icon: CalendarDays, label: 'Agenda', page: 'agenda', module: 'agenda', minTier: 'basis' },
   { icon: TrendingUp, label: 'Inkomsten', page: 'inkomsten', module: 'inkomsten', minTier: 'groei' },
-  { icon: Wallet, label: 'Ausgaven', page: 'uitgaven', module: 'uitgaven', minTier: 'premium' },
+  { icon: Wallet, label: 'Uitgaven', page: 'uitgaven', module: 'uitgaven', minTier: 'premium' },
   { icon: Package, label: 'Artikelen', page: 'artikelen', module: 'artikelen', minTier: 'basis' },
   { icon: Timer, label: 'Timesheets', page: 'timesheets', module: 'timesheets', minTier: 'premium' },
   { icon: Receipt, label: 'Betalingen', page: 'betalingen', module: 'betalingen', minTier: 'groei' },
-  { icon: Mail, label: 'AI Inbox', page: 'ai-inbox', module: 'ai-email' },
-  { icon: MessageSquare, label: 'WhatsApp', page: 'whatsapp', module: 'whatsapp-integration' },
+  { icon: Mail, label: 'AI Inbox', page: 'ai-inbox', module: 'ai-email', minTier: 'premium' },
+  { icon: MessageSquare, label: 'WhatsApp', page: 'whatsapp', module: 'whatsapp-integration', minTier: 'premium' },
   { icon: FolderClosed, label: 'Documenten', page: 'documenten', minTier: 'basis' },
 ]
 
@@ -101,7 +101,7 @@ export const adminNavItems: NavigationItem[] = [
 ]
 
 export const bottomNavItems: NavigationItem[] = [
-  { icon: Bot, label: 'AI Assistant', page: 'ai-assistant', minTier: 'groei' },
+  { icon: Bot, label: 'AI Assistant', page: 'ai-assistant', minTier: 'premium' },
   { icon: Crown, label: 'Abonnement', page: 'abonnement', minTier: 'basis' },
   { icon: Settings, label: 'Instellingen', page: 'instellingen', minTier: 'basis' },
   { icon: LogOut, label: 'Uitloggen', page: undefined },

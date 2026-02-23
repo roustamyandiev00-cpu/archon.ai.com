@@ -8,6 +8,11 @@ import {
   Plus,
   Search,
   Trash2,
+  Calendar,
+  Building2,
+  CreditCard,
+  Tag,
+  FileText,
 } from 'lucide-react'
 
 import AddInkomstModal from '@/components/modals/AddInkomstModal'
@@ -30,6 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { useDashboardQueryEnum, useDashboardQueryText } from '@/hooks/use-dashboard-query-state'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -132,6 +144,8 @@ export default function InkomstenPage({ autoOpenCreate }: { autoOpenCreate?: boo
   )
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedInkomst, setSelectedInkomst] = useState<Inkomst | null>(null)
   const [inkomsten, setInkomsten] = useState<Inkomst[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -440,10 +454,8 @@ export default function InkomstenPage({ autoOpenCreate }: { autoOpenCreate?: boo
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
                           onClick={() => {
-                            toast({
-                              title: 'Factuur details',
-                              description: `${inkomst.titel} • €${inkomst.bedrag.toLocaleString('nl-NL')}`,
-                            })
+                            setSelectedInkomst(inkomst)
+                            setDetailModalOpen(true)
                           }}
                         >
                           <Eye className="w-4 h-4" />
@@ -506,6 +518,84 @@ export default function InkomstenPage({ autoOpenCreate }: { autoOpenCreate?: boo
         onOpenChange={setModalOpen}
         onSuccess={refreshInkomsten}
       />
+
+      {/* Detail Dialog */}
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Inkomst details</DialogTitle>
+          </DialogHeader>
+          {selectedInkomst && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
+                <FileText className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Titel</p>
+                  <p className="font-medium">{selectedInkomst.titel}</p>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                <p className="text-xs text-muted-foreground">Referentie</p>
+                <p className="font-medium font-mono">{formatReference(selectedInkomst)}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-blue-500" />
+                    <p className="text-xs text-muted-foreground">Bedrijf</p>
+                  </div>
+                  <p className="font-medium mt-1">{selectedInkomst.bedrijf || '-'}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-500" />
+                    <p className="text-xs text-muted-foreground">Bedrag</p>
+                  </div>
+                  <p className="font-medium mt-1">€{selectedInkomst.bedrag.toLocaleString('nl-NL')}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-amber-500" />
+                    <p className="text-xs text-muted-foreground">Datum</p>
+                  </div>
+                  <p className="font-medium mt-1">{formatDate(selectedInkomst.datum ?? selectedInkomst.createdAt)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-violet-500" />
+                    <p className="text-xs text-muted-foreground">Categorie</p>
+                  </div>
+                  <p className="font-medium mt-1">{selectedInkomst.categorie || '-'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-sky-500" />
+                    <p className="text-xs text-muted-foreground">Betaalmethode</p>
+                  </div>
+                  <p className="font-medium mt-1">{selectedInkomst.betaalmethode || '-'}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <StatusBadge status={deriveStatus(selectedInkomst)} />
+                </div>
+              </div>
+              {selectedInkomst.omschrijving && (
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <p className="text-xs text-muted-foreground">Omschrijving</p>
+                  <p className="text-sm mt-1">{selectedInkomst.omschrijving}</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailModalOpen(false)}>Sluiten</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

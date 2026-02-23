@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { handleApiError, resolveCompanyId } from '@/lib/api-utils'
+import logger from '@/lib/logger'
 import { mapCompanyNamesById } from '@/app/api/finance/finance-utils'
 import {
   combineDateAndTime,
@@ -47,7 +48,8 @@ export async function GET() {
       }))
     )
   } catch (error) {
-    return handleApiError(error, 'Kon afspraken niet laden')
+    logger.apiError('/api/afspraken', 'GET', error)
+    return handleApiError(error, 'Kon afspraken niet laden. Probeer het later opnieuw.')
   }
 }
 
@@ -116,10 +118,11 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
-    return handleApiError(error, 'Kon afspraak niet aanmaken')
+    logger.apiError('/api/afspraken', 'POST', error)
+    return handleApiError(error, 'Kon afspraak niet aanmaken. Probeer het later opnieuw.')
   }
 }

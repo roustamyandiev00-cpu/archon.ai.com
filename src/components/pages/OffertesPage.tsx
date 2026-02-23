@@ -209,6 +209,10 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [analysisProvider, setAnalysisProvider] = useState<OfferteAiProvider>('gemini')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editBedrag, setEditBedrag] = useState('')
+  const [editStatus, setEditStatus] = useState<OfferteStatus>('Openstaand')
+  const [editGeldigTot, setEditGeldigTot] = useState('')
 
   // Auto-open create modal when prop is true
   useEffect(() => {
@@ -393,6 +397,57 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
       setAnalyzingId(null)
     }
   }
+
+  const openEditModal = useCallback((offerte: Offerte) => {
+    setSelectedOfferte(offerte)
+    setEditBedrag(offerte.bedrag.toString())
+    setEditStatus(offerte.status)
+    setEditGeldigTot(offerte.geldigTot ?? '')
+    setEditModalOpen(true)
+  }, [])
+
+  const handleEditSave = useCallback(async () => {
+    if (!selectedOfferte) return
+
+    setEditSaving(true)
+    try {
+      const response = await fetch(`/api/offertes/${selectedOfferte.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bedrag: parseFloat(editBedrag),
+          status: editStatus,
+          geldigTot: editGeldigTot || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(body?.error ?? 'Kon offerte niet bijwerken.')
+      }
+
+      const updated = await response.json()
+      setOffertes((current) =>
+        current.map((item) => (item.id === selectedOfferte.id ? updated : item))
+      )
+
+      toast({
+        title: 'Offerte bijgewerkt',
+        description: `Offerte ${selectedOfferte.nummer} is succesvol bijgewerkt.`,
+      })
+      setEditModalOpen(false)
+    } catch (editError: any) {
+      toast({
+        title: 'Bijwerken mislukt',
+        description: editError?.message ?? 'Kon offerte niet bijwerken.',
+        variant: 'destructive',
+      })
+    } finally {
+      setEditSaving(false)
+    }
+  }, [selectedOfferte, editBedrag, editStatus, editGeldigTot])
 
   return (
     <div className="space-y-6">
@@ -591,10 +646,7 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10"
-                        onClick={() => {
-                          setSelectedOfferte(offerte)
-                          setEditModalOpen(true)
-                        }}
+                        onClick={() => openEditModal(offerte)}
                         title="Offerte bewerken"
                         disabled={deletingId === offerte.id || statusUpdatingId === offerte.id}
                       >
@@ -785,7 +837,7 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
         </Dialog>
       )}
 
-      {/* Edit Modal - Simplified version */}
+      {/* Edit Modal */}
       {selectedOfferte && (
         <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
           <DialogContent className="sm:max-w-[500px]">
@@ -803,12 +855,13 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
                   <Input
                     id="edit-bedrag"
                     type="number"
-                    defaultValue={selectedOfferte.bedrag}
+                    value={editBedrag}
+                    onChange={(e) => setEditBedrag(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-status">Status</Label>
-                  <Select defaultValue={selectedOfferte.status}>
+                  <Select value={editStatus} onValueChange={(v) => setEditStatus(v as OfferteStatus)}>
                     <SelectTrigger id="edit-status">
                       <SelectValue />
                     </SelectTrigger>
@@ -826,7 +879,8 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
                 <Input
                   id="edit-geldig"
                   type="date"
-                  defaultValue={selectedOfferte.geldigTot ?? ''}
+                  value={editGeldigTot}
+                  onChange={(e) => setEditGeldigTot(e.target.value)}
                 />
               </div>
 
@@ -841,18 +895,18 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditModalOpen(false)}>Annuleren</Button>
-              <Button
-                onClick={() => {
-                  toast({
-                    title: 'Offerte bijgewerkt',
-                    description: `${selectedOfferte.nummer} is bijgewerkt.`,
-                  })
-                  setEditModalOpen(false)
-                  refreshOffertes()
-                }}
-              >
-                Opslaan
+              <Button variant="outline" onClick={() => setEditModalOpen(false)} disabled={editSaving}>
+                Annuleren
+              </Button>
+              <Button onClick={handleEditSave} disabled={editSaving}>
+                {editSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Opslaan...
+                  </>
+                ) : (
+                  'Opslaan'
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>

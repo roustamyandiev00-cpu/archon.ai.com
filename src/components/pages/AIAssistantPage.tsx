@@ -140,12 +140,14 @@ export default function AIAssistantPage() {
           
           <ScrollArea className="flex-1 p-6" ref={scrollRef}>
             <div className="space-y-6">
-              <AnimatePresence initial={false}>
+              <AnimatePresence mode="popLayout">
                 {messages.map((msg, idx) => (
                   <motion.div
                     key={idx}
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
                     className={cn(
                       "flex w-full gap-3",
                       msg.role === 'user' ? "justify-end" : "justify-start"

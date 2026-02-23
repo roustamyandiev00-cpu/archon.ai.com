@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 
 // Create SMTP transporter
@@ -35,7 +35,7 @@ function createTransporter(smtpSettings: any) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
@@ -69,9 +69,8 @@ export async function POST(request: Request) {
     }
 
     // Get user's SMTP settings
-    const { data: userSettings, error: settingsError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('user_settings')
+    const { data: userSettings, error: settingsError } = await (supabaseAdmin
+      .from('user_settings') as any)
       .select('*')
       .eq('user_id', user.id)
       .single();
@@ -119,8 +118,8 @@ export async function POST(request: Request) {
     const info = await transporter.sendMail(mailOptions);
 
     // Record in database
-    const { data: sendRecord, error: dbError } = await supabaseAdmin
-      .from('document_sends')
+    const { data: sendRecord, error: dbError } = await (supabaseAdmin
+      .from('document_sends') as any)
       .insert({
         user_id: user.id,
         entity_type: entity_type,
@@ -158,7 +157,8 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint for email history
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -177,7 +177,7 @@ export async function GET(request: Request) {
     const entityId = searchParams.get('entity_id');
     const method = searchParams.get('method') || 'email';
 
-    let query = supabaseAdmin
+    let query = (supabaseAdmin as any)
       .from('document_sends')
       .select('*, pdf_generations(file_path)')
       .eq('user_id', user.id)

@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Fetch Business Context (Aggregated Data)
     // We fetch a summary of the user's data to give to the AI
+    // IMPORTANT: Filter by user_id to prevent privacy leak
     const [
       { count: companyCount },
       { count: contactCount },
@@ -42,11 +43,11 @@ export async function POST(request: NextRequest) {
       { data: facturen_raw },
       { data: projects }
     ] = await Promise.all([
-      supabase.from('companies').select('*', { count: 'exact', head: true }),
-      supabase.from('contacts').select('*', { count: 'exact', head: true }),
-      supabase.from('deals').select('name, status, value'),
-      supabase.from('facturen').select('nummer, status, totaal_bedrag, klant'),
-      supabase.from('projecten').select('name, status').limit(10) as any
+      (supabase.from('companies') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      (supabase.from('contacts') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      (supabase.from('deals') as any).select('name, status, value').eq('user_id', user.id),
+      (supabase.from('facturen') as any).select('nummer, status, totaal_bedrag, klant').eq('user_id', user.id),
+      (supabase.from('projecten') as any).select('name, status').eq('user_id', user.id).limit(10)
     ]);
 
     // Calculate some totals

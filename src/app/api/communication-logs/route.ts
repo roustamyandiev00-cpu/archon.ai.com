@@ -19,9 +19,8 @@ export async function GET(request: Request) {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
 
-    let query = supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    let query = (supabaseAdmin
+      .from('communication_logs') as any)
       .select('*', { count: 'exact' })
       .order('sent_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -65,9 +64,8 @@ export async function GET(request: Request) {
     }
 
     // Get stats summary
-    const { data: statsData } = await supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    const { data: statsData } = await (supabaseAdmin
+      .from('communication_logs') as any)
       .select('channel, status');
 
     const stats = {
@@ -134,9 +132,8 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const { data: log, error } = await supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    const { data: log, error } = await (supabaseAdmin
+      .from('communication_logs') as any)
       .insert({
         user_id: user.id,
         recipient,
@@ -196,9 +193,8 @@ export async function PATCH(request: Request) {
       updateData.failed_at = new Date().toISOString();
     }
 
-    const { data: log, error } = await supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    const { data: log, error } = await (supabaseAdmin
+      .from('communication_logs') as any)
       .update(updateData)
       .eq('id', id)
       .select()

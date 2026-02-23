@@ -30,10 +30,8 @@ export async function POST(request: Request) {
     }
 
     // Create conversation record
-    // @ts-ignore - ai_conversations table exists but not in generated types
-    const { data: conversation, error: convError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('ai_conversations')
+    const { data: conversation, error: convError } = await (supabaseAdmin
+      .from('ai_conversations') as any)
       .insert({
         user_id: user.id,
         entity_type: entityType,
@@ -85,9 +83,8 @@ export async function POST(request: Request) {
         }
 
         // Store attachment record
-        await supabaseAdmin
-    // @ts-expect-error
-          .from('ai_attachments')
+        await (supabaseAdmin
+          .from('ai_attachments') as any)
           .insert({
             conversation_id: conversation.id,
             file_name: file.name,
@@ -139,9 +136,8 @@ export async function POST(request: Request) {
     }
 
     // Update conversation with results
-    const { data: updatedConversation, error: updateError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('ai_conversations')
+    const { data: updatedConversation, error: updateError } = await (supabaseAdmin
+      .from('ai_conversations') as any)
       .update({
         extracted_text: extractedText,
         ai_prompt: aiPrompt,
@@ -329,9 +325,8 @@ export async function GET(request: Request) {
     const entityType = searchParams.get('entity_type');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    let query = supabaseAdmin
-    // @ts-expect-error
-      .from('ai_conversations')
+    let query = (supabaseAdmin
+      .from('ai_conversations') as any)
       .select('*, ai_attachments(*)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })

@@ -339,6 +339,27 @@ export default function AdminDashboard() {
   const [systemNotifications, setSystemNotifications] = useState<SystemNotification[]>([]);
   const [saasLoading, setSaasLoading] = useState(false);
 
+  // Subscription Plan Dialog state
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [planForm, setPlanForm] = useState({
+    name: "", price: "", interval: "month" as "month" | "year", features: "", modules: "", is_active: true
+  });
+
+  // Template Dialog state
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: "", type: "email" as "email" | "whatsapp" | "telegram", subject: "", content: "", variables: "", is_active: true
+  });
+
+  // Discount Code Dialog state
+  const [isDiscountDialogOpen, setIsDiscountDialogOpen] = useState(false);
+  const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
+  const [discountForm, setDiscountForm] = useState({
+    code: "", discount_type: "percentage" as "percentage" | "fixed", discount_value: "", valid_until: "", max_uses: "100", is_active: true
+  });
+
   // Fetch data only when admin access is confirmed
   useEffect(() => {
     if (isAdmin) {
@@ -641,6 +662,161 @@ export default function AdminDashboard() {
   // ============================================
   // SaaS Beheer Functions
   // ============================================
+
+  // ============================================
+  // Subscription Plan Dialog Functions
+  // ============================================
+
+  const handlePlanEdit = (plan: SubscriptionPlan | null) => {
+    setEditingPlan(plan);
+    if (plan) {
+      setPlanForm({
+        name: plan.name,
+        price: plan.price.toString(),
+        interval: plan.interval,
+        features: plan.features.join("\n"),
+        modules: plan.modules.join(", "),
+        is_active: plan.is_active,
+      });
+    } else {
+      setPlanForm({ name: "", price: "", interval: "month", features: "", modules: "", is_active: true });
+    }
+    setIsPlanDialogOpen(true);
+  };
+
+  const handlePlanSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: SubscriptionPlan = {
+      id: editingPlan?.id || Date.now().toString(),
+      name: planForm.name,
+      price: parseFloat(planForm.price),
+      interval: planForm.interval,
+      features: planForm.features.split("\n").filter(f => f.trim()),
+      modules: planForm.modules.split(",").map(m => m.trim()).filter(m => m),
+      is_active: planForm.is_active,
+      subscriber_count: editingPlan?.subscriber_count || 0,
+    };
+
+    if (editingPlan) {
+      setSubscriptionPlans(prev => prev.map(p => p.id === editingPlan.id ? payload : p));
+      toast.success("Abonnement bijgewerkt");
+    } else {
+      setSubscriptionPlans(prev => [...prev, payload]);
+      toast.success("Nieuw abonnement aangemaakt");
+    }
+    setIsPlanDialogOpen(false);
+    setEditingPlan(null);
+  };
+
+  const resetPlanForm = () => {
+    setEditingPlan(null);
+    setPlanForm({ name: "", price: "", interval: "month", features: "", modules: "", is_active: true });
+  };
+
+  // ============================================
+  // Template Dialog Functions
+  // ============================================
+
+  const handleTemplateEdit = (template: Template | null) => {
+    setEditingTemplate(template);
+    if (template) {
+      setTemplateForm({
+        name: template.name,
+        type: template.type,
+        subject: template.subject || "",
+        content: template.content,
+        variables: template.variables.join(", "),
+        is_active: template.is_active,
+      });
+    } else {
+      setTemplateForm({ name: "", type: "email", subject: "", content: "", variables: "", is_active: true });
+    }
+    setIsTemplateDialogOpen(true);
+  };
+
+  const handleTemplateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: Template = {
+      id: editingTemplate?.id || Date.now().toString(),
+      name: templateForm.name,
+      type: templateForm.type,
+      subject: templateForm.type === "email" ? templateForm.subject : undefined,
+      content: templateForm.content,
+      variables: templateForm.variables.split(",").map(v => v.trim()).filter(v => v),
+      is_active: templateForm.is_active,
+    };
+
+    if (editingTemplate) {
+      setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? payload : t));
+      toast.success("Sjabloon bijgewerkt");
+    } else {
+      setTemplates(prev => [...prev, payload]);
+      toast.success("Nieuw sjabloon aangemaakt");
+    }
+    setIsTemplateDialogOpen(false);
+    setEditingTemplate(null);
+  };
+
+  const resetTemplateForm = () => {
+    setEditingTemplate(null);
+    setTemplateForm({ name: "", type: "email", subject: "", content: "", variables: "", is_active: true });
+  };
+
+  // ============================================
+  // Discount Code Dialog Functions
+  // ============================================
+
+  const handleDiscountEdit = (discount: DiscountCode | null) => {
+    setEditingDiscount(discount);
+    if (discount) {
+      setDiscountForm({
+        code: discount.code,
+        discount_type: discount.discount_type,
+        discount_value: discount.discount_value.toString(),
+        valid_until: discount.valid_until,
+        max_uses: discount.max_uses.toString(),
+        is_active: discount.is_active,
+      });
+    } else {
+      setDiscountForm({ code: "", discount_type: "percentage", discount_value: "", valid_until: "", max_uses: "100", is_active: true });
+    }
+    setIsDiscountDialogOpen(true);
+  };
+
+  const handleDiscountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: DiscountCode = {
+      id: editingDiscount?.id || Date.now().toString(),
+      code: discountForm.code.toUpperCase(),
+      discount_type: discountForm.discount_type,
+      discount_value: parseFloat(discountForm.discount_value),
+      valid_until: discountForm.valid_until,
+      usage_count: editingDiscount?.usage_count || 0,
+      max_uses: parseInt(discountForm.max_uses),
+      is_active: discountForm.is_active,
+    };
+
+    if (editingDiscount) {
+      setDiscountCodes(prev => prev.map(d => d.id === editingDiscount.id ? payload : d));
+      toast.success("Kortingscode bijgewerkt");
+    } else {
+      setDiscountCodes(prev => [...prev, payload]);
+      toast.success("Nieuwe kortingscode aangemaakt");
+    }
+    setIsDiscountDialogOpen(false);
+    setEditingDiscount(null);
+  };
+
+  const resetDiscountForm = () => {
+    setEditingDiscount(null);
+    setDiscountForm({ code: "", discount_type: "percentage", discount_value: "", valid_until: "", max_uses: "100", is_active: true });
+  };
+
+  const handleDiscountDelete = (id: string) => {
+    if (!confirm("Weet je zeker dat je deze kortingscode wilt verwijderen?")) return;
+    setDiscountCodes(prev => prev.filter(d => d.id !== id));
+    toast.success("Kortingscode verwijderd");
+  };
 
   const fetchSaasData = async () => {
     setSaasLoading(true);
@@ -1422,10 +1598,59 @@ export default function AdminDashboard() {
         <TabsContent value="subscriptions" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">SaaS Abonnementen</h2>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuw Plan
-            </Button>
+            <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handlePlanEdit(null)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nieuw Plan
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>{editingPlan ? "Abonnement Bewerken" : "Nieuw Abonnement"}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handlePlanSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="planName">Naam *</Label>
+                      <Input id="planName" value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} required placeholder="bijv: Pro" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="planPrice">Prijs (€) *</Label>
+                      <Input id="planPrice" type="number" step="0.01" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })} required />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="planInterval">Interval</Label>
+                    <select 
+                      id="planInterval" 
+                      value={planForm.interval} 
+                      onChange={(e) => setPlanForm({ ...planForm, interval: e.target.value as "month" | "year" })}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white"
+                    >
+                      <option value="month">Maandelijks</option>
+                      <option value="year">Jaarlijks</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="planFeatures">Features (één per regel)</Label>
+                    <Textarea id="planFeatures" value={planForm.features} onChange={(e) => setPlanForm({ ...planForm, features: e.target.value })} rows={4} placeholder="5 Gebruikers&#10;1000 AI tokens&#10;Email support" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="planModules">Modules (komma-gescheiden)</Label>
+                    <Input id="planModules" value={planForm.modules} onChange={(e) => setPlanForm({ ...planForm, modules: e.target.value })} placeholder="deals, contacten, facturen" />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch id="planActive" checked={planForm.is_active} onCheckedChange={(checked) => setPlanForm({ ...planForm, is_active: checked })} />
+                    <Label htmlFor="planActive">Actief</Label>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsPlanDialogOpen(false)}>Annuleren</Button>
+                    <Button type="submit">{editingPlan ? "Bijwerken" : "Aanmaken"}</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1468,7 +1693,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handlePlanEdit(plan)}>
                       <Pencil className="w-4 h-4 mr-1" />
                       Bewerken
                     </Button>
@@ -1602,10 +1827,81 @@ export default function AdminDashboard() {
         <TabsContent value="discounts" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Kortingscodes</h2>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Code
-            </Button>
+            <Dialog open={isDiscountDialogOpen} onOpenChange={setIsDiscountDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleDiscountEdit(null)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nieuwe Code
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{editingDiscount ? "Kortingscode Bewerken" : "Nieuwe Kortingscode"}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleDiscountSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="discountCode">Code *</Label>
+                    <Input id="discountCode" value={discountForm.code} onChange={(e) => setDiscountForm({ ...discountForm, code: e.target.value.toUpperCase() })} required placeholder="bijv: WELCOME20" className="uppercase" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="discountType">Type Korting</Label>
+                      <select 
+                        id="discountType" 
+                        value={discountForm.discount_type} 
+                        onChange={(e) => setDiscountForm({ ...discountForm, discount_type: e.target.value as "percentage" | "fixed" })}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white"
+                      >
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Vast bedrag (€)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="discountValue">Waarde *</Label>
+                      <Input 
+                        id="discountValue" 
+                        type="number" 
+                        step={discountForm.discount_type === "percentage" ? "1" : "0.01"}
+                        value={discountForm.discount_value} 
+                        onChange={(e) => setDiscountForm({ ...discountForm, discount_value: e.target.value })} 
+                        required 
+                        placeholder={discountForm.discount_type === "percentage" ? "20" : "10.00"}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="discountValidUntil">Geldig Tot *</Label>
+                      <Input 
+                        id="discountValidUntil" 
+                        type="date" 
+                        value={discountForm.valid_until} 
+                        onChange={(e) => setDiscountForm({ ...discountForm, valid_until: e.target.value })} 
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="discountMaxUses">Max Gebruiken</Label>
+                      <Input 
+                        id="discountMaxUses" 
+                        type="number" 
+                        value={discountForm.max_uses} 
+                        onChange={(e) => setDiscountForm({ ...discountForm, max_uses: e.target.value })} 
+                        placeholder="100"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch id="discountActive" checked={discountForm.is_active} onCheckedChange={(checked) => setDiscountForm({ ...discountForm, is_active: checked })} />
+                    <Label htmlFor="discountActive">Actief</Label>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsDiscountDialogOpen(false)}>Annuleren</Button>
+                    <Button type="submit">{editingDiscount ? "Bijwerken" : "Aanmaken"}</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <Card>
@@ -1653,8 +1949,8 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon"><Pencil className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon"><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDiscountEdit(code)}><Pencil className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDiscountDelete(code.id)}><Trash2 className="w-4 h-4 text-red-500" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1671,10 +1967,63 @@ export default function AdminDashboard() {
         <TabsContent value="templates" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Communicatie Sjablonen</h2>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuw Sjabloon
-            </Button>
+            <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleTemplateEdit(null)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nieuw Sjabloon
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>{editingTemplate ? "Sjabloon Bewerken" : "Nieuw Sjabloon"}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleTemplateSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="templateName">Naam *</Label>
+                      <Input id="templateName" value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} required placeholder="bijv: Welkomstemail" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="templateType">Type</Label>
+                      <select 
+                        id="templateType" 
+                        value={templateForm.type} 
+                        onChange={(e) => setTemplateForm({ ...templateForm, type: e.target.value as "email" | "whatsapp" | "telegram" })}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white"
+                      >
+                        <option value="email">Email</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="telegram">Telegram</option>
+                      </select>
+                    </div>
+                  </div>
+                  {templateForm.type === "email" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="templateSubject">Onderwerp</Label>
+                      <Input id="templateSubject" value={templateForm.subject} onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })} placeholder="bijv: Welkom bij ArchonPro!" />
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="templateContent">Inhoud *</Label>
+                    <Textarea id="templateContent" value={templateForm.content} onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })} rows={6} placeholder="Beste {name},&#10;&#10;Welkom bij ArchonPro!..." required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="templateVariables">Variabelen (komma-gescheiden)</Label>
+                    <Input id="templateVariables" value={templateForm.variables} onChange={(e) => setTemplateForm({ ...templateForm, variables: e.target.value })} placeholder="name, email, company" />
+                    <p className="text-xs text-muted-foreground">Gebruik {'{variabele}'} in de inhoud</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch id="templateActive" checked={templateForm.is_active} onCheckedChange={(checked) => setTemplateForm({ ...templateForm, is_active: checked })} />
+                    <Label htmlFor="templateActive">Actief</Label>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>Annuleren</Button>
+                    <Button type="submit">{editingTemplate ? "Bijwerken" : "Aanmaken"}</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1712,7 +2061,7 @@ export default function AdminDashboard() {
                     </div>
                   )}
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleTemplateEdit(template)}>
                       <Pencil className="w-4 h-4 mr-1" />
                       Bewerken
                     </Button>

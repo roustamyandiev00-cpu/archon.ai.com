@@ -4,10 +4,81 @@ import 'server-only'
 // Email Service - Multi-Tenant SaaS Support
 // ============================================
 // Each user has their own SMTP configuration stored in user_settings table
+// System emails use platform-wide SMTP configuration
 
 import nodemailer from 'nodemailer'
 import { getSupabaseAdmin } from './supabaseAdmin'
 import { decrypt } from './encryption'
+
+// ============================================
+// System Email Configuration (Platform-wide)
+// ============================================
+
+function getSystemSmtpConfig() {
+  return {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_PORT === '465',
+    user: process.env.SMTP_USER || '',
+    password: process.env.SMTP_PASS || '',
+    from: {
+      name: process.env.SMTP_FROM_NAME || 'ArchonPro',
+      address: process.env.SMTP_FROM || 'noreply@archonpro.nl'
+    }
+  }
+}
+
+// Check if system SMTP is configured
+export function isSystemEmailConfigured(): boolean {
+  return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)
+}
+
+// Send system email (for platform notifications like welcome, trial-ending, etc.)
+export async function sendSystemEmail(
+  options: SendEmailOptions
+): Promise<{ success: boolean; error?: string }> {
+  const config = getSystemSmtpConfig()
+  
+  if (!config.host || !config.user || !config.password) {
+    console.warn('System SMTP not configured. Email not sent.')
+    return { 
+      success: false, 
+      error: 'Systeem email niet geconfigureerd. Configureer SMTP instellingen.' 
+    }
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: {
+        user: config.user,
+        pass: config.password,
+      },
+    })
+
+    const { to, subject, html, text, replyTo, attachments } = options
+
+    await transporter.sendMail({
+      from: `"${config.from.name}" <${config.from.address}>`,
+      to: Array.isArray(to) ? to.join(', ') : to,
+      subject,
+      html,
+      text,
+      replyTo,
+      attachments,
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Failed to send system email:', error)
+    return { 
+      success: false, 
+      error: error?.message || 'Onbekende fout bij versturen e-mail' 
+    }
+  }
+}
 
 export type EmailProvider = 'gmail' | 'outlook' | 'custom'
 

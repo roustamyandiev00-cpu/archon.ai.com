@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
 import { handleApiError, resolveCompanyId } from '@/lib/api-utils'
+import logger from '@/lib/logger'
 
 const CreateContactSchema = z.object({
   voornaam: z.string().trim().min(1, 'Voornaam is verplicht'),
@@ -30,24 +32,57 @@ function normalizeContactRow(row: any) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   try {
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '25', 10)), 100)
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10))
+
     const supabase = getSupabaseAdmin()
-    const result = await supabase
+    
+    // Get total count for pagination
+    const countResult = await (supabase as any)
+      .from('contacten')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+    
+    const result = await (supabase as any)
       .from('contacten')
       .select('id, voornaam, achternaam, email, telefoon, functie, bedrijf_id, created_at, updated_at, bedrijven:bedrijf_id ( id, naam )')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(500)
+      .range(offset, offset + limit - 1)
 
     if (result.error) throw result.error
 
-    return NextResponse.json((result.data ?? []).map(normalizeContactRow))
+    return NextResponse.json({
+      data: (result.data ?? []).map(normalizeContactRow),
+      pagination: {
+        total: countResult.count ?? 0,
+        limit,
+        offset,
+        hasMore: (countResult.count ?? 0) > offset + limit
+      }
+    })
   } catch (error) {
-    return handleApiError(error, 'Kon contacten niet laden')
+    logger.apiError('/api/contacts', 'GET', error)
+    return handleApiError(error, 'Kon contacten niet laden. Probeer het later opnieuw.')
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const validated = CreateContactSchema.parse({
@@ -77,6 +112,7 @@ export async function POST(request: Request) {
           telefoon: validated.telefoon || null,
           functie: validated.functie || null,
           bedrijf_id: bedrijfId,
+          user_id: user.id,
         },
       ])
       .select('id, voornaam, achternaam, email, telefoon, functie, bedrijf_id, created_at, updated_at, bedrijven:bedrijf_id ( id, naam )')
@@ -88,10 +124,11 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
-    return handleApiError(error, 'Kon contact niet aanmaken')
+    logger.apiError('/api/contacts', 'POST', error)
+    return handleApiError(error, 'Kon contact niet aanmaken. Probeer het later opnieuw.')
   }
 }

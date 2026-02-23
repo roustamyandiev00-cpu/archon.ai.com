@@ -3,8 +3,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from '@/hooks/use-toast'
 
-async function fetchContacts() {
-  const res = await fetch('/api/contacts')
+interface PaginationInfo {
+  total: number
+  limit: number
+  offset: number
+  hasMore: boolean
+}
+
+interface ContactsResponse {
+  data: any[]
+  pagination: PaginationInfo
+}
+
+async function fetchContacts(limit = 25, offset = 0): Promise<ContactsResponse> {
+  const res = await fetch(`/api/contacts?limit=${limit}&offset=${offset}`)
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     throw new Error(body?.error ?? 'Kon contacten niet laden.')
@@ -25,12 +37,13 @@ async function postContact(formData: Record<string, unknown>) {
   return res.json()
 }
 
-export function useContacts() {
+export function useContacts(limit = 25, offset = 0) {
   const queryClient = useQueryClient()
 
   const query = useQuery({
-    queryKey: ['contacts'],
-    queryFn: fetchContacts,
+    queryKey: ['contacts', limit, offset],
+    queryFn: () => fetchContacts(limit, offset),
+    staleTime: 30000, // 30 seconds
   })
 
   const mutation = useMutation({
@@ -52,7 +65,8 @@ export function useContacts() {
   })
 
   return {
-    contacts: query.data ?? [],
+    contacts: query.data?.data ?? [],
+    pagination: query.data?.pagination ?? { total: 0, limit, offset, hasMore: false },
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,

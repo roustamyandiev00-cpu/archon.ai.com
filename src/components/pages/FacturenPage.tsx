@@ -409,18 +409,18 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
     }
   }, [autoOpenCreate, createOpen])
 
-  // Fetch invoices from API
-  const fetchFacturen = useCallback(async () => {
+  // Fetch invoices from API with pagination
+  const fetchFacturen = useCallback(async (limit = 25, offset = 0) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/facturen', { cache: 'no-store' })
+      const response = await fetch(`/api/facturen?limit=${limit}&offset=${offset}`, { cache: 'no-store' })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.error ?? 'Kon facturen niet laden.')
       }
-      const data = await response.json()
-      setFacturen(Array.isArray(data) ? data : [])
+      const result = await response.json()
+      setFacturen(Array.isArray(result.data) ? result.data : [])
     } catch (err: any) {
       setError(err?.message ?? 'Onbekende fout tijdens laden van facturen.')
       setFacturen([])
@@ -783,6 +783,73 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
     }
   }, [])
 
+  const handleExportCSV = useCallback(() => {
+    if (filteredFacturen.length === 0) {
+      toast({
+        title: 'Geen data',
+        description: 'Er zijn geen facturen om te exporteren.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // CSV headers
+    const headers = [
+      'Nummer',
+      'Klant',
+      'Klant Email',
+      'Bedrag',
+      'BTW Bedrag',
+      'Totaal Bedrag',
+      'Datum',
+      'Vervaldatum',
+      'Status',
+      'Betaald Op',
+      'Betaalmethode',
+      'Herinneringen Verstuurd',
+      'Notities',
+    ]
+
+    // CSV rows
+    const rows = filteredFacturen.map((factuur) => [
+      factuur.nummer,
+      factuur.klant,
+      factuur.klantEmail,
+      factuur.bedrag.toFixed(2),
+      factuur.btwBedrag.toFixed(2),
+      factuur.totaalBedrag.toFixed(2),
+      factuur.datum,
+      factuur.vervalDatum,
+      factuur.status,
+      factuur.betaaldOp ?? '',
+      factuur.betaalMethode ?? '',
+      factuur.herinneringenVerstuurd.toString(),
+      `"${(factuur.notities ?? '').replace(/"/g, '""')}"`,
+    ])
+
+    // Build CSV content
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map((row) => row.join(';')),
+    ].join('\n')
+
+    // Create and download file
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `facturen-export-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: 'Export voltooid',
+      description: `${filteredFacturen.length} facturen geëxporteerd naar CSV.`,
+    })
+  }, [filteredFacturen])
+
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { Alle: facturen.length }
     statusTabs.forEach(tab => {
@@ -811,13 +878,9 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
           <p className="text-muted-foreground mt-1">Beheer uw facturen, betalingen en opvolging centraal.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportCSV}>
             <Download className="w-4 h-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export
+            Export CSV
           </Button>
           <Button className="bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25" onClick={() => setCreateOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />

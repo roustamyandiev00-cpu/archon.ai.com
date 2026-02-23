@@ -62,8 +62,8 @@ export async function queueMessage({
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const supabaseAdmin = getSupabaseAdmin();
-  const { data, error } = await supabaseAdmin
-      .from('message_queue')
+  const { data, error } = await (supabaseAdmin
+      .from('message_queue') as any)
       .insert({
         user_id: userId || null,
         recipient,
@@ -107,8 +107,8 @@ export async function processMessageQueue(batchSize = 10): Promise<{
   try {
     // Get pending messages that are due
     const now = new Date().toISOString();
-    const { data: messages, error } = await supabaseAdmin
-      .from('message_queue')
+    const { data: messages, error } = await (supabaseAdmin
+      .from('message_queue') as any)
       .select('*')
       .eq('status', 'pending')
       .or(`scheduled_at.is.null,scheduled_at.lte.${now}`)
@@ -130,8 +130,8 @@ export async function processMessageQueue(batchSize = 10): Promise<{
       stats.processed++;
       
       // Mark as processing
-      await supabaseAdmin
-        .from('message_queue')
+      await (supabaseAdmin
+        .from('message_queue') as any)
         .update({ status: 'processing' })
         .eq('id', message.id);
 
@@ -183,8 +183,8 @@ export async function processMessageQueue(batchSize = 10): Promise<{
 
       // Update message status
       if (result.success) {
-        await supabaseAdmin
-          .from('message_queue')
+        await (supabaseAdmin
+          .from('message_queue') as any)
           .update({
             status: 'sent',
             sent_at: new Date().toISOString()
@@ -210,8 +210,8 @@ export async function processMessageQueue(batchSize = 10): Promise<{
         
         if (newRetryCount < message.max_retries) {
           // Schedule retry
-          await supabaseAdmin
-            .from('message_queue')
+          await (supabaseAdmin
+            .from('message_queue') as any)
             .update({
               status: 'pending',
               retry_count: newRetryCount,
@@ -220,8 +220,8 @@ export async function processMessageQueue(batchSize = 10): Promise<{
             .eq('id', message.id);
         } else {
           // Mark as failed
-          await supabaseAdmin
-            .from('message_queue')
+          await (supabaseAdmin
+            .from('message_queue') as any)
             .update({
               status: 'failed',
               failed_at: new Date().toISOString(),
@@ -269,14 +269,15 @@ async function sendEmail({
   userId: string | null;
 }): Promise<SendResult> {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     // Get SMTP settings if userId provided
     let transporter;
     let fromName = 'ArchonPro';
     let fromAddress = 'noreply@archon.ai';
 
     if (userId) {
-      const { data: userSettings } = await supabaseAdmin
-        .from('user_settings')
+      const { data: userSettings } = await (supabaseAdmin
+        .from('user_settings') as any)
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -453,8 +454,9 @@ async function logCommunication({
   errorMessage?: string;
 }) {
   try {
-    await supabaseAdmin
-      .from('communication_logs')
+    const supabaseAdmin = getSupabaseAdmin();
+    await (supabaseAdmin
+      .from('communication_logs') as any)
       .insert({
         user_id: userId,
         recipient,
@@ -520,8 +522,9 @@ export async function getTemplate(templateId: string, variables?: Record<string,
   error?: string;
 }> {
   try {
-    const { data: template, error } = await supabaseAdmin
-      .from('communication_templates')
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data: template, error } = await (supabaseAdmin
+      .from('communication_templates') as any)
       .select('*')
       .eq('id', templateId)
       .eq('is_active', true)

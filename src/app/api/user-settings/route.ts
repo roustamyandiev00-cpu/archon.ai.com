@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseAdmin()
     
     const { data, error } = await (supabase
-    // @ts-expect-error
       .from('user_settings') as any)
       .select('*')
       .eq('user_id', userId)
@@ -124,7 +123,6 @@ export async function POST(request: NextRequest) {
 
     // Check if settings exist
     const { data: existing } = await (supabase
-    // @ts-expect-error
       .from('user_settings') as any)
       .select('id, smtp_gmail_password, smtp_outlook_password, smtp_custom_password, stripe_secret_key, stripe_webhook_secret')
       .eq('user_id', userId)
@@ -189,7 +187,6 @@ export async function POST(request: NextRequest) {
     let result
     if (existing) {
       result = await (supabase
-    // @ts-expect-error
         .from('user_settings') as any)
         .update(settingsData)
         .eq('user_id', userId)
@@ -197,7 +194,6 @@ export async function POST(request: NextRequest) {
         .single()
     } else {
       result = await (supabase
-    // @ts-expect-error
         .from('user_settings') as any)
         .insert(settingsData)
         .select()

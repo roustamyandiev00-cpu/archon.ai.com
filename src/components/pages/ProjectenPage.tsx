@@ -110,6 +110,7 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
 
   const [modalOpen, setModalOpen] = useState(false)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,19 +126,19 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
     }
   }, [autoOpenCreate, modalOpen])
 
-  const fetchProjects = useCallback(async () => {
+  const fetchProjects = useCallback(async (limit = 25, offset = 0) => {
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/projecten', { cache: 'no-store' })
+      const response = await fetch(`/api/projecten?limit=${limit}&offset=${offset}`, { cache: 'no-store' })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.error ?? 'Kon projecten niet laden.')
       }
 
       const payload = await response.json()
-      setProjects(Array.isArray(payload) ? payload : [])
+      setProjects(Array.isArray(payload.data) ? payload.data : [])
     } catch (requestError: any) {
       setError(requestError?.message ?? 'Onbekende fout tijdens laden van projecten.')
       setProjects([])
@@ -422,15 +423,14 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10"
-                        onClick={() => void updateProjectStatus(project.id, nextStatus(project.status))}
-                        title="Status wijzigen"
+                        onClick={() => {
+                          setSelectedProject(project)
+                          setEditModalOpen(true)
+                        }}
+                        title="Project bewerken"
                         disabled={statusUpdatingId === project.id || deletingId === project.id}
                       >
-                        {statusUpdatingId === project.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Pencil className="w-4 h-4" />
-                        )}
+                        <Pencil className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -533,15 +533,14 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10"
-                          onClick={() => void updateProjectStatus(project.id, nextStatus(project.status))}
-                          title="Status wijzigen"
+                          onClick={() => {
+                            setSelectedProject(project)
+                            setEditModalOpen(true)
+                          }}
+                          title="Project bewerken"
                           disabled={statusUpdatingId === project.id || deletingId === project.id}
                         >
-                          {statusUpdatingId === project.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Pencil className="w-4 h-4" />
-                          )}
+                          <Pencil className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -650,6 +649,89 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
             <DialogFooter>
               <Button variant="outline" onClick={() => setDetailModalOpen(false)}>Sluiten</Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Project Modal */}
+      {selectedProject && (
+        <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Project bewerken</DialogTitle>
+              <DialogDescription>
+                Wijzig de gegevens van {selectedProject.naam}.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              const naam = formData.get('naam') as string
+              const beschrijving = formData.get('beschrijving') as string
+              const status = formData.get('status') as ProjectStatus
+              const deadline = formData.get('deadline') as string
+              const budget = Number(formData.get('budget')) || 0
+              const voortgang = Number(formData.get('voortgang')) || 0
+
+              try {
+                const response = await fetch(`/api/projecten/${selectedProject.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ naam, beschrijving, status, deadline, budget, voortgang }),
+                })
+                if (!response.ok) throw new Error('Opslaan mislukt')
+                toast({ title: 'Project bijgewerkt' })
+                setEditModalOpen(false)
+                refreshProjects()
+              } catch (err) {
+                toast({ title: 'Fout bij opslaan', variant: 'destructive' })
+              }
+            }}>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <label htmlFor="naam" className="text-sm font-medium">Projectnaam</label>
+                  <Input id="naam" name="naam" defaultValue={selectedProject.naam} required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="beschrijving" className="text-sm font-medium">Beschrijving</label>
+                  <textarea 
+                    id="beschrijving" 
+                    name="beschrijving" 
+                    defaultValue={selectedProject.beschrijving || ''} 
+                    rows={3}
+                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="status" className="text-sm font-medium">Status</label>
+                    <select id="status" name="status" defaultValue={selectedProject.status} className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                      <option value="Actief">Actief</option>
+                      <option value="On Hold">On Hold</option>
+                      <option value="Afgerond">Afgerond</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="deadline" className="text-sm font-medium">Deadline</label>
+                    <Input id="deadline" name="deadline" type="date" defaultValue={selectedProject.deadline?.split('T')[0] || ''} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="budget" className="text-sm font-medium">Budget (€)</label>
+                    <Input id="budget" name="budget" type="number" min="0" defaultValue={selectedProject.budget} />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="voortgang" className="text-sm font-medium">Voortgang (%)</label>
+                    <Input id="voortgang" name="voortgang" type="number" min="0" max="100" defaultValue={selectedProject.voortgang} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>Annuleren</Button>
+                <Button type="submit">Opslaan</Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       )}

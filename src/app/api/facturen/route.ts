@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { getUserFromRequest } from '@/lib/admin'
+import logger from '@/lib/logger'
 import {
   factuurSelect,
   normalizeFactuurRow,
@@ -45,18 +46,36 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '25', 10)), 100)
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10))
+
+    // Get total count for pagination
+    const countResult = await (supabase as any)
+      .from('facturen')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
     const { data, error } = await (supabase as any)
       .from('facturen')
       .select(factuurSelect)
-      .eq('user_id', user.id) // FILTER OP GEBRUIKER
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(500)
+      .range(offset, offset + limit - 1)
 
     if (error) throw error
-    return NextResponse.json((data ?? []).map(normalizeFactuurRow))
+    return NextResponse.json({
+      data: (data ?? []).map(normalizeFactuurRow),
+      pagination: {
+        total: countResult.count ?? 0,
+        limit,
+        offset,
+        hasMore: (countResult.count ?? 0) > offset + limit
+      }
+    })
   } catch (error) {
-    console.error('Error fetching facturen:', error)
-    return NextResponse.json({ error: 'Kon facturen niet laden.' }, { status: 500 })
+    logger.apiError('/api/facturen', 'GET', error, { userId: user?.id })
+    return NextResponse.json({ error: 'Kon facturen niet laden. Probeer het later opnieuw.' }, { status: 500 })
   }
 }
 
@@ -136,13 +155,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(normalizeFactuurRow(insertResult.data), { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validatiefout', details: error.issues }, { status: 400 })
+      return NextResponse.json({ error: 'De ingediende gegevens zijn ongeldig.', details: error.issues }, { status: 400 })
     }
     if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Ongeldige JSON payload.' }, { status: 400 })
+      return NextResponse.json({ error: 'De ingediende gegevens zijn ongeldig.' }, { status: 400 })
     }
-    console.error('Error creating factuur:', error)
-    return NextResponse.json({ error: 'Kon factuur niet aanmaken.' }, { status: 500 })
+    logger.apiError('/api/facturen', 'POST', error, { userId: user?.id })
+    return NextResponse.json({ error: 'Kon factuur niet aanmaken. Probeer het later opnieuw.' }, { status: 500 })
   }
 }
 

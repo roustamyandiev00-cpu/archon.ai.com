@@ -13,10 +13,9 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
     
-    // Check if user has the report enabled
-    const { data: settings } = await supabase
-    // @ts-expect-error
-      .from('user_settings')
+    // Check if user has report enabled
+    const { data: settings } = await (supabase
+      .from('user_settings') as any)
       .select('notify_email_weekly')
       .eq('user_id', user.id)
       .single() as any;
@@ -33,9 +32,9 @@ export async function GET(request: NextRequest) {
       { data: facturenRaw },
       { data: newContacts }
     ] = await Promise.all([
-      supabase.from('deals').select('*').eq('user_id', user.id).gte('created_at', lastWeek),
-      supabase.from('facturen').select('*').eq('user_id', user.id).gte('datum', lastWeek),
-      supabase.from('contacts').select('*').eq('user_id', user.id).gte('created_at', lastWeek)
+      (supabase.from('deals') as any).select('*').eq('user_id', user.id).gte('created_at', lastWeek),
+      (supabase.from('facturen') as any).select('*').eq('user_id', user.id).gte('datum', lastWeek),
+      (supabase.from('contacts') as any).select('*').eq('user_id', user.id).gte('created_at', lastWeek)
     ]);
 
     const deals = (dealsRaw || []) as any[];

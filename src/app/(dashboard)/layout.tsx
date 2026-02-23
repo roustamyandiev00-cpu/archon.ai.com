@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 
 import StaticThreads from '@/components/StaticThreads'
 import DashboardCommandPalette from '@/components/dashboard/DashboardCommandPalette'
+import DashboardGlobalErrorBoundary from '@/components/dashboard/DashboardGlobalErrorBoundary'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import DashboardPageErrorBoundary from '@/components/dashboard/DashboardPageErrorBoundary'
 import DesktopSidebar from '@/components/dashboard/DesktopSidebar'
@@ -74,6 +75,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [themeMounted, setThemeMounted] = useState(false)
   const [isRouteTransitionPending, startRouteTransition] = useTransition()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null)
   const { resolvedTheme, setTheme } = useTheme()
 
   const activePage = useMemo(() => {
@@ -158,7 +160,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         const cached = typeof window !== 'undefined' ? window.sessionStorage.getItem('archonpro.isAdmin') : null
         if (cached !== null) {
           setIsAdmin(cached === '1')
-          return
         }
 
         const { data: { session } } = await supabase.auth.getSession()
@@ -176,6 +177,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           const isAdminUser = role === 'admin' || role === 'ceo'
           setIsAdmin(isAdminUser)
           window.sessionStorage.setItem('archonpro.isAdmin', isAdminUser ? '1' : '0')
+
+          const nextTrialEndsAt = result.data?.trial_ends_at ?? null
+          setTrialEndsAt(typeof nextTrialEndsAt === 'string' ? nextTrialEndsAt : null)
         }
       } catch (error) {
         console.error('Error checking admin status:', error)
@@ -184,6 +188,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     checkAdmin()
   }, [])
+
+  const trialDaysLeft = useMemo(() => {
+    if (!trialEndsAt) return null
+
+    const end = new Date(trialEndsAt)
+    if (Number.isNaN(end.getTime())) return null
+
+    const now = new Date()
+    const diffMs = end.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+    return diffDays
+  }, [trialEndsAt])
+
+  useEffect(() => {
+    if (trialDaysLeft == null) return
+    if (trialDaysLeft > 0) return
+    if (pathname === '/upgrade') return
+    router.push('/upgrade')
+  }, [pathname, router, trialDaysLeft])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -250,8 +273,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <div className="min-h-screen relative" data-mounted={themeMounted ? 'true' : 'false'}>
-      <DesktopSidebar
+    <DashboardGlobalErrorBoundary>
+      <div className="min-h-screen relative" data-mounted={themeMounted ? 'true' : 'false'}>
+        <DesktopSidebar
         open={desktopSidebarOpen}
         activePage={activePage}
         onToggleOpen={toggleDesktopSidebar}
@@ -285,6 +309,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           onNavigate={navigateTo}
           onLogout={handleLogout}
         />
+
+        {trialDaysLeft != null && trialDaysLeft > 0 && trialDaysLeft <= 4 && (
+          <div className="px-4 lg:px-6">
+            <div className="mx-auto w-full max-w-[1760px]">
+              <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p>
+                    Uw proefperiode eindigt over <span className="font-semibold">{trialDaysLeft}</span>{' '}
+                    dag{trialDaysLeft === 1 ? '' : 'en'}. Upgrade nu voor ononderbroken toegang.
+                  </p>
+                  <div className="shrink-0">
+                    <button
+                      type="button"
+                      className="inline-flex h-9 items-center justify-center rounded-md bg-amber-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-amber-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/40"
+                      onClick={() => router.push('/upgrade')}
+                    >
+                      Upgrade nu
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-4 lg:p-6">
           <div className="mx-auto w-full max-w-[1760px]">
@@ -322,6 +370,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         onToggleDesktopSidebar={toggleDesktopSidebar}
         onLogout={handleLogout}
       />
-    </div>
+      </div>
+    </DashboardGlobalErrorBoundary>
   )
 }

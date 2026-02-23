@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { getUserFromRequest } from '@/lib/admin';
+import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Dashboard Stats Error:', error);
-    return NextResponse.json({ error: 'Interne server fout' }, { status: 500 });
+    logger.apiError('/api/dashboard/stats', 'GET', error);
+    return NextResponse.json({ error: 'Er is een fout opgetreden bij het laden van dashboard statistieken. Probeer het later opnieuw.' }, { status: 500 });
   }
 }

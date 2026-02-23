@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import {
   User,
   Building2,
@@ -48,6 +49,12 @@ import {
 } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 // Types
 interface UserProfile {
@@ -170,16 +177,16 @@ export default function InstellingenPage() {
     webhookSecret: '',
   })
 
-  // Auth token helper
-  const getAuthToken = useCallback(() => {
-    return localStorage.getItem('supabase_access_token') || 
-           sessionStorage.getItem('supabase_access_token')
+  // Auth token helper - uses Supabase session (tokens stored as cookies, not localStorage)
+  const getAuthToken = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token || null
   }, [])
 
   // Load user data on mount
   useEffect(() => {
     const loadData = async () => {
-      const token = getAuthToken()
+      const token = await getAuthToken()
       if (!token) {
         toast({ title: 'Niet ingelogd', description: 'Log in om instellingen te bekijken', variant: 'destructive' })
         return
@@ -271,7 +278,7 @@ export default function InstellingenPage() {
 
   // Save Profile
   const saveProfile = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     setIsSaving(true)
@@ -303,7 +310,7 @@ export default function InstellingenPage() {
 
   // Save Company
   const saveCompany = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     setIsSaving(true)
@@ -338,7 +345,7 @@ export default function InstellingenPage() {
 
   // Save Notifications
   const saveNotifications = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     setIsSaving(true)
@@ -373,7 +380,7 @@ export default function InstellingenPage() {
 
   // Save SMTP Settings
   const saveSmtpSettings = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     setIsSaving(true)
@@ -414,7 +421,7 @@ export default function InstellingenPage() {
 
   // Save Stripe Settings
   const saveStripeSettings = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     setIsSaving(true)
@@ -447,7 +454,7 @@ export default function InstellingenPage() {
 
   // Send Test Email
   const sendTestEmail = async () => {
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     try {
@@ -482,7 +489,7 @@ export default function InstellingenPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const token = getAuthToken()
+    const token = await getAuthToken()
     if (!token) return
 
     const formData = new FormData()

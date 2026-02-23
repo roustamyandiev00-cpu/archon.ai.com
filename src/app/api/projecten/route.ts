@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import {
@@ -7,6 +7,7 @@ import {
   toIsoDate,
 } from '@/app/api/finance/finance-utils'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import logger from '@/lib/logger'
 import { normalizeProjectRow, projectStatusValues } from './project-utils'
 
 const CreateProjectSchema = z.object({
@@ -23,7 +24,7 @@ const CreateProjectSchema = z.object({
 
 const projectSelect = 'id, naam, beschrijving, status, voortgang, deadline, budget, budget_gebruikt, bedrijf_id, created_at'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   let supabase: ReturnType<typeof getSupabaseAdmin>
 
   try {
@@ -36,11 +37,20 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '25', 10)), 100)
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10))
+
+    // Get total count for pagination
+    const countResult = await (supabase as any)
+      .from('projecten')
+      .select('id', { count: 'exact', head: true })
+
     const result = await (supabase as any)
       .from('projecten')
       .select(projectSelect)
       .order('created_at', { ascending: false })
-      .limit(500)
+      .range(offset, offset + limit - 1)
 
     if (result.error) throw result.error
 
@@ -50,15 +60,21 @@ export async function GET() {
       rows.map((row) => row.bedrijf_id as number | null | undefined)
     )
 
-    return NextResponse.json(
-      rows.map((row) => normalizeProjectRow({
+    return NextResponse.json({
+      data: rows.map((row) => normalizeProjectRow({
         ...row,
         companyName: companyMap.get(Number(row.bedrijf_id)) ?? null,
-      }))
-    )
+      })),
+      pagination: {
+        total: countResult.count ?? 0,
+        limit,
+        offset,
+        hasMore: (countResult.count ?? 0) > offset + limit
+      }
+    })
   } catch (error) {
-    console.error('Error fetching projecten:', error)
-    return NextResponse.json({ error: 'Kon projecten niet laden.' }, { status: 500 })
+    logger.apiError('/api/projecten', 'GET', error)
+    return NextResponse.json({ error: 'Kon projecten niet laden. Probeer het later opnieuw.' }, { status: 500 })
   }
 }
 
@@ -125,12 +141,12 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
 
-    console.error('Error creating project:', error)
-    return NextResponse.json({ error: 'Kon project niet aanmaken.' }, { status: 500 })
+    logger.apiError('/api/projecten', 'POST', error)
+    return NextResponse.json({ error: 'Kon project niet aanmaken. Probeer het later opnieuw.' }, { status: 500 })
   }
 }

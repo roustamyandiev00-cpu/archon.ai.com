@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { mapCompanyNamesById, resolveCompanyId } from '@/app/api/finance/finance-utils'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
+import logger from '@/lib/logger'
 
 import {
   dealStageValues,
@@ -51,7 +53,13 @@ function buildInsertPayload(variant: DealsSchemaVariant, data: {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   let supabase: ReturnType<typeof getSupabaseAdmin>
 
   try {
@@ -70,6 +78,7 @@ export async function GET() {
     const result = await (supabase as any)
       .from('deals')
       .select(selectColumns)
+      .eq('user_id', user.id) // Filter by user_id for multi-tenancy
       .order('created_at', { ascending: false })
       .limit(500)
 
@@ -91,12 +100,18 @@ export async function GET() {
       )
     )
   } catch (error) {
-    console.error('Error fetching deals:', error)
-    return NextResponse.json({ error: 'Kon deals niet laden.' }, { status: 500 })
+    logger.apiError('/api/deals', 'GET', error)
+    return NextResponse.json({ error: 'Kon deals niet laden. Probeer het later opnieuw.' }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   let supabase: ReturnType<typeof getSupabaseAdmin>
 
   try {
@@ -128,14 +143,17 @@ export async function POST(request: Request) {
       requestedCompanyId: validated.bedrijfId,
     })
 
-    const insertPayload = buildInsertPayload(variant, {
-      titel: validated.titel,
-      waarde: validated.waarde,
-      stadium: validated.stadium,
-      kans: validated.kans,
-      deadline: toIsoDate(validated.deadline),
-      bedrijfId,
-    })
+    const insertPayload = {
+      ...buildInsertPayload(variant, {
+        titel: validated.titel,
+        waarde: validated.waarde,
+        stadium: validated.stadium,
+        kans: validated.kans,
+        deadline: toIsoDate(validated.deadline),
+        bedrijfId,
+      }),
+      user_id: user.id // Add user_id for multi-tenancy
+    }
 
     const insertResult = await (supabase as any)
       .from('deals')
@@ -161,12 +179,12 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
 
-    console.error('Error creating deal:', error)
-    return NextResponse.json({ error: 'Kon deal niet aanmaken.' }, { status: 500 })
+    logger.apiError('/api/deals', 'POST', error)
+    return NextResponse.json({ error: 'Kon deal niet aanmaken. Probeer het later opnieuw.' }, { status: 500 })
   }
 }

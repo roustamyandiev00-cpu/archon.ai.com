@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
 import { handleApiError } from '@/lib/api-utils'
+import logger from '@/lib/logger'
 
 const CompanySchema = z.object({
   name: z.string().min(1, 'Naam is verplicht'),
@@ -28,11 +30,14 @@ async function listSupabaseCompanies(params: {
   status: string | null
   sector: string | null
   search: string | null
+  userId: string
 }) {
-  const { status, sector, search } = params
+  const { status, sector, search, userId } = params
   const supabase = getSupabaseAdmin()
 
-  const bedrijvenResult = await (supabase.from('bedrijven') as any).select('id, naam, stad, email, created_at, btw')
+  const bedrijvenResult = await (supabase.from('bedrijven') as any)
+    .select('id, naam, stad, email, created_at, btw')
+    .eq('user_id', userId)
 
   if (bedrijvenResult.error) throw bedrijvenResult.error
 
@@ -74,21 +79,34 @@ async function listSupabaseCompanies(params: {
   return payload
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
   const sector = searchParams.get('sector')
   const search = searchParams.get('search')
 
   try {
-    const payload = await listSupabaseCompanies({ status, sector, search })
+    const payload = await listSupabaseCompanies({ status, sector, search, userId: user.id })
     return NextResponse.json(payload)
   } catch (error) {
-    return handleApiError(error, 'Kon bedrijven niet laden')
+    logger.apiError('/api/companies', 'GET', error)
+    return handleApiError(error, 'Kon bedrijven niet laden. Probeer het later opnieuw.')
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Auth check
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const validatedData = CompanySchema.parse(body)
@@ -104,6 +122,7 @@ export async function POST(request: Request) {
           telefoon: validatedData.phone || null,
           adres: validatedData.description || null,
           btw: validatedData.vatNumber || null,
+          user_id: user.id,
         },
       ])
       .select('id, naam, stad, email, created_at')
@@ -127,10 +146,11 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
-    return handleApiError(error, 'Kon bedrijf niet aanmaken')
+    logger.apiError('/api/companies', 'POST', error)
+    return handleApiError(error, 'Kon bedrijf niet aanmaken. Probeer het later opnieuw.')
   }
 }

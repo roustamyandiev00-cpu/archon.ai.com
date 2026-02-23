@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getUserFromRequest } from '@/lib/admin';
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -9,7 +10,18 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth check - user must be logged in
+    const user = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+    }
+
     const { email, userId, moduleName, priceId, moduleId } = await request.json();
+
+    // Security: Only allow checkout for own account
+    if (userId !== user.id) {
+      return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 403 });
+    }
 
     if (!email || !userId || !priceId) {
       return NextResponse.json({ error: 'Ontbrekende gegevens' }, { status: 400 });

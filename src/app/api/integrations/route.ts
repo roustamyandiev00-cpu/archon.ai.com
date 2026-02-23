@@ -18,8 +18,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: integrations, error } = await supabaseAdmin
-      .from('user_integrations')
+    const { data: integrations, error } = await (supabaseAdmin
+      .from('user_integrations') as any)
       .select('*')
       .eq('user_id', user.id)
       .order('provider');
@@ -58,8 +58,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Provider is required' }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('user_integrations')
+    const { data, error } = await (supabaseAdmin
+      .from('user_integrations') as any)
       .update({
         is_enabled,
         is_connected,

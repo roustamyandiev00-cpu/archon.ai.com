@@ -1,11 +1,11 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 
 // Telegram Bot API configuration
 const TELEGRAM_API_URL = 'https://api.telegram.org/bot';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
@@ -119,7 +119,8 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint for Telegram bot info and webhook status
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -151,9 +152,8 @@ export async function GET(request: Request) {
     const webhookResult = await webhookResponse.json();
 
     // Get communication logs for this user
-    const { data: logs, error } = await supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    const { data: logs, error } = await (supabaseAdmin
+      .from('communication_logs') as any)
       .select('*')
       .eq('user_id', user.id)
       .eq('channel', 'telegram')
@@ -198,10 +198,10 @@ async function logCommunication({
   externalId?: string;
   errorMessage?: string;
 }) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
-    const { data, error } = await supabaseAdmin
-    // @ts-expect-error
-      .from('communication_logs')
+    const { data, error } = await (supabaseAdmin
+      .from('communication_logs') as any)
       .insert({
         user_id: userId,
         recipient: recipient,

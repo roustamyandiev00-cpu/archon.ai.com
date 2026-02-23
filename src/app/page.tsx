@@ -429,9 +429,9 @@ export default function Dashboard() {
       case 'artikelen':
         return <ArtikelenPage autoOpenCreate={autoOpenCreate} />
       case 'timesheets':
-        return <TimesheetsPage autoOpenCreate={autoOpenCreate} />
+        return <TimesheetsPage />
       case 'betalingen':
-        return <BetalingenPage autoOpenCreate={autoOpenCreate} />
+        return <BetalingenPage />
       case 'ai-assistant':
         return <AIAssistantPage />
       case 'abonnement':

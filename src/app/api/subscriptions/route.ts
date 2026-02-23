@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { requireAdmin, getUserFromRequest } from '@/lib/admin';
 
 // GET /api/subscriptions - Get user's subscriptions or all (for admin)
 export async function GET(request: NextRequest) {
@@ -10,29 +9,44 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get("userId");
     const all = searchParams.get("all") === "true";
 
-    let subscriptions;
-    
+    const supabase = getSupabaseAdmin();
+
     if (all) {
       // Admin view - require admin
-      const { requireAdmin } = await import('@/lib/admin')
-      const adminCheck = await requireAdmin(request)
-      if (!(adminCheck as any).ok) return adminCheck as NextResponse
+      const adminCheck = await requireAdmin(request);
+      if (!(adminCheck as any).ok) return adminCheck as NextResponse;
 
-      // get all subscriptions with module details
-      subscriptions = await prisma.subscription.findMany({
-        include: {
-          module: true,
-        },
-        orderBy: { createdAt: "desc" },
+      // Get all subscriptions with plan details
+      const { data: subscriptions, error } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          *,
+          plan:subscription_plans(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data: subscriptions,
       });
     } else if (userId) {
       // Get specific user's subscriptions
-      subscriptions = await prisma.subscription.findMany({
-        where: { userId },
-        include: {
-          module: true,
-        },
-        orderBy: { createdAt: "desc" },
+      const { data: subscriptions, error } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          *,
+          plan:subscription_plans(*)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data: subscriptions,
       });
     } else {
       return NextResponse.json(
@@ -40,11 +54,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      data: subscriptions,
-    });
   } catch (error) {
     console.error("Error fetching subscriptions:", error);
     return NextResponse.json(
@@ -58,49 +67,76 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, moduleId } = body;
+    const { userId, planId } = body;
 
-    if (!userId || !moduleId) {
+    if (!userId || !planId) {
       return NextResponse.json(
-        { success: false, error: "userId and moduleId are required" },
+        { success: false, error: "userId and planId are required" },
         { status: 400 }
       );
     }
 
-    // Get module price
-    const moduleData = await prisma.module.findUnique({
-      where: { id: moduleId },
-    });
+    const supabase = getSupabaseAdmin();
 
-    if (!moduleData) {
+    // Get plan details
+    const { data: planData, error: planError } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !planData) {
       return NextResponse.json(
-        { success: false, error: "Module not found" },
+        { success: false, error: "Plan not found" },
         { status: 404 }
       );
     }
 
-    // Check if user already has this module
-    const existing = await prisma.subscription.findFirst({
-      where: { userId, moduleId },
-    });
+    // Check if user already has a subscription
+    const { data: existing } = await supabase
+      .from('user_subscriptions')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: "User already has this module" },
+        { success: false, error: "User already has a subscription" },
         { status: 400 }
       );
     }
 
-    const subscription = await prisma.subscription.create({
-      data: {
-        userId,
-        moduleId,
-        amount: moduleData.price,
-      },
-      include: {
-        module: true,
-      },
-    });
+    // Create subscription
+    const { data: subscription, error: createError } = await (supabase
+      .from('user_subscriptions') as any)
+      .insert({
+        user_id: userId,
+        plan_id: planId,
+        status: 'trial',
+        billing_cycle: 'monthly',
+        current_period_start: new Date().toISOString(),
+        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select(`
+        *,
+        plan:subscription_plans(*)
+      `)
+      .single();
+
+    if (createError) throw createError;
+
+    // Update user's subscription_tier based on plan slug
+    const tierMap: Record<string, string> = {
+      'starter': 'basis',
+      'professional': 'groei',
+      'enterprise': 'premium',
+    };
+    const tier = tierMap[(planData as any).slug] || 'basis';
+
+    await (supabase
+      .from('users') as any)
+      .update({ subscription_tier: tier })
+      .eq('id', userId);
 
     return NextResponse.json({
       success: true,
@@ -119,7 +155,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, status, endDate } = body;
+    const { id, status, currentPeriodEnd, cancelledAt } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -128,17 +164,32 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {};
-    if (status !== undefined) updateData.status = status;
-    if (endDate !== undefined) updateData.endDate = new Date(endDate);
+    const supabase = getSupabaseAdmin();
 
-    const subscription = await prisma.subscription.update({
-      where: { id },
-      data: updateData,
-      include: {
-        module: true,
-      },
-    });
+    const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
+    if (status !== undefined) updateData.status = status;
+    if (currentPeriodEnd !== undefined) updateData.current_period_end = currentPeriodEnd;
+    if (cancelledAt !== undefined) updateData.cancelled_at = cancelledAt;
+
+    const { data: subscription, error } = await (supabase
+      .from('user_subscriptions') as any)
+      .update(updateData)
+      .eq('id', id)
+      .select(`
+        *,
+        plan:subscription_plans(*)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    // Update user's subscription_tier if status changed
+    if (status === 'cancelled' || status === 'expired') {
+      await (supabase
+        .from('users') as any)
+        .update({ subscription_tier: 'basis' })
+        .eq('id', (subscription as any).user_id);
+    }
 
     return NextResponse.json({
       success: true,
@@ -166,9 +217,29 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.subscription.delete({
-      where: { id },
-    });
+    const supabase = getSupabaseAdmin();
+
+    // Get subscription before deleting to update user tier
+    const { data: subscription } = await supabase
+      .from('user_subscriptions')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    const { error } = await supabase
+      .from('user_subscriptions')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    // Reset user's subscription_tier to basis
+    if (subscription) {
+      await (supabase
+        .from('users') as any)
+        .update({ subscription_tier: 'basis' })
+        .eq('id', (subscription as any).user_id);
+    }
 
     return NextResponse.json({
       success: true,

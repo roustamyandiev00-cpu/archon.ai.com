@@ -480,6 +480,88 @@ export default function ContactenPage({ autoOpenCreate }: { autoOpenCreate?: boo
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Contact Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Contact bewerken</DialogTitle>
+            <DialogDescription>
+              Wijzig de gegevens van {editingContact?.voornaam} {editingContact?.achternaam}.
+            </DialogDescription>
+          </DialogHeader>
+          {editingContact && (
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              const voornaam = formData.get('voornaam') as string
+              const achternaam = formData.get('achternaam') as string
+              const functie = formData.get('functie') as string
+              const email = formData.get('email') as string
+              const telefoon = formData.get('telefoon') as string
+              const status = formData.get('status') as ContactStatus
+
+              setIsSaving(true)
+              try {
+                const response = await fetch(`/api/contacts/${editingContact.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ voornaam, achternaam, functie, email, telefoon, status }),
+                })
+                if (!response.ok) throw new Error('Opslaan mislukt')
+                toast({ title: 'Contact bijgewerkt' })
+                setIsEditModalOpen(false)
+                // Refresh contacts by triggering a re-render
+                window.location.reload()
+              } catch (err) {
+                toast({ title: 'Fout bij opslaan', variant: 'destructive' })
+              } finally {
+                setIsSaving(false)
+              }
+            }}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="voornaam" className="text-sm font-medium">Voornaam</label>
+                    <Input id="voornaam" name="voornaam" defaultValue={editingContact.voornaam} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="achternaam" className="text-sm font-medium">Achternaam</label>
+                    <Input id="achternaam" name="achternaam" defaultValue={editingContact.achternaam} required />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="functie" className="text-sm font-medium">Functie</label>
+                  <Input id="functie" name="functie" defaultValue={editingContact.functie || ''} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">E-mail</label>
+                  <Input id="email" name="email" type="email" defaultValue={editingContact.email || ''} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="telefoon" className="text-sm font-medium">Telefoon</label>
+                  <Input id="telefoon" name="telefoon" defaultValue={editingContact.telefoon || ''} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="status" className="text-sm font-medium">Status</label>
+                  <select id="status" name="status" defaultValue={editingContact.status || 'lead'} className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="lead">Lead</option>
+                    <option value="klant">Klant</option>
+                    <option value="leverancier">Leverancier</option>
+                    <option value="prospect">Prospect</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Annuleren</Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? 'Opslaan...' : 'Opslaan'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

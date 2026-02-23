@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { ArchonLoader } from "@/components/archon-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +40,9 @@ interface Module {
 }
 
 export default function AdminModulesPage() {
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -53,9 +59,53 @@ export default function AdminModulesPage() {
     sortOrder: "0",
   });
 
+  // Check admin access on mount
   useEffect(() => {
-    fetchModules();
-  }, []);
+    const checkAdminAccess = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError || !session?.user) {
+          router.push('/login');
+          return;
+        }
+
+        const response = await fetch('/api/auth/me', {
+          headers: { 
+            'Authorization': `Bearer ${session.access_token}` 
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Kon gebruikersgegevens niet ophalen');
+        }
+
+        const result = await response.json();
+        const userRole = result.data?.role;
+        
+        if (userRole === 'admin' || userRole === 'ceo') {
+          setIsAdmin(true);
+        } else {
+          toast.error('Geen toegang tot admin dashboard');
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        toast.error('Er is een fout opgetreden bij de toegangscontrole');
+        router.push('/');
+      } finally {
+        setAuthChecking(false);
+      }
+    };
+    
+    checkAdminAccess();
+  }, [router]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchModules();
+    }
+  }, [isAdmin]);
 
   const fetchModules = async () => {
     try {
@@ -165,6 +215,18 @@ export default function AdminModulesPage() {
       sortOrder: "0",
     });
   };
+
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <ArchonLoader size={100} text="Toegang controleren..." />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   if (loading) {
     return <div className="p-6">Laden...</div>;

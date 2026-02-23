@@ -1,11 +1,11 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 
 // WhatsApp Business API configuration
 const WHATSAPP_API_VERSION = 'v18.0';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
@@ -103,8 +103,8 @@ export async function POST(request: Request) {
       console.error('WhatsApp API error:', result);
       
       // Record failed attempt
-      await supabaseAdmin
-        .from('document_sends')
+      await (supabaseAdmin
+        .from('document_sends') as any)
         .insert({
           user_id: user.id,
           entity_type: entity_type,
@@ -125,8 +125,8 @@ export async function POST(request: Request) {
     }
 
     // Record successful send
-    const { data: sendRecord, error: dbError } = await supabaseAdmin
-      .from('document_sends')
+    const { data: sendRecord, error: dbError } = await (supabaseAdmin
+      .from('document_sends') as any)
       .insert({
         user_id: user.id,
         entity_type: entity_type,
@@ -163,7 +163,8 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint for WhatsApp message history
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -181,7 +182,7 @@ export async function GET(request: Request) {
     const entityType = searchParams.get('entity_type');
     const entityId = searchParams.get('entity_id');
 
-    let query = supabaseAdmin
+    let query = (supabaseAdmin as any)
       .from('document_sends')
       .select('*')
       .eq('user_id', user.id)

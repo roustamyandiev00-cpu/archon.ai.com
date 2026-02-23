@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { requireAdmin } from '@/lib/admin'
+import logger from '@/lib/logger'
 
 // GET - Analytics data
 export async function GET(request: NextRequest) {
@@ -32,8 +33,8 @@ export async function GET(request: NextRequest) {
     // Calculate MRR based on subscription tiers
     const tierPrices: Record<string, number> = {
       basis: 29,
-      pro: 79,
-      enterprise: 199,
+      groei: 79,
+      premium: 199,
     }
 
     let mrr = 0
@@ -74,8 +75,8 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in GET /api/admin/analytics:', error)
-    return NextResponse.json({ error: 'Interne server fout' }, { status: 500 })
+    logger.apiError('/api/admin/analytics', 'GET', error)
+    return NextResponse.json({ error: 'Er is een fout opgetreden bij het ophalen van analytics. Probeer het later opnieuw.' }, { status: 500 })
   }
 }
 

@@ -124,28 +124,24 @@ export async function GET(request: Request) {
     const supabaseAdmin = getSupabaseAdmin();
 
     const { data: pending, error: pendingError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('message_queue')
+      .from('message_queue' as any)
       .select('id', { count: 'exact' })
       .eq('status', 'pending');
 
     const { data: processing, error: processingError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('message_queue')
+      .from('message_queue' as any)
       .select('id', { count: 'exact' })
       .eq('status', 'processing');
 
     const { data: failed, error: failedError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('message_queue')
+      .from('message_queue' as any)
       .select('id', { count: 'exact' })
       .eq('status', 'failed');
 
     // Get upcoming scheduled messages
     const now = new Date().toISOString();
     const { data: scheduled, error: scheduledError } = await supabaseAdmin
-    // @ts-expect-error
-      .from('message_queue')
+      .from('message_queue' as any)
       .select('id, recipient, channel, scheduled_at')
       .eq('status', 'pending')
       .not('scheduled_at', 'is', null)

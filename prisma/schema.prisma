@@ -11,22 +11,33 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  phone     String?
-  language  String   @default("nl")
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    String      @id @default(cuid())
+  email                 String      @unique
+  name                  String?
+  phone                 String?
+  language              String      @default("nl")
+  avatar                String?
+  role                  String      @default("user")
+  isBlocked             Boolean     @default(false) @map("is_blocked")
+  subscriptionTier      String?     @map("subscription_tier")
+  tokensUsed            Int         @default(0) @map("tokens_used")
+  tokensLimit           Int         @default(1000) @map("tokens_limit")
+  trialEndsAt           DateTime?   @map("trial_ends_at")
+  trialNotificationSent DateTime?   @map("trial_notification_sent")
+  lastActive            DateTime?   @map("last_active")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 
   // Relations
   settings UserSettings?
+
+  @@map("users")
 }
 
 // User-specific settings for SaaS multi-tenant
@@ -426,5 +437,38 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@map("payments")
+}
+
+// Artikelen (Products/Services)
+model Artikel {
+  id          String   @id @default(cuid())
+  naam        String
+  categorie   String   @default("Diensten") // Diensten, Producten
+  prijs       Float    @default(0)
+  eenheid     String   @default("stuk") // uur, stuk, maand, dag
+  voorraad    String?  // null = n.v.t., "Onbeperkt", or number as string
+  status      String   @default("Actief") // Actief, Inactief
+  beschrijving String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("artikelen")
+}
+
+// Timesheets (Time tracking)
+model Timesheet {
+  id          String   @id @default(cuid())
+  datum       DateTime @default(now())
+  projectId   String?
+  project     String
+  activiteit  String
+  uren        Float
+  billable    Boolean  @default(true)
+  notities    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([datum])
+  @@map("timesheets")
 }
 

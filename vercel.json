@@ -11,5 +11,11 @@
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/trial-check",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

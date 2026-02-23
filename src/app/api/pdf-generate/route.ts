@@ -30,9 +30,8 @@ export async function POST(request: Request) {
     // Get user's preferred template if not specified
     let selectedTemplate = template;
     if (!selectedTemplate) {
-      const { data: userSettings } = await supabaseAdmin
-    // @ts-expect-error
-        .from('user_settings')
+      const { data: userSettings } = await (supabaseAdmin
+        .from('user_settings') as any)
         .select('pdf_template_choice')
         .eq('user_id', user.id)
         .single();
@@ -73,8 +72,8 @@ export async function POST(request: Request) {
       .getPublicUrl(filePath);
 
     // Record in database
-    const { data: pdfRecord, error: dbError } = await supabaseAdmin
-      .from('pdf_generations')
+    const { data: pdfRecord, error: dbError } = await (supabaseAdmin
+      .from('pdf_generations') as any)
       .insert({
         user_id: user.id,
         entity_type: entity_type,
@@ -111,6 +110,7 @@ export async function POST(request: Request) {
 // GET endpoint to retrieve PDF generation history
 export async function GET(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -128,8 +128,8 @@ export async function GET(request: Request) {
     const entityId = searchParams.get('entity_id');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    let query = supabaseAdmin
-      .from('pdf_generations')
+    let query = (supabaseAdmin
+      .from('pdf_generations') as any)
       .select('*')
       .eq('user_id', user.id)
       .order('generated_at', { ascending: false })
@@ -151,7 +151,7 @@ export async function GET(request: Request) {
     }
 
     // Add public URLs
-    const generationsWithUrls = generations.map(gen => {
+    const generationsWithUrls = generations.map((gen: any) => {
       const { data: { publicUrl } } = supabaseAdmin
         .storage
         .from('documents')

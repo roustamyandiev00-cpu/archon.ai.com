@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { requireAdmin } from '@/lib/admin'
 
 // POST /api/admin/set-all-admin - Set all users to admin role
 export async function POST(request: NextRequest) {
   try {
+    const authCheck = await requireAdmin(request)
+    if (!(authCheck as any).ok) return authCheck as NextResponse
+
     const supabase = getSupabaseAdmin()
 
     // Get all users from auth

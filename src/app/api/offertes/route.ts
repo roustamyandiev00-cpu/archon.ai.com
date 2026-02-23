@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { handleApiError, resolveCompanyId } from '@/lib/api-utils'
+import logger from '@/lib/logger'
 import {
   offerteAiSelect,
   offerteBaseSelect,
@@ -199,7 +200,8 @@ export async function GET() {
 
     return NextResponse.json((data ?? []).map(normalizeOfferteRow))
   } catch (error) {
-    return handleApiError(error, 'Kon offertes niet laden')
+    logger.apiError('/api/offertes', 'GET', error)
+    return handleApiError(error, 'Kon offertes niet laden. Probeer het later opnieuw.')
   }
 }
 
@@ -322,16 +324,17 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
+        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
         { status: 400 }
       )
     }
     if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Ongeldige JSON payload.' }, { status: 400 })
+      return NextResponse.json({ error: 'De ingediende gegevens zijn ongeldig.' }, { status: 400 })
     }
     if (error instanceof Error && error.message.includes('Afmetingen JSON is ongeldig')) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    return handleApiError(error, 'Kon offerte niet aanmaken')
+    logger.apiError('/api/offertes', 'POST', error)
+    return handleApiError(error, 'Kon offerte niet aanmaken. Probeer het later opnieuw.')
   }
 }
