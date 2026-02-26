@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { z } from 'zod'
 
 const agendaSchema = z.object({
   titel: z.string().min(1),
@@ -13,7 +14,7 @@ const agendaSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('afspraken')
       .select('*')
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = agendaSchema.parse(body)
 
-    const supabase = createClient()
+    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('afspraken')
       .insert(validatedData)
