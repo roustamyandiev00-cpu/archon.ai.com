@@ -29,7 +29,7 @@ const HISTORY: Notification[] = [
   { id: "3", title: "Betalingsherinnering", message: "Je abonnement verloopt binnenkort. Vernieuw om toegang te behouden.", type: "info", sent_to: "expiring", sent_at: "2026-02-15", read_count: 19, total_sent: 23 },
 ];
 
-const TYPE_ICONS: Record<string, JSX.Element> = {
+const TYPE_ICONS: Record<string, React.ReactNode> = {
   info: <Info className="w-4 h-4 text-blue-400" />,
   success: <CheckCircle className="w-4 h-4 text-emerald-400" />,
   warning: <AlertCircle className="w-4 h-4 text-amber-400" />,
