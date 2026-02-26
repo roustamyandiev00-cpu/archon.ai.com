@@ -6,13 +6,15 @@ import dynamic from'next/dynamic'
 
 import { toast } from'@/hooks/use-toast'
 import { supabase } from'@/lib/supabase'
-import StaticThreads from'@/components/StaticThreads'
+
 import DashboardHome from'@/components/dashboard/DashboardHome'
 import DashboardHeader from'@/components/dashboard/DashboardHeader'
 import DesktopSidebar from'@/components/dashboard/DesktopSidebar'
 import MobileSidebar from'@/components/dashboard/MobileSidebar'
 import DashboardCommandPalette from'@/components/dashboard/DashboardCommandPalette'
 import DashboardPageErrorBoundary from'@/components/dashboard/DashboardPageErrorBoundary'
+import { EmailVerificationBanner } from'@/components/ui/email-verification-banner'
+import { EmailVerificationGuard } from'@/components/auth/email-verification-guard'
 import { pageLabelById, validPages } from'@/components/dashboard/navigation'
 
 function PageLoading() {
@@ -458,6 +460,7 @@ export default function Dashboard() {
  }
 
  return (
+ <EmailVerificationGuard>
  <div
  className="min-h-screen relative"
  data-mounted={themeMounted ?'true':'false'}
@@ -497,6 +500,7 @@ export default function Dashboard() {
 
  <div className="p-4 lg:p-6">
  <div className="mx-auto w-full max-w-[1760px]">
+ <EmailVerificationBanner />
  <div className="flex items-start gap-6">
  <main
  id="main-content"
@@ -510,7 +514,7 @@ export default function Dashboard() {
  </main>
 
  <div className="hidden xl:block w-96 shrink-0 sticky top-24 self-start">
- <StaticThreads />
+ {/* Discussions panel removed */}
  </div>
  </div>
  </div>
@@ -530,5 +534,6 @@ export default function Dashboard() {
  onLogout={handleLogout}
  />
  </div>
+ </EmailVerificationGuard>
  )
 }

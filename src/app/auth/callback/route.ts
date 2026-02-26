@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
  const requestUrl = new URL(request.url);
  const code = requestUrl.searchParams.get("code");
  const next = requestUrl.searchParams.get("next") ??"/";
+ const type = requestUrl.searchParams.get("type"); // email verification type
 
  const cookieStore = await cookies()
  const supabase = createServerClient(
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
  // Check if user exists in users table
  const { data: existingUser } = await (adminSupabase
  .from('users') as any)
- .select('id, subscription_tier')
+ .select('id, subscription_tier, email_verified')
  .eq('id', session.user.id)
  .maybeSingle()
  
@@ -72,6 +73,7 @@ export async function GET(request: NextRequest) {
  name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
  subscription_tier:'basis',
  trial_ends_at: trialEndDate.toISOString(),
+ email_verified: session.user.email_confirmed_at ? true : false,
  })
  
  // Create user_subscription with trial
@@ -90,6 +92,14 @@ export async function GET(request: NextRequest) {
  }
  } else {
  tier = (existingUser as any).subscription_tier ||'basis'
+ 
+ // Update email verification status if it changed
+ if (session.user.email_confirmed_at && !(existingUser as any).email_verified) {
+ await (adminSupabase
+ .from('users') as any)
+ .update({ email_verified: true })
+ .eq('id', session.user.id)
+ }
  }
  
  cookieStore.set('subscription-tier', tier, {
@@ -99,6 +109,13 @@ export async function GET(request: NextRequest) {
  maxAge: 60 * 60 * 24 * 365, // 1 year
  path:'/'
  })
+
+ // If this is email verification, show success message
+ if (type === 'email') {
+ return NextResponse.redirect(
+ `${requestUrl.origin}/auth/email-verified?success=true`
+ );
+ }
  }
  } catch (error) {
  console.error("Error in auth callback:", error);

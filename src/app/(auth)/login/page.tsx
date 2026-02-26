@@ -38,6 +38,35 @@ export default function LoginPage() {
  }
 
  if (data.user) {
+ // Check if email is verified
+ if (!data.user.email_confirmed_at) {
+ toast.error("Je email is nog niet geverifieerd. Controleer je inbox voor de verificatielink.");
+ 
+ // Offer to resend verification email
+ setTimeout(() => {
+ if (confirm("Wil je de verificatie email opnieuw ontvangen?")) {
+ supabase.auth.resend({
+ type: 'signup',
+ email: formData.email,
+ options: {
+ emailRedirectTo: `${window.location.origin}/auth/callback`,
+ }
+ }).then(({ error }) => {
+ if (error) {
+ toast.error("Fout bij versturen verificatie email");
+ } else {
+ toast.success("Verificatie email opnieuw verstuurd!");
+ router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+ }
+ });
+ }
+ }, 2000);
+ 
+ // Sign out the unverified user
+ await supabase.auth.signOut();
+ return;
+ }
+
  toast.success("Succesvol ingelogd!");
  
  // Check if user is admin/ceo and redirect accordingly

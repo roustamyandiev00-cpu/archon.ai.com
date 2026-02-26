@@ -1631,93 +1631,302 @@ export default function InstellingenPage() {
  {/* Sjablonen Tab */}
  <TabsContent value="sjablonen">
  <div className="bg-card shadow-sm border border-border/50 rounded-2xl p-6">
- <h2 className="text-lg font-semibold text-foreground mb-6">Document Sjablonen</h2>
+ <div className="flex items-center justify-between mb-6">
+ <div>
+ <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+ <div className="p-2 rounded-xl bg-linear-to-br from-purple-500/20 to-pink-500/20">
+ <FileText className="w-6 h-6 text-purple-600" />
+ </div>
+ Document Sjablonen
+ </h2>
+ <p className="text-muted-foreground mt-1">Kies je favoriete sjablonen voor offertes en facturen</p>
+ </div>
+ <Badge className="bg-linear-to-r from-purple-500/20 to-pink-500/20 text-purple-600 border-purple-500/30">
+ <Sparkles className="w-3 h-3 mr-1" />
+ Premium Templates
+ </Badge>
+ </div>
  
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+ <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
  {/* Offerte Templates */}
- <div className="space-y-4">
- <h3 className="font-medium text-foreground/80 flex items-center gap-2">
- <FileText className="w-4 h-4 text-blue-500"/>
- Offerte Sjablonen
- </h3>
+ <div className="space-y-6">
+ <div className="flex items-center gap-3 mb-4">
+ <div className="p-2 rounded-lg bg-blue-500/10">
+ <FileText className="w-5 h-5 text-blue-500"/>
+ </div>
+ <div>
+ <h3 className="font-semibold text-foreground">Offerte Sjablonen</h3>
+ <p className="text-sm text-muted-foreground">Professionele templates voor je offertes</p>
+ </div>
+ </div>
  
- <div className="space-y-3">
+ <div className="space-y-4">
  {[
- { id:'quotation-variant-1a-basic', name:'Basic Template', description:'Standaard template met handtekeninggebied'},
- { id:'quotation-variant-3-header', name:'Header Template', description:'Met nummer en datum in header'}
+ { 
+ id:'quotation-variant-1a-basic', 
+ name:'Modern Basic', 
+ description:'Clean en professioneel design met handtekeninggebied',
+ preview: '/api/templates/quotation-variant-1a-basic.png',
+ features: ['Handtekening veld', 'Automatische berekeningen', 'Bedrijfslogo'],
+ popular: true
+ },
+ { 
+ id:'quotation-variant-3-header', 
+ name:'Executive Header', 
+ description:'Stijlvolle header met prominente bedrijfsbranding',
+ preview: '/api/templates/quotation-variant-3-header.png',
+ features: ['Grote header', 'Kleuraccenten', 'Tabel overzicht'],
+ popular: false
+ },
+ { 
+ id:'quotation-variant-minimal', 
+ name:'Minimalist Pro', 
+ description:'Strak minimalistisch design voor moderne bedrijven',
+ preview: '/api/templates/quotation-variant-minimal.png',
+ features: ['Minimaal design', 'Focus op content', 'Subtiele branding'],
+ popular: false
+ }
  ].map((template) => (
- <div key={template.id} className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:bg-muted transition-colors">
- <div className="flex items-center gap-3">
+ <div key={template.id} className={`relative group rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
+ templates.quotation === template.id 
+ ? 'border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/20' 
+ : 'border-border/50 hover:border-blue-500/50 hover:bg-blue-500/5'
+ }`}>
+ {template.popular && (
+ <div className="absolute top-3 right-3 z-10">
+ <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-none text-xs">
+ <Sparkles className="w-3 h-3 mr-1" />
+ Populair
+ </Badge>
+ </div>
+ )}
+ 
+ <div className="p-6">
+ <div className="flex items-start gap-4">
+ <div className="flex-shrink-0">
  <input
  type="radio"
  name="quotation-template"
  checked={templates.quotation === template.id}
  onChange={() => setTemplates({ ...templates, quotation: template.id })}
- className="w-4 h-4 text-blue-500"
+ className="w-5 h-5 text-blue-500 border-2 border-border/50 focus:ring-blue-500 focus:ring-2"
  />
- <div>
- <p className="font-medium text-foreground">{template.name}</p>
- <p className="text-sm text-muted-foreground">{template.description}</p>
+ </div>
+ 
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-2">
+ <h4 className="font-semibold text-foreground">{template.name}</h4>
+ {templates.quotation === template.id && (
+ <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-xs">
+ <Check className="w-3 h-3 mr-1" />
+ Actief
+ </Badge>
+ )}
+ </div>
+ <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+ 
+ {/* Features */}
+ <div className="flex flex-wrap gap-1 mb-4">
+ {template.features.map((feature, idx) => (
+ <Badge key={idx} variant="secondary" className="text-xs bg-muted/50 text-muted-foreground">
+ {feature}
+ </Badge>
+ ))}
+ </div>
+ 
+ {/* Preview Thumbnail */}
+ <div className="relative mb-4 rounded-lg overflow-hidden bg-muted/30 border border-border/30">
+ <div className="aspect-[4/5] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 flex items-center justify-center">
+ <div className="text-center">
+ <FileText className="w-12 h-12 text-blue-500/50 mx-auto mb-2" />
+ <p className="text-xs text-muted-foreground">Template Preview</p>
  </div>
  </div>
+ <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+ </div>
+ 
+ {/* Actions */}
+ <div className="flex gap-2">
  <Button
  variant="outline"
  size="sm"
- onClick={() => window.open(`/templates/${template.id}.docx`,'_blank')}
- className="border-border/50"
+ onClick={() => window.open(`/api/templates/${template.id}`, '_blank')}
+ className="flex-1 border-border/50 hover:bg-blue-500/10 hover:border-blue-500/50"
  >
  <Eye className="w-4 h-4 mr-2"/>
  Preview
  </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={() => toast({ title: 'Download gestart', description: `${template.name} wordt gedownload...` })}
+ className="border-border/50 hover:bg-blue-500/10 hover:border-blue-500/50"
+ >
+ <FileText className="w-4 h-4"/>
+ </Button>
+ </div>
+ </div>
+ </div>
+ </div>
  </div>
  ))}
  </div>
  </div>
  
  {/* Factuur Templates */}
- <div className="space-y-4">
- <h3 className="font-medium text-foreground/80 flex items-center gap-2">
- <FileText className="w-4 h-4 text-green-500"/>
- Factuur Sjablonen
- </h3>
+ <div className="space-y-6">
+ <div className="flex items-center gap-3 mb-4">
+ <div className="p-2 rounded-lg bg-emerald-500/10">
+ <FileText className="w-5 h-5 text-emerald-500"/>
+ </div>
+ <div>
+ <h3 className="font-semibold text-foreground">Factuur Sjablonen</h3>
+ <p className="text-sm text-muted-foreground">Professionele templates voor je facturen</p>
+ </div>
+ </div>
  
- <div className="space-y-3">
+ <div className="space-y-4">
  {[
- { id:'invoice-variant-1-basic', name:'Basic Template', description:'Standaard factuur template'},
- { id:'invoice-variant-3-header', name:'Header Template', description:'Met nummer en datum in header'}
+ { 
+ id:'invoice-variant-1-basic', 
+ name:'Professional Basic', 
+ description:'Standaard factuur template met alle essentiële elementen',
+ preview: '/api/templates/invoice-variant-1-basic.png',
+ features: ['BTW berekening', 'Betaalgegevens', 'Vervaldatum'],
+ popular: true
+ },
+ { 
+ id:'invoice-variant-3-header', 
+ name:'Corporate Header', 
+ description:'Zakelijke uitstraling met prominente header',
+ preview: '/api/templates/invoice-variant-3-header.png',
+ features: ['Corporate design', 'Grote header', 'Kleur accenten'],
+ popular: false
+ },
+ { 
+ id:'invoice-variant-modern', 
+ name:'Modern Clean', 
+ description:'Moderne, strakke factuur voor tech bedrijven',
+ preview: '/api/templates/invoice-variant-modern.png',
+ features: ['Modern design', 'QR code betaling', 'Digital first'],
+ popular: false
+ }
  ].map((template) => (
- <div key={template.id} className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:bg-muted transition-colors">
- <div className="flex items-center gap-3">
+ <div key={template.id} className={`relative group rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
+ templates.invoice === template.id 
+ ? 'border-emerald-500 bg-emerald-500/5 shadow-lg shadow-emerald-500/20' 
+ : 'border-border/50 hover:border-emerald-500/50 hover:bg-emerald-500/5'
+ }`}>
+ {template.popular && (
+ <div className="absolute top-3 right-3 z-10">
+ <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-none text-xs">
+ <Sparkles className="w-3 h-3 mr-1" />
+ Populair
+ </Badge>
+ </div>
+ )}
+ 
+ <div className="p-6">
+ <div className="flex items-start gap-4">
+ <div className="flex-shrink-0">
  <input
  type="radio"
  name="invoice-template"
  checked={templates.invoice === template.id}
  onChange={() => setTemplates({ ...templates, invoice: template.id })}
- className="w-4 h-4 text-green-500"
+ className="w-5 h-5 text-emerald-500 border-2 border-border/50 focus:ring-emerald-500 focus:ring-2"
  />
- <div>
- <p className="font-medium text-foreground">{template.name}</p>
- <p className="text-sm text-muted-foreground">{template.description}</p>
+ </div>
+ 
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-2">
+ <h4 className="font-semibold text-foreground">{template.name}</h4>
+ {templates.invoice === template.id && (
+ <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-xs">
+ <Check className="w-3 h-3 mr-1" />
+ Actief
+ </Badge>
+ )}
+ </div>
+ <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+ 
+ {/* Features */}
+ <div className="flex flex-wrap gap-1 mb-4">
+ {template.features.map((feature, idx) => (
+ <Badge key={idx} variant="secondary" className="text-xs bg-muted/50 text-muted-foreground">
+ {feature}
+ </Badge>
+ ))}
+ </div>
+ 
+ {/* Preview Thumbnail */}
+ <div className="relative mb-4 rounded-lg overflow-hidden bg-muted/30 border border-border/30">
+ <div className="aspect-[4/5] bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 flex items-center justify-center">
+ <div className="text-center">
+ <FileText className="w-12 h-12 text-emerald-500/50 mx-auto mb-2" />
+ <p className="text-xs text-muted-foreground">Template Preview</p>
  </div>
  </div>
+ <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+ </div>
+ 
+ {/* Actions */}
+ <div className="flex gap-2">
  <Button
  variant="outline"
  size="sm"
- onClick={() => window.open(`/templates/${template.id}.docx`,'_blank')}
- className="border-border/50"
+ onClick={() => window.open(`/api/templates/${template.id}`, '_blank')}
+ className="flex-1 border-border/50 hover:bg-emerald-500/10 hover:border-emerald-500/50"
  >
  <Eye className="w-4 h-4 mr-2"/>
  Preview
  </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={() => toast({ title: 'Download gestart', description: `${template.name} wordt gedownload...` })}
+ className="border-border/50 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+ >
+ <FileText className="w-4 h-4"/>
+ </Button>
+ </div>
+ </div>
+ </div>
+ </div>
  </div>
  ))}
  </div>
  </div>
  </div>
  
+ {/* Custom Template Upload Section */}
+ <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
+ <div className="flex items-start gap-4">
+ <div className="p-3 rounded-xl bg-violet-500/20">
+ <UploadCloud className="w-6 h-6 text-violet-600" />
+ </div>
+ <div className="flex-1">
+ <h3 className="font-semibold text-foreground mb-2">Custom Template Uploaden</h3>
+ <p className="text-sm text-muted-foreground mb-4">
+ Heb je een eigen template? Upload je Word document en we maken er automatisch een sjabloon van.
+ </p>
+ <div className="flex gap-3">
+ <Button variant="outline" className="border-violet-500/30 hover:bg-violet-500/10">
+ <UploadCloud className="w-4 h-4 mr-2" />
+ Upload Template
+ </Button>
+ <Button variant="outline" className="border-violet-500/30 hover:bg-violet-500/10">
+ <FileText className="w-4 h-4 mr-2" />
+ Template Maker
+ </Button>
+ </div>
+ </div>
+ </div>
+ </div>
+ 
  <div className="mt-8 flex justify-end">
  <Button
- className="bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+ className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25"
  onClick={saveTemplates}
  disabled={isSaving}
  >

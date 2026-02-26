@@ -1,5 +1,6 @@
 import { NextResponse } from"next/server";
 import type { NextRequest } from"next/server";
+import { createServerClient } from '@supabase/ssr'
 
 // Route protection based on subscription tier
 type SubscriptionTier ='basis'|'groei'|'premium'
@@ -58,15 +59,51 @@ function isRouteAccessible(pathname: string, tier: SubscriptionTier | null): boo
  })
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
  const e2e = process.env.NEXT_PUBLIC_E2E ==="true"|| process.env.E2E ==="true";
  const { pathname } = req.nextUrl;
 
  // During normal runs, allow through unless protecting admin paths below.
  if (!e2e) {
+ const cookies = req.cookies;
+ const hasSession = !!(cookies.get('sb-access-token') || cookies.get('sb-refresh-token') || cookies.get('next-auth.session-token') || cookies.get('session') || cookies.get('token'));
+
+ // Email verification check for authenticated users
+ if (hasSession && !pathname.startsWith('/auth') && !pathname.startsWith('/api') && !pathname.startsWith('/landing') && !pathname.startsWith('/login') && !pathname.startsWith('/register')) {
+ try {
+ // Create Supabase client to check email verification
+ const supabase = createServerClient(
+ process.env.NEXT_PUBLIC_SUPABASE_URL!,
+ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+ {
+ cookies: {
+ getAll() {
+ return cookies.getAll()
+ },
+ setAll(cookiesToSet) {
+ // Can't set cookies in middleware, but we can read them
+ },
+ },
+ }
+ )
+
+ const { data: { session } } = await supabase.auth.getSession()
+ 
+ if (session?.user && !session.user.email_confirmed_at) {
+ // User is not email verified, redirect to verification page
+ const verifyUrl = req.nextUrl.clone();
+ verifyUrl.pathname = '/auth/verify-email';
+ verifyUrl.searchParams.set('email', encodeURIComponent(session.user.email || ''));
+ return NextResponse.redirect(verifyUrl);
+ }
+ } catch (error) {
+ console.error('Error checking email verification in middleware:', error)
+ // Continue without blocking if there's an error
+ }
+ }
+
  // Redirect anonieme bezoekers van"/"naar"/landing"- DISABLED FOR DEV
  if (false && (pathname ==='/'|| pathname ==='')) {
- const cookies = req.cookies;
  const hasSession = !!(
  cookies.get('sb-access-token') ||
  cookies.get('sb-refresh-token') ||
@@ -80,9 +117,6 @@ export function middleware(req: NextRequest) {
  return NextResponse.redirect(landingUrl);
  }
  }
-
- const cookies = req.cookies;
- const hasSession = !!(cookies.get('sb-access-token') || cookies.get('sb-refresh-token') || cookies.get('next-auth.session-token') || cookies.get('session') || cookies.get('token'));
 
  // Protect admin and super-admin UI and API routes by requiring an auth cookie.
  const isAdminPath = pathname.startsWith('/super-admin') || pathname.startsWith('/admin') || pathname.startsWith('/api/admin') || pathname.startsWith('/api/super-admin');

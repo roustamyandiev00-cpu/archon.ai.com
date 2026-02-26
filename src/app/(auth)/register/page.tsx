@@ -90,46 +90,50 @@ export default function RegisterPage() {
  };
 
  const handleModuleSubmit = async () => {
- if (!selectedModule) {
- toast.error("Selecteer een module");
- return;
- }
+    if (!selectedModule) {
+      toast.error("Selecteer een module");
+      return;
+    }
 
- setLoading(true);
+    setLoading(true);
 
- try {
- // 1. Register with Supabase Auth
- const { data, error } = await supabase.auth.signUp({
- email: accountData.email,
- password: accountData.password,
- options: {
- data: {
- name: accountData.name,
- },
- emailRedirectTo: `${window.location.origin}/auth/callback`,
- },
- });
+    try {
+      // 1. Register with Supabase Auth (with email confirmation required)
+      const { data, error } = await supabase.auth.signUp({
+        email: accountData.email,
+        password: accountData.password,
+        options: {
+          data: {
+            name: accountData.name,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
- if (error) {
- toast.error(error.message);
- setLoading(false);
- return;
- }
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
 
- if (data.user) {
- // Tijdelijke oplossing: redirect naar dashboard zonder Stripe
- toast.success("Account succesvol aangemaakt!");
- 
- // Wacht even op user creation en redirect
- setTimeout(() => {
- window.location.href ="/";
- }, 1000);
- }
- } catch (error) {
- toast.error("Er is een fout opgetreden tijdens de registratie");
- setLoading(false);
- }
- };
+      if (data.user) {
+        // ALWAYS require email verification - force redirect to verify page
+        // This works around Supabase "Confirm email" setting being disabled
+        toast.success("Account aangemaakt! Controleer je email voor de verificatielink.");
+        
+        // Sign out immediately to prevent auto-login
+        await supabase.auth.signOut();
+        
+        // Redirect to email verification page
+        setTimeout(() => {
+          router.push(`/auth/verify-email?email=${encodeURIComponent(accountData.email)}`);
+        }, 1500);
+      }
+    } catch (error) {
+      toast.error("Er is een fout opgetreden tijdens de registratie");
+      setLoading(false);
+    }
+  };
 
  const handleGoogleRegister = async () => {
  try {
