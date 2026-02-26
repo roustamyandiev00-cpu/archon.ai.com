@@ -1,27 +1,27 @@
 'use client'
 
-import BetalingenPage from '@/components/pages/BetalingenPage'
-import { useProtectedRoute } from '@/hooks/use-protected-route'
-import { Loader2 } from 'lucide-react'
+import BetalingenPage from'@/components/pages/BetalingenPage'
+import { useProtectedRoute } from'@/hooks/use-protected-route'
+import { Loader2 } from'lucide-react'
 
 export default function BetalingenRoutePage() {
-  const { loading, hasAccess } = useProtectedRoute('groei')
+ const { loading, hasAccess } = useProtectedRoute('groei')
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+ if (loading) {
+ return (
+ <div className="flex items-center justify-center h-96">
+ <Loader2 className="w-8 h-8 animate-spin text-primary"/>
+ </div>
+ )
+ }
 
-  if (!hasAccess) {
-    return (
-      <div className="flex items-center justify-center h-96 text-muted-foreground">
-        <p>Je hebt geen toegang tot deze module. Upgrade naar Groei of hoger.</p>
-      </div>
-    )
-  }
+ if (!hasAccess) {
+ return (
+ <div className="flex items-center justify-center h-96 text-muted-foreground">
+ <p>Je hebt geen toegang tot deze module. Upgrade naar Groei of hoger.</p>
+ </div>
+ )
+ }
 
-  return <BetalingenPage />
+ return <BetalingenPage />
 }

@@ -1,23 +1,23 @@
 'use client'
 
-import InkomstenPage from '@/components/pages/InkomstenPage'
-import { useProtectedRoute } from '@/hooks/use-protected-route'
-import { Loader2 } from 'lucide-react'
+import InkomstenPage from'@/components/pages/InkomstenPage'
+import { useProtectedRoute } from'@/hooks/use-protected-route'
+import { Loader2 } from'lucide-react'
 
 export default function InkomstenRoutePage() {
-  const { loading, hasAccess } = useProtectedRoute('groei')
+ const { loading, hasAccess } = useProtectedRoute('groei')
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+ if (loading) {
+ return (
+ <div className="flex items-center justify-center h-96">
+ <Loader2 className="w-8 h-8 animate-spin text-primary"/>
+ </div>
+ )
+ }
 
-  if (!hasAccess) {
-    return null
-  }
+ if (!hasAccess) {
+ return null
+ }
 
-  return <InkomstenPage />
+ return <InkomstenPage />
 }

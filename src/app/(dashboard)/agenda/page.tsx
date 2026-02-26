@@ -1,5 +1,5 @@
-﻿import AgendaPage from '@/components/pages/AgendaPage'
+﻿import AgendaPage from'@/components/pages/AgendaPage'
 
 export default function AgendaRoutePage() {
-  return <AgendaPage />
+ return <AgendaPage />
 }

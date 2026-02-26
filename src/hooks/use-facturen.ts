@@ -1,91 +1,91 @@
 // @ts-nocheck - Supabase type inference issues
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from'react'
+import { supabase } from'@/lib/supabase'
 
 export function useFacturen() {
-  const [facturen, setFacturen] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+ const [facturen, setFacturen] = useState<any[]>([])
+ const [loading, setLoading] = useState(true)
+ const [error, setError] = useState<string | null>(null)
 
-  const fetchFacturen = async () => {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('facturen')
-        .select('*')
-        .order('created_at', { ascending: false })
+ const fetchFacturen = async () => {
+ try {
+ setLoading(true)
+ const { data, error } = await supabase
+ .from('facturen')
+ .select('*')
+ .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setFacturen(data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error fetching facturen')
-    } finally {
-      setLoading(false)
-    }
-  }
+ if (error) throw error
+ setFacturen(data || [])
+ } catch (err) {
+ setError(err instanceof Error ? err.message :'Error fetching facturen')
+ } finally {
+ setLoading(false)
+ }
+ }
 
-  const createFactuur = async (factuur: any) => {
-    try {
-      const insertData: TableInsert<'facturen'> = factuur
-      // @ts-ignore - Supabase type inference issue
-      const { data, error } = await supabase
-        .from('facturen')
-        .insert(insertData)
-        .select()
-        .single()
+ const createFactuur = async (factuur: any) => {
+ try {
+ const insertData: TableInsert<'facturen'> = factuur
+ // @ts-ignore - Supabase type inference issue
+ const { data, error } = await supabase
+ .from('facturen')
+ .insert(insertData)
+ .select()
+ .single()
 
-      if (error) throw error
-      setFacturen(prev => [data, ...prev])
-      return data
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Error creating factuur')
-    }
-  }
+ if (error) throw error
+ setFacturen(prev => [data, ...prev])
+ return data
+ } catch (err) {
+ throw new Error(err instanceof Error ? err.message :'Error creating factuur')
+ }
+ }
 
-  const updateFactuur = async (id: string, updates: any) => {
-    try {
-      const updateData: TableUpdate<'facturen'> = updates
-      // @ts-ignore - Supabase type inference issue
-      const { data, error } = await supabase
-        .from('facturen')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single()
+ const updateFactuur = async (id: string, updates: any) => {
+ try {
+ const updateData: TableUpdate<'facturen'> = updates
+ // @ts-ignore - Supabase type inference issue
+ const { data, error } = await supabase
+ .from('facturen')
+ .update(updateData)
+ .eq('id', id)
+ .select()
+ .single()
 
-      if (error) throw error
-      setFacturen(prev => prev.map(factuur => factuur.id === id ? data : factuur))
-      return data
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Error updating factuur')
-    }
-  }
+ if (error) throw error
+ setFacturen(prev => prev.map(factuur => factuur.id === id ? data : factuur))
+ return data
+ } catch (err) {
+ throw new Error(err instanceof Error ? err.message :'Error updating factuur')
+ }
+ }
 
-  const deleteFactuur = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('facturen')
-        .delete()
-        .eq('id', id)
+ const deleteFactuur = async (id: string) => {
+ try {
+ const { error } = await supabase
+ .from('facturen')
+ .delete()
+ .eq('id', id)
 
-      if (error) throw error
-      setFacturen(prev => prev.filter(factuur => factuur.id !== id))
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Error deleting factuur')
-    }
-  }
+ if (error) throw error
+ setFacturen(prev => prev.filter(factuur => factuur.id !== id))
+ } catch (err) {
+ throw new Error(err instanceof Error ? err.message :'Error deleting factuur')
+ }
+ }
 
-  useEffect(() => {
-    fetchFacturen()
-  }, [])
+ useEffect(() => {
+ fetchFacturen()
+ }, [])
 
-  return {
-    facturen,
-    loading,
-    error,
-    refetch: fetchFacturen,
-    createFactuur,
-    updateFactuur,
-    deleteFactuur
-  }
+ return {
+ facturen,
+ loading,
+ error,
+ refetch: fetchFacturen,
+ createFactuur,
+ updateFactuur,
+ deleteFactuur
+ }
 }

@@ -1,5 +1,5 @@
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import logger from '@/lib/logger'
+import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
+import logger from'@/lib/logger'
 
 /**
  * Maakt automatisch een document map aan voor een nieuw project
@@ -8,15 +8,15 @@ import logger from '@/lib/logger'
  * @returns Promise<boolean> - True als succesvol, false bij fout
  */
 export async function createProjectDocumentFolder(
-  projectId: number | string,
-  projectName: string,
-  userId: string
+ projectId: number | string,
+ projectName: string,
+ userId: string
 ): Promise<boolean> {
-  try {
-    const supabase = getSupabaseAdmin()
-    
-    // Maak een README bestand aan om de map structuur te creëren
-    const readmeContent = `# Project Documenten: ${projectName}
+ try {
+ const supabase = getSupabaseAdmin()
+ 
+ // Maak een README bestand aan om de map structuur te creëren
+ const readmeContent = `# Project Documenten: ${projectName}
 
 Dit is de document map voor project **${projectName}**.
 
@@ -29,29 +29,29 @@ Dit is de document map voor project **${projectName}**.
 ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl-NL')}
 `
 
-    const readmeBlob = new Blob([readmeContent], { type: 'text/markdown' })
-    
-    const folderPath = `${userId}/projects/${projectId}`
+ const readmeBlob = new Blob([readmeContent], { type:'text/markdown'})
+ 
+ const folderPath = `${userId}/projects/${projectId}`
 
-    const { error } = await supabase.storage
-      .from('user-assets')
-      .upload(`${folderPath}/README.md`, readmeBlob, {
-        contentType: 'text/markdown',
-        upsert: false
-      })
+ const { error } = await supabase.storage
+ .from('user-assets')
+ .upload(`${folderPath}/README.md`, readmeBlob, {
+ contentType:'text/markdown',
+ upsert: false
+ })
 
-    if (error) {
-      logger.apiError('createProjectDocumentFolder', 'Storage Upload', error)
-      return false
-    }
+ if (error) {
+ logger.apiError('createProjectDocumentFolder','Storage Upload', error)
+ return false
+ }
 
-    logger.info(`Document map succesvol aangemaakt voor project ${projectId}: ${projectName}`)
-    return true
-    
-  } catch (error) {
-    logger.apiError('createProjectDocumentFolder', 'Exception', error)
-    return false
-  }
+ logger.info(`Document map succesvol aangemaakt voor project ${projectId}: ${projectName}`)
+ return true
+ 
+ } catch (error) {
+ logger.apiError('createProjectDocumentFolder','Exception', error)
+ return false
+ }
 }
 
 /**
@@ -61,27 +61,27 @@ ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl
  * @returns Promise<boolean> - True als map bestaat
  */
 export async function projectDocumentFolderExists(
-  projectId: number | string,
-  userId: string
+ projectId: number | string,
+ userId: string
 ): Promise<boolean> {
-  try {
-    const supabase = getSupabaseAdmin()
-    
-    const { data, error } = await supabase.storage
-      .from('user-assets')
-      .list(`${userId}/projects/${projectId}`, {
-        limit: 1
-      })
+ try {
+ const supabase = getSupabaseAdmin()
+ 
+ const { data, error } = await supabase.storage
+ .from('user-assets')
+ .list(`${userId}/projects/${projectId}`, {
+ limit: 1
+ })
 
-    if (error) {
-      return false
-    }
+ if (error) {
+ return false
+ }
 
-    return data && data.length > 0
-    
-  } catch (error) {
-    return false
-  }
+ return data && data.length > 0
+ 
+ } catch (error) {
+ return false
+ }
 }
 
 /**
@@ -91,43 +91,43 @@ export async function projectDocumentFolderExists(
  * @returns Promise<boolean> - True als succesvol verwijderd
  */
 export async function deleteProjectDocumentFolder(
-  projectId: number | string,
-  userId: string
+ projectId: number | string,
+ userId: string
 ): Promise<boolean> {
-  try {
-    const supabase = getSupabaseAdmin()
-    
-    // Haal alle bestanden in de project map op
-    const { data: files, error: listError } = await supabase.storage
-      .from('user-assets')
-      .list(`${userId}/projects/${projectId}`, {
-        limit: 1000
-      })
+ try {
+ const supabase = getSupabaseAdmin()
+ 
+ // Haal alle bestanden in de project map op
+ const { data: files, error: listError } = await supabase.storage
+ .from('user-assets')
+ .list(`${userId}/projects/${projectId}`, {
+ limit: 1000
+ })
 
-    if (listError) {
-      logger.apiError('deleteProjectDocumentFolder', 'List Files', listError)
-      return false
-    }
+ if (listError) {
+ logger.apiError('deleteProjectDocumentFolder','List Files', listError)
+ return false
+ }
 
-    if (files && files.length > 0) {
-      // Verwijder alle bestanden in de map
-      const filePaths = files.map(file => `${userId}/projects/${projectId}/${file.name}`)
-      
-      const { error: deleteError } = await supabase.storage
-        .from('user-assets')
-        .remove(filePaths)
+ if (files && files.length > 0) {
+ // Verwijder alle bestanden in de map
+ const filePaths = files.map(file => `${userId}/projects/${projectId}/${file.name}`)
+ 
+ const { error: deleteError } = await supabase.storage
+ .from('user-assets')
+ .remove(filePaths)
 
-      if (deleteError) {
-        logger.apiError('deleteProjectDocumentFolder', 'Delete Files', deleteError)
-        return false
-      }
-    }
+ if (deleteError) {
+ logger.apiError('deleteProjectDocumentFolder','Delete Files', deleteError)
+ return false
+ }
+ }
 
-    logger.info(`Document map succesvol verwijderd voor project ${projectId}`)
-    return true
-    
-  } catch (error) {
-    logger.apiError('deleteProjectDocumentFolder', 'Exception', error)
-    return false
-  }
+ logger.info(`Document map succesvol verwijderd voor project ${projectId}`)
+ return true
+ 
+ } catch (error) {
+ logger.apiError('deleteProjectDocumentFolder','Exception', error)
+ return false
+ }
 }

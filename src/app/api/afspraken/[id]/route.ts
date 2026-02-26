@@ -1,192 +1,217 @@
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from'next/server'
+import { z } from'zod'
 
 import {
-  mapCompanyNamesById,
-  resolveCompanyId,
-} from '@/app/api/finance/finance-utils'
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+ mapCompanyNamesById,
+ resolveCompanyId,
+} from'@/app/api/finance/finance-utils'
+import { getUserFromRequest } from'@/lib/admin'
+import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
 
 import {
-  combineDateAndTime,
-  normalizeAfspraakRow,
-  normalizeDeelnemers,
-  parseNumericId,
-} from '../afspraak-utils'
+ combineDateAndTime,
+ normalizeAfspraakRow,
+ normalizeDeelnemers,
+ parseNumericId,
+} from'../afspraak-utils'
 
 const UpdateAfspraakSchema = z.object({
-  titel: z.string().trim().min(1).optional(),
-  beschrijving: z.string().trim().nullable().optional(),
-  datum: z.string().optional(),
-  startTijd: z.string().optional(),
-  eindTijd: z.string().nullable().optional(),
-  locatie: z.string().trim().nullable().optional(),
-  deelnemers: z.array(z.string()).optional(),
-  bedrijf: z.string().trim().nullable().optional(),
-  bedrijfId: z.coerce.number().int().positive().nullable().optional(),
+ titel: z.string().trim().min(1).optional(),
+ beschrijving: z.string().trim().nullable().optional(),
+ datum: z.string().optional(),
+ startTijd: z.string().optional(),
+ eindTijd: z.string().nullable().optional(),
+ eindAt: z.string().optional(),
+ locatie: z.string().trim().nullable().optional(),
+ deelnemers: z.array(z.string()).optional(),
+ bedrijf: z.string().trim().nullable().optional(),
+ bedrijfId: z.coerce.number().int().positive().nullable().optional(),
 })
 
 type RouteContext = {
-  params: Promise<{ id: string }>
+ params: Promise<{ id: string }>
 }
 
-const afspraakSelect = 'id, titel, beschrijving, start_tijd, eind_tijd, locatie, deelnemers, bedrijf_id, created_at'
+const afspraakSelect ='id, titel, beschrijving, start_tijd, eind_tijd, locatie, deelnemers, bedrijf_id, created_at'
 
-async function getCurrentEvent(supabase: any, id: number) {
+async function getCurrentEvent(supabase: any, id: number, userId: string) {
   const result = await supabase
     .from('afspraken')
     .select('id, start_tijd, eind_tijd')
     .eq('id', id)
+    .eq('user_id', userId)
     .maybeSingle()
 
-  if (result.error) throw result.error
-  return result.data
+ if (result.error) throw result.error
+ return result.data
 }
 
-export async function PATCH(request: Request, context: RouteContext) {
-  const { id: rawId } = await context.params
-  const id = parseNumericId(rawId)
+export async function PATCH(request: NextRequest, context: RouteContext) {
+ const { id: rawId } = await context.params
+ const id = parseNumericId(rawId)
 
-  if (id == null) {
-    return NextResponse.json({ error: 'Ongeldig afspraak-ID.' }, { status: 400 })
-  }
+ if (id == null) {
+ return NextResponse.json({ error:'Ongeldig afspraak-ID.'}, { status: 400 })
+ }
 
-  let supabase: ReturnType<typeof getSupabaseAdmin>
+ const user = await getUserFromRequest(request)
+ if (!user) {
+ return NextResponse.json({ error:'Niet ingelogd'}, { status: 401 })
+ }
 
-  try {
-    supabase = getSupabaseAdmin()
-  } catch {
-    return NextResponse.json(
-      { error: 'Supabase admin client is niet geconfigureerd.' },
-      { status: 503 }
-    )
-  }
+ let supabase: ReturnType<typeof getSupabaseAdmin>
 
-  try {
-    const body = await request.json()
-    const validated = UpdateAfspraakSchema.parse({
-      titel: body?.titel,
-      beschrijving: body?.beschrijving,
-      datum: body?.datum,
-      startTijd: body?.startTijd,
-      eindTijd: body?.eindTijd,
-      locatie: body?.locatie,
-      deelnemers: normalizeDeelnemers(body?.deelnemers),
-      bedrijf: body?.bedrijf,
-      bedrijfId: body?.bedrijfId ?? body?.bedrijf_id,
-    })
+ try {
+ supabase = getSupabaseAdmin()
+ } catch {
+ return NextResponse.json(
+ { error:'Supabase admin client is niet geconfigureerd.'},
+ { status: 503 }
+ )
+ }
 
-    const updateData: Record<string, unknown> = {}
+ try {
+ const body = await request.json()
+ const validated = UpdateAfspraakSchema.parse({
+ titel: body?.titel,
+ beschrijving: body?.beschrijving,
+ datum: body?.datum,
+ startTijd: body?.startTijd,
+ eindTijd: body?.eindTijd,
+ eindAt: body?.eindAt,
+ locatie: body?.locatie,
+ deelnemers: normalizeDeelnemers(body?.deelnemers),
+ bedrijf: body?.bedrijf,
+ bedrijfId: body?.bedrijfId ?? body?.bedrijf_id,
+ })
 
-    if (validated.titel !== undefined) updateData.titel = validated.titel
-    if (validated.beschrijving !== undefined) updateData.beschrijving = validated.beschrijving || null
-    if (validated.locatie !== undefined) updateData.locatie = validated.locatie || null
-    if (validated.deelnemers !== undefined) updateData.deelnemers = validated.deelnemers
+ const updateData: Record<string, unknown> = {}
+
+ if (validated.titel !== undefined) updateData.titel = validated.titel
+ if (validated.beschrijving !== undefined) updateData.beschrijving = validated.beschrijving || null
+ if (validated.locatie !== undefined) updateData.locatie = validated.locatie || null
+ if (validated.deelnemers !== undefined) updateData.deelnemers = validated.deelnemers
 
     const currentEvent =
       validated.datum !== undefined || validated.startTijd !== undefined || validated.eindTijd !== undefined
-        ? await getCurrentEvent(supabase as any, id)
+        ? await getCurrentEvent(supabase as any, id, user.id)
         : null
 
-    if ((validated.datum !== undefined || validated.startTijd !== undefined) && !currentEvent) {
-      return NextResponse.json({ error: 'Afspraak niet gevonden.' }, { status: 404 })
-    }
+ if ((validated.datum !== undefined || validated.startTijd !== undefined) && !currentEvent) {
+ return NextResponse.json({ error:'Afspraak niet gevonden.'}, { status: 404 })
+ }
 
-    if (validated.datum !== undefined || validated.startTijd !== undefined) {
-      const baseStart = currentEvent?.start_tijd ? new Date(currentEvent.start_tijd as string) : new Date()
+ if (validated.eindAt !== undefined) {
+ const parsedEndAt = new Date(validated.eindAt)
+ if (Number.isNaN(parsedEndAt.getTime())) {
+ return NextResponse.json({ error:'Ongeldige eindtijd.'}, { status: 400 })
+ }
+ updateData.eind_tijd = parsedEndAt.toISOString()
+ } else if (validated.datum !== undefined || validated.startTijd !== undefined) {
+ const baseStart = currentEvent?.start_tijd ? new Date(currentEvent.start_tijd as string) : new Date()
 
-      const date = validated.datum ?? baseStart.toISOString().slice(0, 10)
-      const startTime = validated.startTijd ?? baseStart.toISOString().slice(11, 16)
+ const date = validated.datum ?? baseStart.toISOString().slice(0, 10)
+ const startTime = validated.startTijd ?? baseStart.toISOString().slice(11, 16)
 
-      const startTimestamp = combineDateAndTime(date, startTime)
-      if (!startTimestamp) {
-        return NextResponse.json({ error: 'Ongeldige startdatum of starttijd.' }, { status: 400 })
-      }
-      updateData.start_tijd = startTimestamp
+ const startTimestamp = combineDateAndTime(date, startTime)
+ if (!startTimestamp) {
+ return NextResponse.json({ error:'Ongeldige startdatum of starttijd.'}, { status: 400 })
+ }
+ updateData.start_tijd = startTimestamp
 
-      if (validated.eindTijd !== undefined) {
-        updateData.eind_tijd = validated.eindTijd ? combineDateAndTime(date, validated.eindTijd) : null
-      }
-    } else if (validated.eindTijd !== undefined) {
-      const baseStart = currentEvent?.start_tijd ? new Date(currentEvent.start_tijd as string) : new Date()
-      const date = baseStart.toISOString().slice(0, 10)
-      updateData.eind_tijd = validated.eindTijd ? combineDateAndTime(date, validated.eindTijd) : null
-    }
+ if (validated.eindTijd !== undefined) {
+ updateData.eind_tijd = validated.eindTijd ? combineDateAndTime(date, validated.eindTijd) : null
+ }
+ } else if (validated.eindTijd !== undefined) {
+ const baseStart = currentEvent?.start_tijd ? new Date(currentEvent.start_tijd as string) : new Date()
+ const date = baseStart.toISOString().slice(0, 10)
+ updateData.eind_tijd = validated.eindTijd ? combineDateAndTime(date, validated.eindTijd) : null
+ }
 
-    if (validated.bedrijf !== undefined || validated.bedrijfId !== undefined) {
-      const bedrijfId = await resolveCompanyId({
-        supabase: supabase as any,
-        companyName: validated.bedrijf,
-        requestedCompanyId: validated.bedrijfId,
-      })
-      updateData.bedrijf_id = bedrijfId
-    }
+ if (validated.bedrijf !== undefined || validated.bedrijfId !== undefined) {
+ const bedrijfId = await resolveCompanyId({
+ supabase: supabase as any,
+ companyName: validated.bedrijf,
+ requestedCompanyId: validated.bedrijfId,
+ })
+ updateData.bedrijf_id = bedrijfId
+ }
 
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'Geen wijzigingen opgegeven.' }, { status: 400 })
-    }
+ if (Object.keys(updateData).length === 0) {
+ return NextResponse.json({ error:'Geen wijzigingen opgegeven.'}, { status: 400 })
+ }
 
-    const result = await (supabase as any)
-      .from('afspraken')
-      .update(updateData)
-      .eq('id', id)
-      .select(afspraakSelect)
-      .maybeSingle()
+ const result = await (supabase as any)
+ .from('afspraken')
+ .update(updateData)
+ .eq('id', id)
+ .eq('user_id', user.id)
+ .select(afspraakSelect)
+ .maybeSingle()
 
-    if (result.error) throw result.error
-    if (!result.data) return NextResponse.json({ error: 'Afspraak niet gevonden.' }, { status: 404 })
+ if (result.error) throw result.error
+ if (!result.data) return NextResponse.json({ error:'Afspraak niet gevonden.'}, { status: 404 })
 
-    const companyMap = await mapCompanyNamesById(supabase as any, [(result.data as any).bedrijf_id])
+ const companyMap = await mapCompanyNamesById(supabase as any, [(result.data as any).bedrijf_id])
 
-    return NextResponse.json(
-      normalizeAfspraakRow({
-        ...result.data,
-        companyName: companyMap.get(Number((result.data as any).bedrijf_id)) ?? null,
-      })
-    )
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validatiefout', details: error.issues },
-        { status: 400 }
-      )
-    }
+ return NextResponse.json(
+ normalizeAfspraakRow({
+ ...result.data,
+ companyName: companyMap.get(Number((result.data as any).bedrijf_id)) ?? null,
+ })
+ )
+ } catch (error) {
+ if (error instanceof z.ZodError) {
+ return NextResponse.json(
+ { error:'Validatiefout', details: error.issues },
+ { status: 400 }
+ )
+ }
 
-    console.error('Error updating afspraak:', error)
-    return NextResponse.json({ error: 'Kon afspraak niet bijwerken.' }, { status: 500 })
-  }
+ console.error('Error updating afspraak:', error)
+ return NextResponse.json({ error:'Kon afspraak niet bijwerken.'}, { status: 500 })
+ }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  const { id: rawId } = await context.params
-  const id = parseNumericId(rawId)
+export async function DELETE(request: NextRequest, context: RouteContext) {
+ const { id: rawId } = await context.params
+ const id = parseNumericId(rawId)
 
-  if (id == null) {
-    return NextResponse.json({ error: 'Ongeldig afspraak-ID.' }, { status: 400 })
-  }
+ if (id == null) {
+ return NextResponse.json({ error:'Ongeldig afspraak-ID.'}, { status: 400 })
+ }
 
-  let supabase: ReturnType<typeof getSupabaseAdmin>
+ const user = await getUserFromRequest(request)
+ if (!user) {
+ return NextResponse.json({ error:'Niet ingelogd'}, { status: 401 })
+ }
 
-  try {
-    supabase = getSupabaseAdmin()
-  } catch {
-    return NextResponse.json(
-      { error: 'Supabase admin client is niet geconfigureerd.' },
-      { status: 503 }
-    )
-  }
+ let supabase: ReturnType<typeof getSupabaseAdmin>
 
-  try {
-    const result = await (supabase as any)
-      .from('afspraken')
-      .delete()
-      .eq('id', id)
+ try {
+ supabase = getSupabaseAdmin()
+ } catch {
+ return NextResponse.json(
+ { error:'Supabase admin client is niet geconfigureerd.'},
+ { status: 503 }
+ )
+ }
 
-    if (result.error) throw result.error
+ try {
+ const result = await (supabase as any)
+ .from('afspraken')
+ .delete()
+ .eq('id', id)
+ .eq('user_id', user.id)
+ .select('id')
+ .maybeSingle()
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error deleting afspraak:', error)
-    return NextResponse.json({ error: 'Kon afspraak niet verwijderen.' }, { status: 500 })
-  }
+ if (result.error) throw result.error
+ if (!result.data) return NextResponse.json({ error:'Afspraak niet gevonden.'}, { status: 404 })
+
+ return NextResponse.json({ success: true })
+ } catch (error) {
+ console.error('Error deleting afspraak:', error)
+ return NextResponse.json({ error:'Kon afspraak niet verwijderen.'}, { status: 500 })
+ }
 }

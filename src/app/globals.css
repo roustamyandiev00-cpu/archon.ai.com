@@ -51,27 +51,27 @@
   --radius: 0.625rem;
   color-scheme: light;
 
-  /* Frisse Light Mode: Helder contrast */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Light mode: hoger contrast en iets warmere diepte */
+  --background: #f3f7fc;
+  --foreground: #0b1220;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0b1220;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --inverse: #0f172a;
-  --inverse-foreground: #f8fafc;
+  --popover-foreground: #0b1220;
+  --inverse: #0b1220;
+  --inverse-foreground: #f3f7fc;
   --primary: #6861f2;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --secondary: #eaf0f7;
+  --secondary-foreground: #0b1220;
+  --muted: #e9eff7;
+  --muted-foreground: #4b5f7a;
+  --accent: #e7eef9;
+  --accent-foreground: #0b1220;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: rgba(104, 97, 242, 0.55);
+  --border: #c8d4e5;
+  --input: #c3d0e4;
+  --ring: rgba(104, 97, 242, 0.4);
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -79,15 +79,14 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
 
-  /* Sidebar - Dark theme geforceerd voor Light Mode */
-  --sidebar: #0b0f14;
-  --sidebar-foreground: rgba(255, 255, 255, 0.9);
+  --sidebar: #f7fbff;
+  --sidebar-foreground: #0b1220;
   --sidebar-primary: #6861f2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(255, 255, 255, 0.08);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: rgba(104, 97, 242, 0.55);
+  --sidebar-accent: #e8effa;
+  --sidebar-accent-foreground: #0b1220;
+  --sidebar-border: #d5dfed;
+  --sidebar-ring: rgba(104, 97, 242, 0.4);
 }
 
 .dark {
@@ -117,7 +116,7 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: rgba(16, 20, 28, 0.9);
+  --sidebar: rgba(16, 20, 28, 0.92);
   --sidebar-foreground: rgba(255, 255, 255, 0.9);
   --sidebar-primary: #6861f2;
   --sidebar-primary-foreground: #ffffff;
@@ -144,7 +143,48 @@
     min-height: 100dvh;
   }
 
-  /* Dark mode specifieke achtergrond effecten. (Light mode heeft een clean background zonder overmatige patronen of radial gradients) */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+    background:
+      radial-gradient(
+        ellipse at 8% -10%,
+        rgba(59, 130, 246, 0.14) 0%,
+        rgba(59, 130, 246, 0) 58%
+      ),
+      radial-gradient(
+        ellipse at 100% 0%,
+        rgba(104, 97, 242, 0.12) 0%,
+        rgba(104, 97, 242, 0) 52%
+      ),
+      linear-gradient(180deg, #f8fbff 0%, #f3f7fc 45%, #edf3fb 100%);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+      radial-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+      radial-gradient(
+        ellipse at 50% 100%,
+        rgba(148, 163, 184, 0.14) 0%,
+        rgba(148, 163, 184, 0) 68%
+      );
+    background-size:
+      28px 28px,
+      100% 100%;
+    background-position:
+      0 0,
+      0 0;
+  }
+
+  /* Dark mode specifieke achtergrond effecten */
   .dark body::before {
     content: "";
     position: fixed;
@@ -234,7 +274,7 @@
 /* Shared slim scrollbar for lists inside cards. */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(17, 24, 39, 0.2) transparent;
+  scrollbar-color: rgba(15, 23, 42, 0.26) transparent;
 }
 
 .dark .custom-scrollbar {
@@ -250,12 +290,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(17, 24, 39, 0.2);
+  background: rgba(15, 23, 42, 0.26);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(17, 24, 39, 0.28);
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -266,7 +306,34 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
-/* Verwijderd: de vele .bg-card/X overschrijvingen op html:not(.dark) vanwege contrastproblemen in componenten. */
+/* Specifieke overrides voor light mode: kaarten en borders met opaciteit worden "solid" 
+   om ervoor te zorgen dat ze niet in de achtergrond wegvallen. */
+@layer utilities {
+  html:not(.dark) .bg-card\/20,
+  html:not(.dark) .bg-card\/30,
+  html:not(.dark) .bg-card\/40,
+  html:not(.dark) .bg-card\/50,
+  html:not(.dark) .bg-card\/60,
+  html:not(.dark) .bg-card\/70,
+  html:not(.dark) .bg-card\/75 {
+    background-color: #ffffff !important;
+  }
+
+  html:not(.dark) .border-border\/20,
+  html:not(.dark) .border-border\/30,
+  html:not(.dark) .border-border\/40,
+  html:not(.dark) .border-border\/50 {
+    border-color: #d5dfed !important;
+  }
+
+  html:not(.dark) .bg-background\/20,
+  html:not(.dark) .bg-background\/30,
+  html:not(.dark) .bg-background\/40,
+  html:not(.dark) .bg-background\/50,
+  html:not(.dark) .bg-background\/80 {
+    background-color: #f3f7fc !important;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,23 +1,23 @@
 'use client'
 
-import UitgavenPage from '@/components/pages/UitgavenPage'
-import { useProtectedRoute } from '@/hooks/use-protected-route'
-import { Loader2 } from 'lucide-react'
+import UitgavenPage from'@/components/pages/UitgavenPage'
+import { useProtectedRoute } from'@/hooks/use-protected-route'
+import { Loader2 } from'lucide-react'
 
 export default function UitgavenRoutePage() {
-  const { loading, hasAccess } = useProtectedRoute('premium')
+ const { loading, hasAccess } = useProtectedRoute('premium')
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+ if (loading) {
+ return (
+ <div className="flex items-center justify-center h-96">
+ <Loader2 className="w-8 h-8 animate-spin text-primary"/>
+ </div>
+ )
+ }
 
-  if (!hasAccess) {
-    return null // Will redirect to upgrade page
-  }
+ if (!hasAccess) {
+ return null // Will redirect to upgrade page
+ }
 
-  return <UitgavenPage />
+ return <UitgavenPage />
 }

@@ -1,198 +1,198 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from'next/server'
+import { z } from'zod'
 
 import {
-  mapCompanyNamesById,
-  resolveCompanyId,
-  toIsoDate,
-} from '@/app/api/finance/finance-utils'
-import { getUserFromRequest } from '@/lib/admin'
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import logger from '@/lib/logger'
-import { createProjectDocumentFolder } from '@/lib/project-utils'
+ mapCompanyNamesById,
+ resolveCompanyId,
+ toIsoDate,
+} from'@/app/api/finance/finance-utils'
+import { getUserFromRequest } from'@/lib/admin'
+import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
+import logger from'@/lib/logger'
+import { createProjectDocumentFolder } from'@/lib/project-utils'
 import {
-  normalizeProjectRow,
-  projectStatusValues,
-  supportsProjectUserScope,
-} from './project-utils'
+ normalizeProjectRow,
+ projectStatusValues,
+ supportsProjectUserScope,
+} from'./project-utils'
 
 const CreateProjectSchema = z.object({
-  naam: z.string().trim().min(1, 'Naam is verplicht'),
-  beschrijving: z.string().trim().optional(),
-  bedrijf: z.string().trim().optional(),
-  bedrijfId: z.coerce.number().int().positive().nullable().optional(),
-  status: z.enum(projectStatusValues).default('Actief'),
-  voortgang: z.coerce.number().int().min(0).max(100).default(0),
-  deadline: z.string().optional(),
-  budget: z.coerce.number().min(0).default(0),
-  budgetGebruikt: z.coerce.number().min(0).optional(),
+ naam: z.string().trim().min(1,'Naam is verplicht'),
+ beschrijving: z.string().trim().optional(),
+ bedrijf: z.string().trim().optional(),
+ bedrijfId: z.coerce.number().int().positive().nullable().optional(),
+ status: z.enum(projectStatusValues).default('Actief'),
+ voortgang: z.coerce.number().int().min(0).max(100).default(0),
+ deadline: z.string().optional(),
+ budget: z.coerce.number().min(0).default(0),
+ budgetGebruikt: z.coerce.number().min(0).optional(),
 })
 
-const projectSelect = 'id, naam, beschrijving, status, voortgang, deadline, budget, budget_gebruikt, bedrijf_id, created_at'
+const projectSelect ='id, naam, beschrijving, status, voortgang, deadline, budget, budget_gebruikt, bedrijf_id, created_at'
 
 export async function GET(request: NextRequest) {
-  const user = await getUserFromRequest(request)
-  if (!user) {
-    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-  }
+ const user = await getUserFromRequest(request)
+ if (!user) {
+ return NextResponse.json({ error:'Niet ingelogd'}, { status: 401 })
+ }
 
-  let supabase: ReturnType<typeof getSupabaseAdmin>
+ let supabase: ReturnType<typeof getSupabaseAdmin>
 
-  try {
-    supabase = getSupabaseAdmin()
-  } catch {
-    return NextResponse.json(
-      { error: 'Supabase admin client is niet geconfigureerd.' },
-      { status: 503 }
-    )
-  }
+ try {
+ supabase = getSupabaseAdmin()
+ } catch {
+ return NextResponse.json(
+ { error:'Supabase admin client is niet geconfigureerd.'},
+ { status: 503 }
+ )
+ }
 
-  try {
-    const { searchParams } = new URL(request.url)
-    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '25', 10)), 100)
-    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10))
-    const supportsUserScope = await supportsProjectUserScope(supabase as any)
+ try {
+ const { searchParams } = new URL(request.url)
+ const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') ||'25', 10)), 100)
+ const offset = Math.max(0, parseInt(searchParams.get('offset') ||'0', 10))
+ const supportsUserScope = await supportsProjectUserScope(supabase as any)
 
-    if (!supportsUserScope) {
-      logger.warn('projecten.user_id ontbreekt; /api/projecten valt tijdelijk terug op ongescopeerde query.')
-    }
+ if (!supportsUserScope) {
+ logger.warn('projecten.user_id ontbreekt; /api/projecten valt tijdelijk terug op ongescopeerde query.')
+ }
 
-    // Get total count for pagination
-    let countQuery = (supabase as any)
-      .from('projecten')
-      .select('id', { count: 'exact', head: true })
-    let listQuery = (supabase as any)
-      .from('projecten')
-      .select(projectSelect)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+ // Get total count for pagination
+ let countQuery = (supabase as any)
+ .from('projecten')
+ .select('id', { count:'exact', head: true })
+ let listQuery = (supabase as any)
+ .from('projecten')
+ .select(projectSelect)
+ .order('created_at', { ascending: false })
+ .range(offset, offset + limit - 1)
 
-    if (supportsUserScope) {
-      countQuery = countQuery.eq('user_id', user.id)
-      listQuery = listQuery.eq('user_id', user.id)
-    }
+ if (supportsUserScope) {
+ countQuery = countQuery.eq('user_id', user.id)
+ listQuery = listQuery.eq('user_id', user.id)
+ }
 
-    const [countResult, result] = await Promise.all([countQuery, listQuery])
-    if (countResult.error) throw countResult.error
-    if (result.error) throw result.error
+ const [countResult, result] = await Promise.all([countQuery, listQuery])
+ if (countResult.error) throw countResult.error
+ if (result.error) throw result.error
 
-    const rows = (result.data ?? []) as any[]
-    const companyMap = await mapCompanyNamesById(
-      supabase as any,
-      rows.map((row) => row.bedrijf_id as number | null | undefined)
-    )
+ const rows = (result.data ?? []) as any[]
+ const companyMap = await mapCompanyNamesById(
+ supabase as any,
+ rows.map((row) => row.bedrijf_id as number | null | undefined)
+ )
 
-    return NextResponse.json({
-      data: rows.map((row) => normalizeProjectRow({
-        ...row,
-        companyName: companyMap.get(Number(row.bedrijf_id)) ?? null,
-      })),
-      pagination: {
-        total: countResult.count ?? 0,
-        limit,
-        offset,
-        hasMore: (countResult.count ?? 0) > offset + limit
-      }
-    })
-  } catch (error) {
-    logger.apiError('/api/projecten', 'GET', error)
-    return NextResponse.json({ error: 'Kon projecten niet laden. Probeer het later opnieuw.' }, { status: 500 })
-  }
+ return NextResponse.json({
+ data: rows.map((row) => normalizeProjectRow({
+ ...row,
+ companyName: companyMap.get(Number(row.bedrijf_id)) ?? null,
+ })),
+ pagination: {
+ total: countResult.count ?? 0,
+ limit,
+ offset,
+ hasMore: (countResult.count ?? 0) > offset + limit
+ }
+ })
+ } catch (error) {
+ logger.apiError('/api/projecten','GET', error)
+ return NextResponse.json({ error:'Kon projecten niet laden. Probeer het later opnieuw.'}, { status: 500 })
+ }
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getUserFromRequest(request)
-  if (!user) {
-    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-  }
+ const user = await getUserFromRequest(request)
+ if (!user) {
+ return NextResponse.json({ error:'Niet ingelogd'}, { status: 401 })
+ }
 
-  let supabase: ReturnType<typeof getSupabaseAdmin>
+ let supabase: ReturnType<typeof getSupabaseAdmin>
 
-  try {
-    supabase = getSupabaseAdmin()
-  } catch {
-    return NextResponse.json(
-      { error: 'Supabase admin client is niet geconfigureerd.' },
-      { status: 503 }
-    )
-  }
+ try {
+ supabase = getSupabaseAdmin()
+ } catch {
+ return NextResponse.json(
+ { error:'Supabase admin client is niet geconfigureerd.'},
+ { status: 503 }
+ )
+ }
 
-  try {
-    const body = await request.json()
-    const validated = CreateProjectSchema.parse({
-      naam: body?.naam,
-      beschrijving: body?.beschrijving,
-      bedrijf: body?.bedrijf,
-      bedrijfId: body?.bedrijfId ?? body?.bedrijf_id,
-      status: body?.status,
-      voortgang: body?.voortgang,
-      deadline: body?.deadline,
-      budget: body?.budget,
-      budgetGebruikt: body?.budgetGebruikt ?? body?.budget_gebruikt,
-    })
+ try {
+ const body = await request.json()
+ const validated = CreateProjectSchema.parse({
+ naam: body?.naam,
+ beschrijving: body?.beschrijving,
+ bedrijf: body?.bedrijf,
+ bedrijfId: body?.bedrijfId ?? body?.bedrijf_id,
+ status: body?.status,
+ voortgang: body?.voortgang,
+ deadline: body?.deadline,
+ budget: body?.budget,
+ budgetGebruikt: body?.budgetGebruikt ?? body?.budget_gebruikt,
+ })
 
-    const bedrijfId = await resolveCompanyId({
-      supabase: supabase as any,
-      companyName: validated.bedrijf,
-      requestedCompanyId: validated.bedrijfId,
-    })
-    const supportsUserScope = await supportsProjectUserScope(supabase as any)
+ const bedrijfId = await resolveCompanyId({
+ supabase: supabase as any,
+ companyName: validated.bedrijf,
+ requestedCompanyId: validated.bedrijfId,
+ })
+ const supportsUserScope = await supportsProjectUserScope(supabase as any)
 
-    if (!supportsUserScope) {
-      logger.warn('projecten.user_id ontbreekt; /api/projecten POST maakt project zonder user-scope.')
-    }
+ if (!supportsUserScope) {
+ logger.warn('projecten.user_id ontbreekt; /api/projecten POST maakt project zonder user-scope.')
+ }
 
-    const insertPayload: Record<string, unknown> = {
-      naam: validated.naam,
-      beschrijving: validated.beschrijving || null,
-      status: validated.status,
-      voortgang: validated.voortgang,
-      deadline: toIsoDate(validated.deadline),
-      budget: validated.budget,
-      budget_gebruikt: validated.budgetGebruikt ?? 0,
-      bedrijf_id: bedrijfId,
-    }
-    if (supportsUserScope) {
-      insertPayload.user_id = user.id
-    }
+ const insertPayload: Record<string, unknown> = {
+ naam: validated.naam,
+ beschrijving: validated.beschrijving || null,
+ status: validated.status,
+ voortgang: validated.voortgang,
+ deadline: toIsoDate(validated.deadline),
+ budget: validated.budget,
+ budget_gebruikt: validated.budgetGebruikt ?? 0,
+ bedrijf_id: bedrijfId,
+ }
+ if (supportsUserScope) {
+ insertPayload.user_id = user.id
+ }
 
-    const insertResult = await (supabase as any)
-      .from('projecten')
-      .insert([insertPayload])
-      .select(projectSelect)
-      .single()
+ const insertResult = await (supabase as any)
+ .from('projecten')
+ .insert([insertPayload])
+ .select(projectSelect)
+ .single()
 
-    if (insertResult.error) throw insertResult.error
+ if (insertResult.error) throw insertResult.error
 
-    const projectData = insertResult.data as any
-    const projectId = projectData.id
+ const projectData = insertResult.data as any
+ const projectId = projectData.id
 
-    // Automatisch een document map aanmaken voor het nieuwe project
-    const folderCreated = await createProjectDocumentFolder(projectId, validated.naam, user.id)
-    
-    if (!folderCreated) {
-      // Log de waarschuwing maar laat het project aanmaken slagen
-      logger.warn(`Document map kon niet worden aangemaakt voor project ${projectId}: ${validated.naam}`)
-    }
+ // Automatisch een document map aanmaken voor het nieuwe project
+ const folderCreated = await createProjectDocumentFolder(projectId, validated.naam, user.id)
+ 
+ if (!folderCreated) {
+ // Log de waarschuwing maar laat het project aanmaken slagen
+ logger.warn(`Document map kon niet worden aangemaakt voor project ${projectId}: ${validated.naam}`)
+ }
 
-    const companyMap = await mapCompanyNamesById(supabase as any, [projectData.bedrijf_id])
+ const companyMap = await mapCompanyNamesById(supabase as any, [projectData.bedrijf_id])
 
-    return NextResponse.json(
-      normalizeProjectRow({
-        ...projectData,
-        companyName: companyMap.get(Number(projectData.bedrijf_id)) ?? null,
-      }),
-      { status: 201 }
-    )
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'De ingediende gegevens zijn ongeldig.', details: error.issues },
-        { status: 400 }
-      )
-    }
+ return NextResponse.json(
+ normalizeProjectRow({
+ ...projectData,
+ companyName: companyMap.get(Number(projectData.bedrijf_id)) ?? null,
+ }),
+ { status: 201 }
+ )
+ } catch (error) {
+ if (error instanceof z.ZodError) {
+ return NextResponse.json(
+ { error:'De ingediende gegevens zijn ongeldig.', details: error.issues },
+ { status: 400 }
+ )
+ }
 
-    logger.apiError('/api/projecten', 'POST', error)
-    return NextResponse.json({ error: 'Kon project niet aanmaken. Probeer het later opnieuw.' }, { status: 500 })
-  }
+ logger.apiError('/api/projecten','POST', error)
+ return NextResponse.json({ error:'Kon project niet aanmaken. Probeer het later opnieuw.'}, { status: 500 })
+ }
 }

@@ -1,5 +1,5 @@
-﻿import ArtikelenPage from '@/components/pages/ArtikelenPage'
+﻿import ArtikelenPage from'@/components/pages/ArtikelenPage'
 
 export default function ArtikelenRoutePage() {
-  return <ArtikelenPage />
+ return <ArtikelenPage />
 }

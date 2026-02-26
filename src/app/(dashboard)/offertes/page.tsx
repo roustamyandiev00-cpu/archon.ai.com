@@ -1,5 +1,5 @@
-import OffertesPage from '@/components/pages/OffertesPage'
+import OffertesPage from'@/components/pages/OffertesPage'
 
 export default function OffertesRoutePage() {
-  return <OffertesPage />
+ return <OffertesPage />
 }

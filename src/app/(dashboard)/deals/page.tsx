@@ -1,5 +1,5 @@
-import DealsPage from '@/components/pages/DealsPage'
+import DealsPage from'@/components/pages/DealsPage'
 
 export default function DealsRoutePage() {
-  return <DealsPage />
+ return <DealsPage />
 }

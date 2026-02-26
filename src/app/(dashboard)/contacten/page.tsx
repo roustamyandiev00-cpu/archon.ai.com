@@ -1,5 +1,5 @@
-import ContactenPage from '@/components/pages/ContactenPage'
+import ContactenPage from'@/components/pages/ContactenPage'
 
 export default function ContactenRoutePage() {
-  return <ContactenPage />
+ return <ContactenPage />
 }
