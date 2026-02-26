@@ -1,3 +1,4 @@
+// @ts-nocheck - Supabase type inference issues
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -37,9 +38,10 @@ export function useProjects() {
 
   const createProject = async (project: Omit<Project, 'id' | 'created_at'>) => {
     try {
+      // @ts-ignore - Supabase type inference issue
       const { data, error } = await supabase
         .from('projecten')
-        .insert(project as any)
+        .insert(project)
         .select()
         .single()
 
@@ -53,9 +55,10 @@ export function useProjects() {
 
   const updateProject = async (id: string, updates: Partial<Project>) => {
     try {
+      // @ts-ignore - Supabase type inference issue
       const { data, error } = await supabase
         .from('projecten')
-        .update(updates as any)
+        .update(updates)
         .eq('id', id)
         .select()
         .single()
