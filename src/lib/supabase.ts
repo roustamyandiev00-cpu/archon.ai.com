@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -420,15 +420,320 @@ export type Database = {
           is_staff?: boolean
         }
       }
+      inkomsten: {
+        Row: {
+          id: number
+          titel: string | null
+          omschrijving: string | null
+          bedrag: number
+          datum: string
+          bedrijf_id: number | null
+          contact_id: number | null
+          categorie: string | null
+          betaalmethode: string | null
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          titel?: string | null
+          omschrijving?: string | null
+          bedrag?: number
+          datum?: string
+          bedrijf_id?: number | null
+          contact_id?: number | null
+          categorie?: string | null
+          betaalmethode?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          titel?: string | null
+          omschrijving?: string | null
+          bedrag?: number
+          datum?: string
+          bedrijf_id?: number | null
+          contact_id?: number | null
+          categorie?: string | null
+          betaalmethode?: string | null
+          user_id?: string | null
+        }
+      }
+      uitgaven: {
+        Row: {
+          id: number
+          titel: string | null
+          omschrijving: string | null
+          bedrag: number
+          datum: string
+          leverancier: string | null
+          bedrijf_id: number | null
+          categorie: string | null
+          betaalmethode: string | null
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          titel?: string | null
+          omschrijving?: string | null
+          bedrag?: number
+          datum?: string
+          leverancier?: string | null
+          bedrijf_id?: number | null
+          categorie?: string | null
+          betaalmethode?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          titel?: string | null
+          omschrijving?: string | null
+          bedrag?: number
+          datum?: string
+          leverancier?: string | null
+          bedrijf_id?: number | null
+          categorie?: string | null
+          betaalmethode?: string | null
+          user_id?: string | null
+        }
+      }
+      artikelen: {
+        Row: {
+          id: number
+          naam: string
+          sku: string | null
+          beschrijving: string | null
+          prijs: number
+          voorraad: number
+          bedrijf_id: number | null
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          naam: string
+          sku?: string | null
+          beschrijving?: string | null
+          prijs?: number
+          voorraad?: number
+          bedrijf_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          naam?: string
+          sku?: string | null
+          beschrijving?: string | null
+          prijs?: number
+          voorraad?: number
+          bedrijf_id?: number | null
+          user_id?: string | null
+        }
+      }
+      timesheets: {
+        Row: {
+          id: number
+          gebruiker_id: number | null
+          user_id: string | null
+          contact_id: number | null
+          project_id: number | null
+          datum: string
+          uren: number
+          omschrijving: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          gebruiker_id?: number | null
+          user_id?: string | null
+          contact_id?: number | null
+          project_id?: number | null
+          datum?: string
+          uren?: number
+          omschrijving?: string | null
+        }
+        Update: {
+          gebruiker_id?: number | null
+          user_id?: string | null
+          contact_id?: number | null
+          project_id?: number | null
+          datum?: string
+          uren?: number
+          omschrijving?: string | null
+        }
+      }
+      betalingen: {
+        Row: {
+          id: number
+          referentie: string | null
+          bedrag: number
+          datum: string
+          betaalmethode: string | null
+          factuur_id: number | null
+          offerte_id: number | null
+          bedrijf_id: number | null
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          referentie?: string | null
+          bedrag?: number
+          datum?: string
+          betaalmethode?: string | null
+          factuur_id?: number | null
+          offerte_id?: number | null
+          bedrijf_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          referentie?: string | null
+          bedrag?: number
+          datum?: string
+          betaalmethode?: string | null
+          factuur_id?: number | null
+          offerte_id?: number | null
+          bedrijf_id?: number | null
+          user_id?: string | null
+        }
+      }
+      abonnementen: {
+        Row: {
+          id: number
+          gebruiker_id: number | null
+          user_id: string | null
+          plan: string
+          status: 'actief' | 'opgezegd' | 'inactief'
+          start_datum: string | null
+          eind_datum: string | null
+          prijs: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          gebruiker_id?: number | null
+          user_id?: string | null
+          plan: string
+          status?: 'actief' | 'opgezegd' | 'inactief'
+          start_datum?: string | null
+          eind_datum?: string | null
+          prijs?: number
+        }
+        Update: {
+          gebruiker_id?: number | null
+          user_id?: string | null
+          plan?: string
+          status?: 'actief' | 'opgezegd' | 'inactief'
+          start_datum?: string | null
+          eind_datum?: string | null
+          prijs?: number
+        }
+      }
+      modules: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          price: number
+          features: string
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          price?: number
+          features?: string
+          is_active?: boolean
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          price?: number
+          features?: string
+          is_active?: boolean
+          sort_order?: number
+        }
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          module_id: string
+          status: string
+          start_date: string
+          end_date: string | null
+          amount: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          module_id: string
+          status?: string
+          start_date?: string
+          end_date?: string | null
+          amount: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          module_id?: string
+          status?: string
+          start_date?: string
+          end_date?: string | null
+          amount?: number
+        }
+      }
+      user_integrations: {
+        Row: {
+          id: number
+          user_id: string
+          provider: string
+          is_enabled: boolean
+          is_connected: boolean
+          settings: Record<string, unknown>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          provider: string
+          is_enabled?: boolean
+          is_connected?: boolean
+          settings?: Record<string, unknown>
+        }
+        Update: {
+          user_id?: string
+          provider?: string
+          is_enabled?: boolean
+          is_connected?: boolean
+          settings?: Record<string, unknown>
+        }
+      }
     }
   }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Typed Supabase client
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
   },
-}) as SupabaseClient<Database>
+})
+
+// Helper types for table operations
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]
+export type TableRow<T extends keyof Database['public']['Tables']> = Tables<T>['Row']
+export type TableInsert<T extends keyof Database['public']['Tables']> = Tables<T>['Insert']
+export type TableUpdate<T extends keyof Database['public']['Tables']> = Tables<T>['Update']

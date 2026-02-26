@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, TableInsert, TableUpdate } from '@/lib/supabase'
 
 export function useOffertes() {
   const [offertes, setOffertes] = useState<any[]>([])
@@ -25,9 +25,10 @@ export function useOffertes() {
 
   const createOfferte = async (offerte: any) => {
     try {
+      const insertData: TableInsert<'offertes'> = offerte
       const { data, error } = await supabase
         .from('offertes')
-        .insert([offerte])
+        .insert(insertData as any)
         .select()
         .single()
 
@@ -41,9 +42,10 @@ export function useOffertes() {
 
   const updateOfferte = async (id: string, updates: any) => {
     try {
+      const updateData: TableUpdate<'offertes'> = updates
       const { data, error } = await supabase
         .from('offertes')
-        .update(updates)
+        .update(updateData as any)
         .eq('id', id)
         .select()
         .single()

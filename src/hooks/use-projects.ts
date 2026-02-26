@@ -39,13 +39,13 @@ export function useProjects() {
     try {
       const { data, error } = await supabase
         .from('projecten')
-        .insert(project)
+        .insert(project as any)
         .select()
         .single()
 
       if (error) throw error
-      setProjects(prev => [data, ...prev])
-      return data
+      setProjects(prev => [data as Project, ...prev])
+      return data as Project
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error creating project')
     }
@@ -55,14 +55,14 @@ export function useProjects() {
     try {
       const { data, error } = await supabase
         .from('projecten')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single()
 
       if (error) throw error
-      setProjects(prev => prev.map(project => project.id === id ? data : project))
-      return data
+      setProjects(prev => prev.map(project => project.id === id ? data as Project : project))
+      return data as Project
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error updating project')
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, TableInsert, TableUpdate } from '@/lib/supabase'
 
 interface AgendaItem {
   id: string
@@ -37,15 +37,24 @@ export function useAgenda() {
 
   const createAgendaItem = async (item: Omit<AgendaItem, 'id' | 'created_at'>) => {
     try {
+      const insertData: TableInsert<'agenda'> = {
+        title: item.title,
+        description: item.description || null,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        location: item.location || null,
+        attendees: item.attendees || null,
+        status: item.status || 'scheduled'
+      }
       const { data, error } = await supabase
         .from('agenda')
-        .insert(item)
+        .insert(insertData as any)
         .select()
         .single()
 
       if (error) throw error
-      setAgendaItems(prev => [...prev, data])
-      return data
+      setAgendaItems(prev => [...prev, data as AgendaItem])
+      return data as AgendaItem
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error creating agenda item')
     }
@@ -53,16 +62,25 @@ export function useAgenda() {
 
   const updateAgendaItem = async (id: string, updates: Partial<AgendaItem>) => {
     try {
+      const updateData: TableUpdate<'agenda'> = {
+        title: updates.title,
+        description: updates.description,
+        start_time: updates.start_time,
+        end_time: updates.end_time,
+        location: updates.location,
+        attendees: updates.attendees,
+        status: updates.status
+      }
       const { data, error } = await supabase
         .from('agenda')
-        .update(updates)
+        .update(updateData as any)
         .eq('id', id)
         .select()
         .single()
 
       if (error) throw error
-      setAgendaItems(prev => prev.map(item => item.id === id ? data : item))
-      return data
+      setAgendaItems(prev => prev.map(item => item.id === id ? data as AgendaItem : item))
+      return data as AgendaItem
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error updating agenda item')
     }
