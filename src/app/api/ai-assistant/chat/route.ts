@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
       { data: facturen_raw },
       { data: projects }
     ] = await Promise.all([
-      (supabase.from('companies') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-      (supabase.from('contacts') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      (supabase.from('bedrijven') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      (supabase.from('contacten') as any).select('*', { count: 'exact', head: true }).eq('user_id', user.id),
       (supabase.from('deals') as any).select('name, status, value').eq('user_id', user.id),
       (supabase.from('facturen') as any).select('nummer, status, totaal_bedrag, klant').eq('user_id', user.id),
       (supabase.from('projecten') as any).select('name, status').eq('user_id', user.id).limit(10)

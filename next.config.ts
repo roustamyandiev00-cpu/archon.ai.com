@@ -8,17 +8,78 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Exclude super-admin folder from build
+  
+  // Performance optimizations
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
+  },
+  
+  // Compression
+  compress: true,
+  
+  // Experimental features for performance
   experimental: {
     externalDir: false,
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-icons',
+      'recharts',
+    ],
   },
-  // Ignore the super-admin directory during builds
+  // Webpack optimizations
   webpack: (config, { isServer }) => {
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/super-admin/**'],
     };
+    
+    // Exclude test files from build
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    
     return config;
+  },
+  
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
+    ];
   },
   allowedDevOrigins: [
     `http://localhost:3000`,

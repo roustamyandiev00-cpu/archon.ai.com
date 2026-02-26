@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       (supabase.from('deals') as any).select('*').eq('user_id', user.id).gte('created_at', lastWeek),
       (supabase.from('facturen') as any).select('*').eq('user_id', user.id).gte('datum', lastWeek),
-      (supabase.from('contacts') as any).select('*').eq('user_id', user.id).gte('created_at', lastWeek)
+      (supabase.from('contacten') as any).select('*').eq('user_id', user.id).gte('created_at', lastWeek)
     ]);
 
     const deals = (dealsRaw || []) as any[];
