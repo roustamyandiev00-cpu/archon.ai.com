@@ -475,33 +475,6 @@ SET
   file_size_limit = EXCLUDED.file_size_limit,
   allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- Sample data (optional)
-INSERT INTO bedrijven (naam, adres, postcode, stad, email, telefoon, kvk, btw) VALUES
-  ('ACME BV', 'Straat 1', '1000AA', 'Amsterdam', 'info@acme.nl', '020-1234567', '12345678', 'NL123456789B01'),
-  ('TechStart NV', 'Laan 5', '2000BB', 'Rotterdam', 'info@techstart.nl', '010-2345678', '23456789', 'NL234567890B02'),
-  ('Global Solutions', 'Weg 10', '3000CC', 'Utrecht', 'info@global.nl', '030-3456789', '34567890', 'NL345678901B03')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO contacten (voornaam, achternaam, email, telefoon, bedrijf_id, functie) VALUES
-  ('Jan', 'de Vries', 'jan@acme.nl', '020-1234568', 1, 'Directeur'),
-  ('Maria', 'Jansen', 'maria@acme.nl', '020-1234569', 1, 'Manager'),
-  ('Peter', 'Smit', 'peter@techstart.nl', '010-2345679', 2, 'CTO')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO deals (titel, waarde, stadium, bedrijf_id, contact_id, kans) VALUES
-  ('Software License', 50000, 'Gekwalificeerd', 1, 1, 75),
-  ('Consultancy Project', 25000, 'Voorstel', 2, 3, 60),
-  ('Annual Support', 15000, 'Onderhandeling', 1, 2, 80)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO projecten (naam, beschrijving, bedrijf_id, status, voortgang, budget, budget_gebruikt) VALUES
-  ('Website Redesign', 'Complete redesign of company website', 1, 'Actief', 75, 30000, 22500),
-  ('Mobile App', 'Native mobile application for iOS and Android', 2, 'Actief', 40, 50000, 20000),
-  ('CRM Integration', 'Integration with third-party CRM system', 1, 'On Hold', 60, 25000, 15000)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO offertes (nummer, klant, bedrag, datum, geldig_tot, status, bedrijf_id) VALUES
-  ('2025-001', 'ACME BV', 45000, '2025-02-01', '2025-02-15', 'Geaccepteerd', 1),
-  ('2025-002', 'TechStart NV', 60000, '2025-02-05', '2025-02-19', 'Openstaand', 2),
-  ('2025-003', 'Global Solutions', 35000, '2025-02-08', '2025-02-22', 'Afgewezen', 3)
-ON CONFLICT DO NOTHING;
+-- Mock data removed for production - users start with clean slate
+-- Tables are ready for user data
+-- No sample data inserted to ensure clean user experience

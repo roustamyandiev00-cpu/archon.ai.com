@@ -1,14 +1,38 @@
-import type { Metadata } from"next";
-import"./globals.css";
-import { Toaster } from"@/components/ui/toaster";
-import { ThemeProvider } from"@/components/theme-provider";
-import QueryProvider from"@/components/providers/QueryProvider";
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import QueryProvider from "@/components/providers/QueryProvider";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
- title:"ArchonPro - Business Suite Dashboard",
- description:"ArchonPro is een krachtige business suite voor het beheren van bedrijven, contacten, deals, offertes en projecten met AI-integratie.",
- keywords: ["ArchonPro","Business Suite","CRM","Project Management","Deals","Offertes","AI Assistant","Dashboard"],
- authors: [{ name:"ArchonPro Team"}],
+  title: "ArchonPro - Business Suite Dashboard",
+  description: "ArchonPro is een krachtige business suite voor het beheren van bedrijven, contacten, deals, offertes en projecten met AI-integratie.",
+  keywords: ["ArchonPro", "Business Suite", "CRM", "Project Management", "Deals", "Offertes", "AI Assistant", "Dashboard"],
+  authors: [{ name: "ArchonPro Team" }],
+  metadataBase: new URL("https://archonpro.app"),
+  icons: {
+    icon: "/logo.svg",
+  },
+  openGraph: {
+    title: "ArchonPro - Business Suite Dashboard",
+    description: "Krachtige business suite voor bedrijfsbeheer met AI-integratie",
+    url: "https://archonpro.app",
+    siteName: "ArchonPro",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ArchonPro - Business Suite Dashboard",
+    description: "Krachtige business suite voor bedrijfsbeheer met AI-integratie",
+  },
  metadataBase: new URL("https://archonpro.app"),
  icons: {
  icon:"/logo.svg",
