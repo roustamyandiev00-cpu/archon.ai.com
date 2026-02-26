@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { DataTable } from '@/components/ui/data-table'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FileText, Upload, Search, Filter, Download, Eye, Trash2, Loader2 } from 'lucide-react'
@@ -12,8 +13,81 @@ import { toast } from 'sonner'
 
 export default function DocumentenPage() {
   const [selectedTab, setSelectedTab] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
   const { documenten, loading, error, deleteDocument } = useDocumenten()
+
+  const columns = [
+    {
+      key: 'titel',
+      header: 'Document',
+      sortable: true,
+      render: (doc: any) => (
+        <div className="flex items-center gap-3">
+          <FileText className="h-5 w-5 text-blue-500" />
+          <div>
+            <p className="font-medium">{doc.titel || doc.bestandsnaam}</p>
+            <p className="text-sm text-muted-foreground">{doc.categorie || 'Geen categorie'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'bestandsgrootte',
+      header: 'Grootte',
+      sortable: true,
+      render: (doc: any) => {
+        const bytes = doc.bestandsgrootte || 0
+        if (bytes === 0) return '0 Bytes'
+        const k = 1024
+        const sizes = ['Bytes', 'KB', 'MB', 'GB']
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+      }
+    },
+    {
+      key: 'created_at',
+      header: 'Geüpload',
+      sortable: true,
+      render: (doc: any) => new Date(doc.created_at).toLocaleDateString('nl-NL')
+    },
+    {
+      key: 'mime_type',
+      header: 'Type',
+      render: (doc: any) => (
+        <Badge variant="outline">{doc.mime_type?.split('/')[1]?.toUpperCase() || 'Unknown'}</Badge>
+      )
+    }
+  ]
+
+  const actions = (doc: any) => (
+    <div className="flex items-center gap-2">
+      {doc.public_url && (
+        <>
+          <Link href={doc.public_url} target="_blank">
+            <Button variant="ghost" size="icon">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href={doc.public_url} target="_blank" download>
+            <Button variant="ghost" size="icon">
+              <Download className="h-4 w-4" />
+            </Button>
+          </Link>
+        </>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => {
+          if (confirm('Weet je zeker dat je dit document wilt verwijderen?')) {
+            deleteDocument(doc.id, doc.storage_pad)
+            toast.success('Document verwijderd')
+          }
+        }}
+      >
+        <Trash2 className="h-4 w-4 text-red-500" />
+      </Button>
+    </div>
+  )
 
   if (loading) {
     return (
@@ -48,28 +122,12 @@ export default function DocumentenPage() {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Documenten zoeken..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filter
-        </Button>
-      </div>
-
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
           <TabsTrigger value="all">
             <FileText className="mr-2 h-4 w-4" />
             Alle documenten
-            <Badge variant="secondary" className="ml-2">0</Badge>
+            <Badge variant="secondary" className="ml-2">{documenten.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="contracts">
             Contracten
@@ -84,19 +142,25 @@ export default function DocumentenPage() {
 
         <TabsContent value="all" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Documenten</CardTitle>
-              <CardDescription>Alle geüploade documenten</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Documenten</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {documenten.length} documenten in totaal
+                </p>
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="mx-auto h-12 w-12 mb-4" />
-                <p>Geen documenten gevonden</p>
-                <Button className="mt-4">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload je eerste document
-                </Button>
-              </div>
+              <DataTable
+                data={documenten}
+                columns={columns}
+                searchFields={['titel', 'bestandsnaam', 'categorie']}
+                actions={actions}
+              />
             </CardContent>
           </Card>
         </TabsContent>
