@@ -7,13 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Contact } from '@/types/supabase'
+import { Database } from '@/lib/supabase'
 
 interface EditContactModalProps {
-  contact: Contact
+  contact: Database['public']['Tables']['contacten']['Row']
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (contact: Contact) => void
+  onSave: (contact: Database['public']['Tables']['contacten']['Row']) => void
 }
 
 export default function EditContactModal({ contact, open, onOpenChange, onSave }: EditContactModalProps) {
@@ -40,84 +40,67 @@ export default function EditContactModal({ contact, open, onOpenChange, onSave }
         <DialogHeader>
           <DialogTitle>Contact bewerken</DialogTitle>
           <DialogDescription>
-            Pas de gegevens van {contact.name} aan.
+            Pas de gegevens van {contact.voornaam} {contact.achternaam} aan.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Naam
+              <Label htmlFor="voornaam" className="text-right">
+                Voornaam
               </Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                id="voornaam"
+                value={formData.voornaam}
+                onChange={(e) => setFormData({ ...formData, voornaam: e.target.value })}
                 className="col-span-3"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
+              <Label htmlFor="achternaam" className="text-right">
+                Achternaam
               </Label>
               <Input
-                id="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                id="achternaam"
+                value={formData.achternaam}
+                onChange={(e) => setFormData({ ...formData, achternaam: e.target.value })}
                 className="col-span-3"
+                required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
+              <Label htmlFor="telefoon" className="text-right">
                 Telefoon
               </Label>
               <Input
-                id="phone"
-                value={formData.phone || ''}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                id="telefoon"
+                value={formData.telefoon || ''}
+                onChange={(e) => setFormData({ ...formData, telefoon: e.target.value })}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="company" className="text-right">
-                Bedrijf
+              <Label htmlFor="bedrijf_id" className="text-right">
+                Bedrijf ID
               </Label>
               <Input
-                id="company"
-                value={formData.company || ''}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                id="bedrijf_id"
+                type="number"
+                value={formData.bedrijf_id || ''}
+                onChange={(e) => setFormData({ ...formData, bedrijf_id: e.target.value ? parseInt(e.target.value) : null })}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
-                Type
+              <Label htmlFor="functie" className="text-right">
+                Functie
               </Label>
-              <Select
-                value={formData.type || 'person'}
-                onValueChange={(value) => setFormData({ ...formData, type: value as any })}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecteer type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="person">Persoon</SelectItem>
-                  <SelectItem value="company">Bedrijf</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
-                Notities
-              </Label>
-              <Textarea
-                id="notes"
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              <Input
+                id="functie"
+                value={formData.functie || ''}
+                onChange={(e) => setFormData({ ...formData, functie: e.target.value })}
                 className="col-span-3"
-                rows={3}
               />
             </div>
           </div>

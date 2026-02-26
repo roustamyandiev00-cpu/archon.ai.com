@@ -1,20 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-interface AgendaItem {
-  id: string
-  title: string
-  description?: string
-  start_time: string
-  end_time: string
-  location?: string
-  attendees?: string[]
-  status: 'scheduled' | 'completed' | 'cancelled'
-  created_at: string
-}
-
 export function useAgenda() {
-  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
+  const [agendaItems, setAgendaItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,9 +10,9 @@ export function useAgenda() {
     try {
       setLoading(true)
       const { data, error } = await supabase
-        .from('agenda')
+        .from('afspraken')
         .select('*')
-        .order('start_time', { ascending: true })
+        .order('start_tijd', { ascending: true })
 
       if (error) throw error
       setAgendaItems(data || [])
@@ -35,10 +23,10 @@ export function useAgenda() {
     }
   }
 
-  const createAgendaItem = async (item: Omit<AgendaItem, 'id' | 'created_at'>) => {
+  const createAgendaItem = async (item: any) => {
     try {
       const { data, error } = await supabase
-        .from('agenda')
+        .from('afspraken')
         .insert(item)
         .select()
         .single()
@@ -51,10 +39,10 @@ export function useAgenda() {
     }
   }
 
-  const updateAgendaItem = async (id: string, updates: Partial<AgendaItem>) => {
+  const updateAgendaItem = async (id: string, updates: any) => {
     try {
       const { data, error } = await supabase
-        .from('agenda')
+        .from('afspraken')
         .update(updates)
         .eq('id', id)
         .select()
@@ -71,7 +59,7 @@ export function useAgenda() {
   const deleteAgendaItem = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('agenda')
+        .from('afspraken')
         .delete()
         .eq('id', id)
 
