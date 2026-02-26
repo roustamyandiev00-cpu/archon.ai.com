@@ -70,12 +70,12 @@ export async function GET(request: Request) {
 
     const stats = {
       total: statsData?.length || 0,
-      email: statsData?.filter(l => l.channel === 'email').length || 0,
-      whatsapp: statsData?.filter(l => l.channel === 'whatsapp').length || 0,
-      telegram: statsData?.filter(l => l.channel === 'telegram').length || 0,
-      sent: statsData?.filter(l => l.status === 'sent').length || 0,
-      delivered: statsData?.filter(l => l.status === 'delivered').length || 0,
-      failed: statsData?.filter(l => l.status === 'failed').length || 0,
+      email: statsData?.filter((l: any) => l.channel === 'email').length || 0,
+      whatsapp: statsData?.filter((l: any) => l.channel === 'whatsapp').length || 0,
+      telegram: statsData?.filter((l: any) => l.channel === 'telegram').length || 0,
+      sent: statsData?.filter((l: any) => l.status === 'sent').length || 0,
+      delivered: statsData?.filter((l: any) => l.status === 'delivered').length || 0,
+      failed: statsData?.filter((l: any) => l.status === 'failed').length || 0,
     };
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 import {
   Bell,
   Briefcase,
@@ -107,6 +108,42 @@ export default function DashboardHeader({
 }) {
   const [unreadNotifications, setUnreadNotifications] = useState<number>(notificationItems.length)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [themeReady, setThemeReady] = useState(false)
+  const [isDarkUi, setIsDarkUi] = useState(false)
+  const { resolvedTheme: resolvedThemeFromHook, setTheme } = useTheme()
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setThemeReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  useEffect(() => {
+    if (!themeReady && !themeMounted) return
+
+    const currentResolvedTheme = resolvedThemeFromHook ?? resolvedTheme
+    const isDark =
+      currentResolvedTheme === 'dark' ||
+      (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
+    setIsDarkUi(Boolean(isDark))
+  }, [resolvedTheme, resolvedThemeFromHook, themeMounted, themeReady])
+
+  const handleToggleTheme = () => {
+    const nextTheme = isDarkUi ? 'light' : 'dark'
+    setTheme(nextTheme)
+    setIsDarkUi(nextTheme === 'dark')
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('theme', nextTheme)
+      } catch {
+        // ignore
+      }
+    }
+  }
 
   const navigateFromMenu = (page: string) => {
     onNavigate(page)
@@ -198,11 +235,15 @@ export default function DashboardHeader({
             <button
               type="button"
               aria-label="Thema wisselen"
-              onClick={onToggleTheme}
+              onClick={handleToggleTheme}
               title="Wissel thema"
               className="p-2 rounded-lg transition-all duration-200 border border-border/30 bg-card/60 backdrop-blur-xl hover:bg-card/75 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
-              {themeMounted && resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {(themeReady || themeMounted) && isDarkUi ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
             </button>
 
             <DropdownMenu

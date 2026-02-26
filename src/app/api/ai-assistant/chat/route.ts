@@ -76,7 +76,7 @@ FINANCIËN:
 - Aantal onbetaalde facturen: ${unpaidInvoices.length}
 
 PROJECTEN:
-- Lopende projecten: ${projects?.map(p => `${p.name} [${p.status}]`).join(', ') || 'Geen'}
+- Lopende projecten: ${projects?.map((p: any) => `${p.name} [${p.status}]`).join(', ') || 'Geen'}
 
 INSTRUCTIES:
 - Beantwoord vragen kort, professioneel en behulpzaam.

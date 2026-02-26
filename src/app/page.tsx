@@ -185,7 +185,9 @@ export default function Dashboard() {
   const formattedDate = themeMounted ? getFormattedDate() : ''
   const activePageLabel = pageLabelById.get(activePage) ?? 'Dashboard'
   const pageSwitching = pagePreloading || isPageTransitionPending
-  const toggleTheme = () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+  }
   const toggleDesktopSidebar = () => setDesktopSidebarOpen((open) => !open)
 
   const navigateTo = (page: string) => {

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // Exclude super-admin folder from build
   experimental: {

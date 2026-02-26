@@ -89,7 +89,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [pathname, searchParams])
   const activePageLabel = pageLabelById.get(activePage) ?? 'Dashboard'
 
-  const toggleTheme = () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+  const toggleTheme = () => {
+    const isDark =
+      resolvedTheme === 'dark' ||
+      (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
+
+    setTheme(isDark ? 'light' : 'dark')
+  }
   const toggleDesktopSidebar = () => setDesktopSidebarOpen((open) => !open)
 
   const navigateTo = (page: string) => {
