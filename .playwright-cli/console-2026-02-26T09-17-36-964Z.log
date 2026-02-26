@@ -1,0 +1,4 @@
+[     610ms] [ERROR] Error loading settings page: Error: Niet ingelogd
+    at InstellingenPageSimple.useCallback[fetchWithAuth] (http://localhost:3000/_next/static/chunks/src_components_19c37685._.js:589:23)
+    at async Promise.all (index 0)
+    at async InstellingenPageSimple.useCallback[loadPageData] (http://localhost:3000/_next/static/chunks/src_components_19c37685._.js:636:70) @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127

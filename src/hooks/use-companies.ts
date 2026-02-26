@@ -20,9 +20,14 @@ async function getAuthHeaders() {
  }
 }
 
-async function fetchCompanies() {
+async function fetchCompanies(status?: string | null, sector?: string | null, search?: string | null) {
  const headers = await getAuthHeaders()
- const res = await fetch('/api/companies', {
+ const params = new URLSearchParams()
+ if (status) params.append('status', status)
+ if (sector) params.append('sector', sector)
+ if (search) params.append('search', search)
+ 
+ const res = await fetch(`/api/companies?${params.toString()}`, {
  headers,
  })
  if (!res.ok) {
@@ -49,16 +54,17 @@ async function postCompany(formData: Record<string, unknown>) {
  return res.json()
 }
 
-export function useCompanies() {
+export function useCompanies(status?: string | null, sector?: string | null, search?: string | null) {
  const queryClient = useQueryClient()
 
  const query = useQuery({
- queryKey: ['companies'],
- queryFn: fetchCompanies,
+ queryKey: ['companies', status, sector, search],
+ queryFn: () => fetchCompanies(status, sector, search),
  staleTime: 5 * 60 * 1000, // 5 minuten
  gcTime: 10 * 60 * 1000, // 10 minuten
  refetchOnWindowFocus: false,
  refetchOnMount: false,
+ enabled: true, // Always enabled
  })
 
  const mutation = useMutation({

@@ -123,7 +123,11 @@ export function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
  )
  const [currentPage, setCurrentPage] = useDashboardQueryNumber('bedrijven_page', 1, { min: 1 })
  
- const { companies, isLoading, isError, error } = useCompanies()
+ const { companies, isLoading, isError, error } = useCompanies(
+   statusFilter === 'all' ? null : statusFilter,
+   typeFilter === 'all' ? null : typeFilter,
+   searchQuery || null
+ )
  
  const [isModalOpen, setIsModalOpen] = useState(false)
  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -163,25 +167,12 @@ export function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
  const safeTypeFilter = typeFilter ==='all'|| sectors.includes(typeFilter) ? typeFilter :'all'
 
  const filteredData = useMemo(() => {
- const loweredSearch = searchQuery.toLowerCase()
-
- return bedrijvenData
- .filter((bedrijf) => {
- const matchesSearch =
- bedrijf.naam.toLowerCase().includes(loweredSearch) ||
- bedrijf.sector.toLowerCase().includes(loweredSearch) ||
- bedrijf.locatie.toLowerCase().includes(loweredSearch)
- const matchesStatus = statusFilter ==='all'|| bedrijf.status === statusFilter
- const matchesType = safeTypeFilter ==='all'|| bedrijf.sector === safeTypeFilter
-
- return matchesSearch && matchesStatus && matchesType
+ return bedrijvenData.sort((a, b) => {
+   if (sortBy ==='naam') return a.naam.localeCompare(b.naam)
+   if (sortBy ==='dealValue') return b.dealValue - a.dealValue
+   return b.contacten - a.contacten
  })
- .sort((a, b) => {
- if (sortBy ==='naam') return a.naam.localeCompare(b.naam)
- if (sortBy ==='dealValue') return b.dealValue - a.dealValue
- return b.contacten - a.contacten
- })
- }, [bedrijvenData, safeTypeFilter, searchQuery, sortBy, statusFilter])
+ }, [bedrijvenData, sortBy])
 
  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
  const safeCurrentPage = Math.min(currentPage, totalPages)

@@ -1,14 +1,31 @@
 'use client'
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { Bot, Send, Sparkles, PanelRightClose, ListTodo, Zap, Mic, Volume2, Loader2 } from 'lucide-react'
+import {
+  Bot,
+  Send,
+  Sparkles,
+  PanelRightClose,
+  ListTodo,
+  Zap,
+  Mic,
+  Volume2,
+  Loader2,
+  PhoneCall,
+  PhoneOff,
+} from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { toast } from '@/hooks/use-toast'
-import { buildFactuurCreateUrl, type AiAssistantAction } from '@/lib/ai-assistant-actions'
+import {
+  buildDashboardPageUrl,
+  buildFactuurCreateUrl,
+  type AiAssistantAction,
+} from '@/lib/ai-assistant-actions'
 
 interface Message {
   id: string
@@ -68,8 +85,12 @@ function AIAssistantPanel() {
   const [isRecording, setIsRecording] = useState(false)
   const [autoSpeakResponses, setAutoSpeakResponses] = useState(false)
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
+  const [voiceQuestionMode, setVoiceQuestionMode] = useState(false)
 
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
+  const inputRef = useRef('')
+  const shouldSubmitAfterStopRef = useRef(false)
+  const isVoiceQuestionRecordingRef = useRef(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -80,6 +101,23 @@ function AIAssistantPanel() {
     }
 
     setVoiceSupported(Boolean(browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition))
+  }, [])
+
+  useEffect(() => {
+    inputRef.current = input
+  }, [input])
+
+  const handleAssistantAction = useCallback((action?: AiAssistantAction | null) => {
+    if (!action || typeof window === 'undefined') return
+
+    if (action.type === 'open_factuur_modal') {
+      window.location.assign(buildFactuurCreateUrl(action.prefillData))
+      return
+    }
+
+    if (action.type === 'open_page') {
+      window.location.assign(buildDashboardPageUrl(action.page))
+    }
   }, [])
 
   const stopRecording = useCallback(() => {
@@ -128,83 +166,14 @@ function AIAssistantPanel() {
     synth.speak(utterance)
   }, [speakingMessageId])
 
-  const startRecording = useCallback(() => {
-    if (typeof window === 'undefined') return
-
-    const browserWindow = window as unknown as {
-      SpeechRecognition?: new () => BrowserSpeechRecognition
-      webkitSpeechRecognition?: new () => BrowserSpeechRecognition
-    }
-    const RecognitionCtor = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition
-
-    if (!RecognitionCtor) {
-      toast({
-        title: 'Spraak niet ondersteund',
-        description: 'Gebruik Chrome of Safari voor spraak-naar-tekst.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    const baseInput = input.trim()
-    const recognition = new RecognitionCtor()
-    recognition.lang = 'nl-NL'
-    recognition.continuous = true
-    recognition.interimResults = true
-
-    recognition.onstart = () => setIsRecording(true)
-    recognition.onresult = (event) => {
-      let transcript = ''
-      for (let i = 0; i < event.results.length; i += 1) {
-        const part = event.results[i]?.[0]?.transcript?.trim()
-        if (part) transcript += `${part} `
-      }
-
-      const merged = [baseInput, transcript.trim()].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
-      setInput(merged)
-    }
-    recognition.onerror = (event) => {
-      setIsRecording(false)
-      recognitionRef.current = null
-      toast({
-        title: 'Microfoonfout',
-        description: event.error ? `Spraakherkenning fout: ${event.error}` : 'Spraakherkenning stopte onverwacht.',
-        variant: 'destructive',
-      })
-    }
-    recognition.onend = () => {
-      setIsRecording(false)
-      recognitionRef.current = null
-    }
-
-    recognitionRef.current = recognition
-    recognition.start()
-  }, [input])
-
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-        recognitionRef.current = null
-      }
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-      }
-    }
-  }, [])
-
-  const handleAssistantAction = useCallback((action?: AiAssistantAction | null) => {
-    if (!action || typeof window === 'undefined') return
-
-    if (action.type === 'open_factuur_modal') {
-      window.location.assign(buildFactuurCreateUrl(action.prefillData))
-    }
-  }, [])
-
-  const handleSend = useCallback(async () => {
-    const value = input.trim()
+  const handleSend = useCallback(async (overrideInput?: string) => {
+    const value = (overrideInput ?? inputRef.current).trim()
     if (!value || isLoading) return
     if (isRecording) stopRecording()
+
+    shouldSubmitAfterStopRef.current = false
+    isVoiceQuestionRecordingRef.current = false
+    if (voiceQuestionMode) setVoiceQuestionMode(false)
 
     const userMessage: Message = {
       id: `${Date.now()}`,
@@ -220,6 +189,7 @@ function AIAssistantPanel() {
 
     setMessages(prev => [...prev, userMessage])
     setInput('')
+    inputRef.current = ''
     setIsLoading(true)
 
     try {
@@ -235,6 +205,11 @@ function AIAssistantPanel() {
           message: value,
           history,
           model: activeModel,
+          context: {
+            pagePath: typeof window !== 'undefined' ? window.location.pathname : null,
+            locale: typeof navigator !== 'undefined' ? navigator.language : 'nl-NL',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
         }),
       })
 
@@ -278,7 +253,127 @@ function AIAssistantPanel() {
     } finally {
       setIsLoading(false)
     }
-  }, [activeModel, autoSpeakResponses, handleAssistantAction, input, isLoading, isRecording, messages, speakText, stopRecording])
+  }, [
+    activeModel,
+    autoSpeakResponses,
+    handleAssistantAction,
+    isLoading,
+    isRecording,
+    messages,
+    speakText,
+    stopRecording,
+    voiceQuestionMode,
+  ])
+
+  const startRecording = useCallback((options?: { resetInput?: boolean }) => {
+    if (typeof window === 'undefined') return
+
+    const browserWindow = window as unknown as {
+      SpeechRecognition?: new () => BrowserSpeechRecognition
+      webkitSpeechRecognition?: new () => BrowserSpeechRecognition
+    }
+    const RecognitionCtor = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition
+
+    if (!RecognitionCtor) {
+      toast({
+        title: 'Spraak niet ondersteund',
+        description: 'Gebruik Chrome of Safari voor spraak-naar-tekst.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const resetInput = Boolean(options?.resetInput)
+    const baseInput = resetInput ? '' : inputRef.current.trim()
+
+    if (resetInput) {
+      setInput('')
+      inputRef.current = ''
+    }
+
+    const recognition = new RecognitionCtor()
+    recognition.lang = 'nl-NL'
+    recognition.continuous = true
+    recognition.interimResults = true
+
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onresult = (event) => {
+      let transcript = ''
+      for (let i = 0; i < event.results.length; i += 1) {
+        const part = event.results[i]?.[0]?.transcript?.trim()
+        if (part) transcript += `${part} `
+      }
+
+      const merged = [baseInput, transcript.trim()].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+      setInput(merged)
+      inputRef.current = merged
+    }
+    recognition.onerror = (event) => {
+      setIsRecording(false)
+      recognitionRef.current = null
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+      setVoiceQuestionMode(false)
+      toast({
+        title: 'Microfoonfout',
+        description: event.error ? `Spraakherkenning fout: ${event.error}` : 'Spraakherkenning stopte onverwacht.',
+        variant: 'destructive',
+      })
+    }
+    recognition.onend = () => {
+      setIsRecording(false)
+      recognitionRef.current = null
+      const shouldSubmitVoiceQuestion = shouldSubmitAfterStopRef.current && isVoiceQuestionRecordingRef.current
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+      setVoiceQuestionMode(false)
+
+      if (shouldSubmitVoiceQuestion) {
+        const spokenPrompt = inputRef.current.trim()
+        if (!spokenPrompt) {
+          toast({
+            title: 'Geen spraak herkend',
+            description: 'Probeer opnieuw en spreek iets duidelijker in.',
+            variant: 'destructive',
+          })
+          return
+        }
+        void handleSend(spokenPrompt)
+      }
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+  }, [handleSend])
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+    }
+  }, [])
+
+  const toggleVoiceQuestion = useCallback(() => {
+    if (!voiceSupported || isLoading) return
+
+    if (!voiceQuestionMode) {
+      isVoiceQuestionRecordingRef.current = true
+      shouldSubmitAfterStopRef.current = false
+      setVoiceQuestionMode(true)
+      startRecording({ resetInput: true })
+      return
+    }
+
+    shouldSubmitAfterStopRef.current = true
+    stopRecording()
+  }, [isLoading, startRecording, stopRecording, voiceQuestionMode, voiceSupported])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -317,7 +412,7 @@ function AIAssistantPanel() {
         <div className="bg-gradient-to-b from-red-500/10 to-orange-500/10 backdrop-blur-xl border border-red-500/20 rounded-2xl overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-red-500/20">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white" />
@@ -328,6 +423,22 @@ function AIAssistantPanel() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleVoiceQuestion}
+                  disabled={!voiceSupported || isLoading}
+                  className={cn(
+                    'h-8 rounded-md border inline-flex items-center gap-1.5 px-2 text-xs transition-colors',
+                    voiceQuestionMode
+                      ? 'border-red-500/40 bg-red-500/20 text-red-500'
+                      : 'border-red-500/20 text-muted-foreground hover:text-foreground hover:bg-red-500/10',
+                    (!voiceSupported || isLoading) && 'opacity-50 cursor-not-allowed'
+                  )}
+                  title={voiceQuestionMode ? 'Stop & verstuur voice vraag' : 'Start voice vraag'}
+                >
+                  {voiceQuestionMode ? <PhoneOff className="w-3.5 h-3.5" /> : <PhoneCall className="w-3.5 h-3.5" />}
+                  <span>{voiceQuestionMode ? 'Stop' : 'Voice'}</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setAutoSpeakResponses((value) => !value)}
@@ -504,12 +615,18 @@ function AIAssistantPanel() {
                   size="icon"
                   onClick={() => {
                     if (isRecording) {
+                      shouldSubmitAfterStopRef.current = false
+                      isVoiceQuestionRecordingRef.current = false
+                      setVoiceQuestionMode(false)
                       stopRecording()
                       return
                     }
+                    setVoiceQuestionMode(false)
+                    shouldSubmitAfterStopRef.current = false
+                    isVoiceQuestionRecordingRef.current = false
                     startRecording()
                   }}
-                  disabled={!voiceSupported || isLoading}
+                  disabled={!voiceSupported || isLoading || voiceQuestionMode}
                   className="h-10 w-10"
                   title={isRecording ? 'Stop opname' : 'Start spraakopname'}
                 >
@@ -525,11 +642,13 @@ function AIAssistantPanel() {
                 </Button>
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {voiceSupported
-                  ? isRecording
-                    ? 'Luistert... klik op de microfoon om te stoppen.'
-                    : 'Tip: klik op de microfoon voor spraak-naar-tekst.'
-                  : 'Spraak is niet beschikbaar in deze browser.'}
+                {voiceQuestionMode
+                  ? 'Voice-vraag actief: spreek je vraag in en klik opnieuw op Voice om te stoppen en direct te versturen.'
+                  : voiceSupported
+                    ? isRecording
+                      ? 'Luistert... klik op de microfoon om te stoppen.'
+                      : 'Tip: gebruik de microfoon voor spraak-naar-tekst, of Voice voor direct versturen.'
+                    : 'Spraak is niet beschikbaar in deze browser.'}
               </p>
             </div>
           )}

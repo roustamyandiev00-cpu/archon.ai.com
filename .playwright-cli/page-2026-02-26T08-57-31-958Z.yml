@@ -1,0 +1,219 @@
+- generic [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e216]:
+    - generic [ref=e217]:
+      - button "Zijbalk inklappen" [expanded] [ref=e218]:
+        - img [ref=e219]
+      - complementary [ref=e220]:
+        - generic [ref=e221]:
+          - generic [ref=e222]:
+            - img [ref=e224]
+            - generic [ref=e226]:
+              - heading "ArchonPro" [level=1] [ref=e227]
+              - paragraph [ref=e228]: Business Suite
+          - generic [ref=e229]:
+            - button "Sidebar bewerken" [ref=e230]:
+              - img [ref=e231]
+            - button "Zijbalk inklappen" [ref=e234]:
+              - img [ref=e235]
+        - navigation "Hoofdnavigatie" [ref=e237]:
+          - paragraph [ref=e238]:
+            - generic [ref=e239]: Navigatie
+          - generic [ref=e240]:
+            - button "Dashboard" [ref=e241]:
+              - img [ref=e243]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e246]:
+              - img [ref=e248]
+              - text: Bedrijven
+            - button "Contacten" [ref=e252]:
+              - img [ref=e254]
+              - text: Contacten
+            - button "Deals" [ref=e259]:
+              - img [ref=e261]
+              - text: Deals
+            - button "Offertes" [ref=e264]:
+              - img [ref=e266]
+              - text: Offertes
+            - button "Facturen" [ref=e269]:
+              - img [ref=e271]
+              - text: Facturen
+            - button "Projecten" [ref=e274]:
+              - img [ref=e276]
+              - text: Projecten
+            - button "Agenda" [ref=e278]:
+              - img [ref=e280]
+              - text: Agenda
+            - button "Artikelen" [ref=e282]:
+              - img [ref=e284]
+              - text: Artikelen
+            - button "Timesheets" [ref=e288]:
+              - img [ref=e290]
+              - text: Timesheets
+            - button "WhatsApp" [active] [ref=e293]:
+              - img [ref=e295]
+              - text: WhatsApp
+            - button "Support" [ref=e297]:
+              - img [ref=e299]
+              - text: Support
+            - button "Documenten" [ref=e301]:
+              - img [ref=e303]
+              - text: Documenten
+        - generic [ref=e305]:
+          - paragraph [ref=e306]: Tools
+          - generic [ref=e307]:
+            - button "AI Assistant" [ref=e308]:
+              - img [ref=e310]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e313]:
+              - img [ref=e315]
+              - text: Abonnement
+            - button "Instellingen" [ref=e317]:
+              - img [ref=e319]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e322]:
+              - img [ref=e324]
+              - text: Uitloggen
+      - generic [ref=e327]:
+        - generic [ref=e330]:
+          - generic [ref=e331]:
+            - generic [ref=e333]: WhatsApp
+            - search "Zoek" [ref=e334]:
+              - img
+              - button "Open zoeken" [ref=e335]:
+                - generic [ref=e336]:
+                  - generic [ref=e337]: Zoek pagina, klant of actie...
+                  - generic [ref=e338]:
+                    - generic [ref=e339]: Ctrl
+                    - generic [ref=e340]: K
+          - generic [ref=e341]:
+            - img [ref=e343]
+            - generic [ref=e345]: 09:57
+            - button "Thema wisselen" [ref=e346]:
+              - img [ref=e347]
+            - button "Meldingen" [ref=e349]:
+              - img
+            - button "Account" [ref=e351]:
+              - img
+          - button "Upgrade" [ref=e352]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e353]:
+            - img
+        - main [ref=e357]:
+          - generic [ref=e358]:
+            - generic [ref=e359]:
+              - generic [ref=e360]:
+                - heading "WhatsApp" [level=1] [ref=e361]:
+                  - img [ref=e363]
+                  - text: WhatsApp
+                - generic [ref=e365]: Connected
+              - generic [ref=e367]:
+                - img [ref=e368]
+                - textbox "Zoek contact of bericht..." [ref=e371]
+              - generic [ref=e375]:
+                - button "R Rik Janssen 14:20 Is de offerte al klaar? 2 AI Priority" [ref=e376]:
+                  - generic [ref=e379]: R
+                  - generic [ref=e381]:
+                    - generic [ref=e382]:
+                      - generic [ref=e383]: Rik Janssen
+                      - generic [ref=e384]: 14:20
+                    - generic [ref=e385]:
+                      - paragraph [ref=e386]: Is de offerte al klaar?
+                      - generic [ref=e387]: "2"
+                    - generic [ref=e388]:
+                      - img [ref=e389]
+                      - text: AI Priority
+                - button "S Sanne Bakker Gisteren Dankjewel, tot volgende week!" [ref=e391]:
+                  - generic [ref=e394]: S
+                  - generic [ref=e395]:
+                    - generic [ref=e396]:
+                      - generic [ref=e397]: Sanne Bakker
+                      - generic [ref=e398]: Gisteren
+                    - paragraph [ref=e400]: Dankjewel, tot volgende week!
+                - button "B Bouwbedrijf De Groot Maandag Kunt u ons terugbellen? 1 AI Priority" [ref=e401]:
+                  - generic [ref=e404]: B
+                  - generic [ref=e405]:
+                    - generic [ref=e406]:
+                      - generic [ref=e407]: Bouwbedrijf De Groot
+                      - generic [ref=e408]: Maandag
+                    - generic [ref=e409]:
+                      - paragraph [ref=e410]: Kunt u ons terugbellen?
+                      - generic [ref=e411]: "1"
+                    - generic [ref=e412]:
+                      - img [ref=e413]
+                      - text: AI Priority
+            - generic [ref=e416]:
+              - generic [ref=e418]:
+                - generic [ref=e419]:
+                  - generic [ref=e421]: R
+                  - generic [ref=e422]:
+                    - heading "Rik Janssen" [level=3] [ref=e423]
+                    - paragraph [ref=e424]: +31 6 12345678 • online
+                - generic [ref=e425]:
+                  - button [ref=e426]:
+                    - img
+                  - button [ref=e427]:
+                    - img
+                  - button [ref=e429]:
+                    - img
+                  - button [ref=e430]:
+                    - img
+              - generic [ref=e431]:
+                - generic [ref=e432]:
+                  - generic [ref=e436]:
+                    - generic [ref=e438]: VANDAAG
+                    - generic [ref=e440]:
+                      - paragraph [ref=e441]: Hoi, ik had nog een vraagje over de planning.
+                      - generic [ref=e443]: 14:15
+                    - generic [ref=e445]:
+                      - paragraph [ref=e446]: En is de offerte al klaar?
+                      - generic [ref=e448]: 14:20
+                  - generic [ref=e449]:
+                    - button [ref=e450]:
+                      - img
+                    - button [ref=e451]:
+                      - img
+                    - textbox "Typ een bericht..." [ref=e452]
+                    - button [ref=e453]:
+                      - img
+                - generic [ref=e454]:
+                  - generic [ref=e455]:
+                    - img [ref=e457]
+                    - generic [ref=e460]:
+                      - img [ref=e461]
+                      - generic [ref=e464]: AI Analyse
+                    - generic [ref=e465]:
+                      - paragraph [ref=e467]: "\"Rik wacht op een offerte. AI adviseert om direct een concept te sturen of een belafspraak te plannen.\""
+                      - generic [ref=e468]:
+                        - paragraph [ref=e469]: Voorgestelde Acties
+                        - button "Belafspraak plannen" [ref=e470]:
+                          - img
+                          - text: Belafspraak plannen
+                        - button "Concept offerte sturen" [ref=e471]:
+                          - img
+                          - text: Concept offerte sturen
+                  - generic [ref=e472]:
+                    - generic [ref=e474]: Klantgegevens
+                    - generic [ref=e475]:
+                      - generic [ref=e476]:
+                        - paragraph [ref=e477]: Rik Janssen
+                        - paragraph [ref=e478]: Vries Bouw & Constructie
+                      - generic [ref=e479]:
+                        - generic [ref=e480]:
+                          - generic [ref=e481]: Openstaande deals
+                          - generic [ref=e482]: 1 (€ 12.500)
+                        - generic [ref=e483]:
+                          - generic [ref=e484]: Laatste factuur
+                          - generic [ref=e485]: Betaald
+                      - button "Open CRM kaart" [ref=e486]
+      - generic [ref=e487]:
+        - heading "Zoeken" [level=2] [ref=e488]
+        - paragraph [ref=e489]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e197] [cursor=pointer]:
+    - img [ref=e198]
+  - alert [ref=e201]: ArchonPro - WhatsApp
+  - generic [ref=e490]: "0"

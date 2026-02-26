@@ -1,6 +1,19 @@
-import { NextRequest, NextResponse } from'next/server'
-import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
-import { getUserFromRequest } from'@/lib/admin'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
+
+const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+
+const UpdateTimesheetSchema = z.object({
+ datum: IsoDateSchema.optional(),
+ projectId: z.string().trim().min(1).nullable().optional(),
+ project: z.string().trim().min(1).optional(),
+ activiteit: z.string().trim().min(1).optional(),
+ uren: z.coerce.number().positive().max(24).optional(),
+ billable: z.boolean().optional(),
+ notities: z.string().trim().nullable().optional(),
+})
 
 // GET /api/timesheets/[id] - Get a single timesheet
 export async function GET(
@@ -53,18 +66,25 @@ export async function PATCH(
 
  const { id } = await params
  const body = await request.json()
- const { datum, projectId, project, activiteit, uren, billable, notities } = body
+ const validated = UpdateTimesheetSchema.parse(body)
 
  const supabase = getSupabaseAdmin()
 
  const updateData: Record<string, any> = {}
- if (datum !== undefined) updateData.datum = datum
- if (projectId !== undefined) updateData.project_id = projectId
- if (project !== undefined) updateData.project = project
- if (activiteit !== undefined) updateData.activiteit = activiteit
- if (uren !== undefined) updateData.uren = parseFloat(uren)
- if (billable !== undefined) updateData.billable = billable
- if (notities !== undefined) updateData.notities = notities
+ if (validated.datum !== undefined) updateData.datum = validated.datum
+ if (validated.projectId !== undefined) updateData.project_id = validated.projectId
+ if (validated.project !== undefined) updateData.project = validated.project
+ if (validated.activiteit !== undefined) updateData.activiteit = validated.activiteit
+ if (validated.uren !== undefined) updateData.uren = validated.uren
+ if (validated.billable !== undefined) updateData.billable = validated.billable
+ if (validated.notities !== undefined) updateData.notities = validated.notities
+
+ if (Object.keys(updateData).length === 0) {
+ return NextResponse.json(
+ { success: false, error: 'Geen wijzigingen opgegeven' },
+ { status: 400 }
+ )
+ }
 
  const { data: timesheet, error } = await (supabase
  .from('timesheets') as any)
@@ -78,6 +98,12 @@ export async function PATCH(
 
  return NextResponse.json({ success: true, data: timesheet })
  } catch (error) {
+ if (error instanceof z.ZodError) {
+ return NextResponse.json(
+ { success: false, error: 'Validatiefout', details: error.issues },
+ { status: 400 }
+ )
+ }
  console.error('Error updating timesheet:', error)
  return NextResponse.json(
  { success: false, error:'Kon timesheet niet bijwerken'},

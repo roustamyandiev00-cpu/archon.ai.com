@@ -7,7 +7,7 @@ import { DataTable } from'@/components/ui/data-table'
 import Link from'next/link'
 import { Badge } from'@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from'@/components/ui/tabs'
-import { FileText, Upload, Search, Filter, Download, Eye, Trash2, Loader2 } from'lucide-react'
+import { FileText, Upload, Search, Filter, Download, Eye, Trash2, Loader2, Sparkles, Folder } from 'lucide-react'
 import { useDocumenten } from'@/hooks/use-documenten'
 import { toast } from'sonner'
 
@@ -137,28 +137,85 @@ export default function DocumentenPage() {
  )
  }
 
- return (
- <div className="container mx-auto py-6 space-y-6">
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-3xl font-bold">Mijn Documenten</h1>
- <p className="text-muted-foreground">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
- </div>
- <input
- type="file"
- ref={fileInputRef}
- onChange={handleFileSelect}
- className="hidden"
- />
- <Button onClick={handleUploadClick} disabled={uploading}>
- {uploading ? (
- <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
- ) : (
- <Upload className="mr-2 h-4 w-4"/>
- )}
- {uploading ?'Uploaden...':'Uploaden'}
- </Button>
- </div>
+  const totalBytes = documenten.reduce((acc, doc: any) => acc + (doc.bestandsgrootte || 0), 0)
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const today = new Date().toLocaleDateString('nl-NL')
+  const newToday = documenten.filter((doc: any) => new Date(doc.created_at).toLocaleDateString('nl-NL') === today).length
+  const uniqueCategories = new Set(documenten.map((d: any) => d.categorie || 'Algemeen')).size
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Mijn Documenten</h1>
+          <p className="text-muted-foreground text-sm mt-1">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <Button onClick={handleUploadClick} disabled={uploading}>
+            {uploading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+            ) : (
+              <Upload className="mr-2 h-4 w-4"/>
+            )}
+            {uploading ? 'Uploaden...' : 'Document Uploaden'}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-card/40 border border-border/40 rounded-2xl p-5 flex items-center gap-4 hover:bg-card/60 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-[13px] font-normal text-muted-foreground mb-1">Totaal Bestanden</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{documenten.length}</p>
+          </div>
+        </div>
+
+        <div className="bg-card/40 border border-border/40 rounded-2xl p-5 flex items-center gap-4 hover:bg-card/60 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <Filter className="w-5 h-5 text-amber-500" />
+          </div>
+          <div>
+            <p className="text-[13px] font-normal text-muted-foreground mb-1">Opslag Gebruik</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{formatBytes(totalBytes)}</p>
+          </div>
+        </div>
+
+        <div className="bg-card/40 border border-border/40 rounded-2xl p-5 flex items-center gap-4 hover:bg-card/60 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-[13px] font-normal text-muted-foreground mb-1">Nieuw Vandaag</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{newToday}</p>
+          </div>
+        </div>
+
+        <div className="bg-card/40 border border-border/40 rounded-2xl p-5 flex items-center gap-4 hover:bg-card/60 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <Folder className="w-5 h-5 text-purple-500" />
+          </div>
+          <div>
+            <p className="text-[13px] font-normal text-muted-foreground mb-1">Alle Projecten</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{uniqueCategories}</p>
+          </div>
+        </div>
+      </div>
 
  <Tabs value={selectedTab} onValueChange={setSelectedTab}>
  <TabsList>
@@ -178,75 +235,81 @@ export default function DocumentenPage() {
  </TabsTrigger>
  </TabsList>
 
- <TabsContent value="all"className="space-y-4">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between">
- <div>
- <CardTitle>Documenten</CardTitle>
- <p className="text-sm text-muted-foreground mt-1">
- {documenten.length} documenten in totaal
- </p>
- </div>
- <Button variant="outline"size="sm">
- <Filter className="mr-2 h-4 w-4"/>
- Filter
- </Button>
- </CardHeader>
- <CardContent>
- <DataTable
- data={documenten}
- columns={columns}
- searchFields={['titel','bestandsnaam','categorie']}
- actions={actions}
- />
- </CardContent>
- </Card>
- </TabsContent>
+      <TabsContent value="all" className="space-y-4">
+        <Card className="bg-card/40 border-border/40 rounded-2xl shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border/10 pb-4">
+            <div>
+              <CardTitle className="text-lg">Documenten</CardTitle>
+              <p className="text-[13px] text-muted-foreground mt-1">
+                {documenten.length} documenten in totaal
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="h-8 text-xs bg-transparent border-border/40 hover:bg-muted/50">
+              <Filter className="mr-2 h-3.5 w-3.5" />
+              Filter
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DataTable
+              data={documenten}
+              columns={columns}
+              searchFields={['titel', 'bestandsnaam', 'categorie']}
+              actions={actions}
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
 
- <TabsContent value="contracts"className="space-y-4">
- <Card>
- <CardHeader>
- <CardTitle>Contracten</CardTitle>
- <CardDescription>Alle contract documenten</CardDescription>
- </CardHeader>
- <CardContent>
- <div className="text-center py-8 text-muted-foreground">
- <FileText className="mx-auto h-12 w-12 mb-4"/>
- <p>Geen contracten gevonden</p>
- </div>
- </CardContent>
- </Card>
- </TabsContent>
+      <TabsContent value="contracts" className="space-y-4">
+        <Card className="bg-card/40 border-border/40 rounded-2xl shadow-sm">
+          <CardHeader className="border-b border-border/10 pb-4">
+            <CardTitle className="text-lg">Contracten</CardTitle>
+            <CardDescription className="text-[13px]">Alle contract documenten</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50">
+                <FileText className="h-5 w-5 opacity-50" />
+              </div>
+              <p className="text-sm font-medium">Geen contracten gevonden</p>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
- <TabsContent value="invoices"className="space-y-4">
- <Card>
- <CardHeader>
- <CardTitle>Facturen</CardTitle>
- <CardDescription>Alle factuur documenten</CardDescription>
- </CardHeader>
- <CardContent>
- <div className="text-center py-8 text-muted-foreground">
- <FileText className="mx-auto h-12 w-12 mb-4"/>
- <p>Geen facturen gevonden</p>
- </div>
- </CardContent>
- </Card>
- </TabsContent>
+      <TabsContent value="invoices" className="space-y-4">
+        <Card className="bg-card/40 border-border/40 rounded-2xl shadow-sm">
+          <CardHeader className="border-b border-border/10 pb-4">
+            <CardTitle className="text-lg">Facturen</CardTitle>
+            <CardDescription className="text-[13px]">Alle factuur documenten</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50">
+                <FileText className="h-5 w-5 opacity-50" />
+              </div>
+              <p className="text-sm font-medium">Geen facturen gevonden</p>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
- <TabsContent value="reports"className="space-y-4">
- <Card>
- <CardHeader>
- <CardTitle>Rapporten</CardTitle>
- <CardDescription>Alle rapport documenten</CardDescription>
- </CardHeader>
- <CardContent>
- <div className="text-center py-8 text-muted-foreground">
- <FileText className="mx-auto h-12 w-12 mb-4"/>
- <p>Geen rapporten gevonden</p>
- </div>
- </CardContent>
- </Card>
- </TabsContent>
+      <TabsContent value="reports" className="space-y-4">
+        <Card className="bg-card/40 border-border/40 rounded-2xl shadow-sm">
+          <CardHeader className="border-b border-border/10 pb-4">
+            <CardTitle className="text-lg">Rapporten</CardTitle>
+            <CardDescription className="text-[13px]">Alle rapport documenten</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50">
+                <FileText className="h-5 w-5 opacity-50" />
+              </div>
+              <p className="text-sm font-medium">Geen rapporten gevonden</p>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
  </Tabs>
  </div>
  )

@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from'./supabaseAdmin'
 
 function extractToken(req: NextRequest) {
  const auth = req.headers.get('authorization')
- if (auth && auth.startsWith('Bearer')) return auth.split('')[1]
+ if (auth && auth.startsWith('Bearer ')) return auth.split(' ')[1]
 
  // Supabase stores access token in cookies with names like'sb-access-token'or'session'
  const token = req.cookies.get('sb-access-token')?.value || req.cookies.get('session')?.value || req.cookies.get('token')?.value

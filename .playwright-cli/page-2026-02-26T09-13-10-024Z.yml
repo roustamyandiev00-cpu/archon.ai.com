@@ -1,0 +1,192 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Artikelen
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e270]: 10:13
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - generic [ref=e145]:
+          - main [ref=e146]:
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - heading "Artikelen" [level=1] [ref=e150]
+                  - paragraph [ref=e151]: Beheer uw producten en diensten
+                - button "Nieuw Artikel" [ref=e152]:
+                  - img
+                  - text: Nieuw Artikel
+              - generic [ref=e153]:
+                - generic [ref=e155]:
+                  - img [ref=e157]
+                  - generic [ref=e161]:
+                    - paragraph [ref=e162]: Totaal artikelen
+                    - paragraph [ref=e163]: "0"
+                - generic [ref=e165]:
+                  - img [ref=e167]
+                  - generic [ref=e171]:
+                    - paragraph [ref=e172]: Categorieën
+                    - paragraph [ref=e173]: "0"
+              - generic [ref=e175]:
+                - generic [ref=e176]:
+                  - img [ref=e177]
+                  - textbox "Zoek artikelen..." [ref=e180]
+                - combobox [ref=e181]:
+                  - generic: Alle categorieën
+                  - img
+                - combobox [ref=e183]:
+                  - generic: Alle statussen
+                  - img
+                - button "Filters wissen" [ref=e185]
+              - generic [ref=e187]:
+                - paragraph [ref=e271]: Niet ingelogd.
+                - button "Opnieuw laden" [ref=e272]:
+                  - img
+                  - text: Opnieuw laden
+          - generic [ref=e192]:
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - img [ref=e197]
+                - generic [ref=e199]:
+                  - heading "AI Werkruimte" [level=3] [ref=e200]
+                  - paragraph [ref=e201]: Praat met AI en zet acties om in taken.
+              - generic [ref=e202]:
+                - button "Voice" [ref=e203]:
+                  - img [ref=e204]
+                  - generic [ref=e208]: Voice
+                - button "Auto voice aan" [ref=e209]:
+                  - img [ref=e210]
+                - generic [ref=e214]: 0 open
+                - button [ref=e215]:
+                  - img [ref=e216]
+            - generic [ref=e220]:
+              - button "Llama 3.3" [ref=e221]:
+                - img [ref=e222]
+                - text: Llama 3.3
+              - button "Gemini" [ref=e225]:
+                - img [ref=e226]
+                - text: Gemini
+            - generic [ref=e229]:
+              - button "AI Chat" [ref=e230]:
+                - img [ref=e231]
+                - text: AI Chat
+              - button "Taken" [ref=e234]:
+                - img [ref=e235]
+                - text: Taken
+            - generic [ref=e241]:
+              - img [ref=e243]
+              - generic [ref=e245]:
+                - paragraph [ref=e246]: Hoi! Ik ben je AI assistent. Geef me een taak of stel een vraag en ik pak het direct op.
+                - button "Lees voor" [ref=e248]:
+                  - img [ref=e249]
+            - generic [ref=e253]:
+              - generic [ref=e254]:
+                - textbox "Vraag Llama 3.3 iets..." [ref=e255]
+                - button "Start spraakopname" [ref=e273]:
+                  - img
+                - button [disabled]:
+                  - img
+              - paragraph [ref=e256]: "Tip: gebruik de microfoon voor spraak-naar-tekst, of Voice voor direct versturen."
+      - generic [ref=e257]:
+        - heading "Zoeken" [level=2] [ref=e258]
+        - paragraph [ref=e259]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e265] [cursor=pointer]:
+    - img [ref=e266]
+  - alert [ref=e269]

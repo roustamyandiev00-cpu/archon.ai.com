@@ -1,0 +1,242 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Instellingen
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e318]: 10:17
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - main [ref=e146]:
+          - generic [ref=e148]:
+            - generic [ref=e149]:
+              - generic [ref=e150]:
+                - heading "Instellingen" [level=1] [ref=e151]
+                - paragraph [ref=e152]: Beheer account en voorkeuren
+              - generic [ref=e153]:
+                - generic [ref=e154]:
+                  - heading "Persoonlijk" [level=3] [ref=e155]
+                  - navigation [ref=e156]:
+                    - button "Profiel" [ref=e157]:
+                      - img [ref=e158]
+                      - text: Profiel
+                    - button "Notificaties" [ref=e161]:
+                      - img [ref=e162]
+                      - text: Notificaties
+                - generic [ref=e165]:
+                  - heading "Bedrijf" [level=3] [ref=e166]
+                  - navigation [ref=e167]:
+                    - button "Bedrijfsgegevens" [ref=e168]:
+                      - img [ref=e169]
+                      - text: Bedrijfsgegevens
+                    - button "Betalingen & Facturatie" [ref=e173]:
+                      - img [ref=e174]
+                      - text: Betalingen & Facturatie
+                    - button "Weergave & Sidebar" [ref=e176]:
+                      - img [ref=e177]
+                      - text: Weergave & Sidebar
+                - generic [ref=e181]:
+                  - heading "Tools & Apps" [level=3] [ref=e182]
+                  - navigation [ref=e183]:
+                    - button "Integraties (Pipedrive)" [ref=e184]:
+                      - img [ref=e185]
+                      - text: Integraties (Pipedrive)
+                    - button "Email configuratie" [ref=e188]:
+                      - img [ref=e189]
+                      - text: Email configuratie
+                    - button "PDF Sjablonen" [ref=e192]:
+                      - img [ref=e193]
+                      - text: PDF Sjablonen
+                    - button "AI & Automatisering" [ref=e196]:
+                      - img [ref=e197]
+                      - text: AI & Automatisering
+                    - button "Import & Data Historie" [ref=e200]:
+                      - img [ref=e201]
+                      - text: Import & Data Historie
+            - generic [ref=e205]:
+              - generic [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]:
+                    - generic [ref=e213]:
+                      - generic [ref=e214]: Setup voortgang
+                      - paragraph [ref=e215]: 1 van 5 stappen voltooid
+                    - generic [ref=e217]: 20%
+                  - progressbar [ref=e218]
+                - generic [ref=e221]:
+                  - generic [ref=e222] [cursor=pointer]:
+                    - img [ref=e225]
+                    - heading "Profiel compleet" [level=4] [ref=e229]
+                    - paragraph [ref=e230]: Naam en contact ingevuld
+                  - generic [ref=e231] [cursor=pointer]:
+                    - img [ref=e234]
+                    - heading "Bedrijfsgegevens" [level=4] [ref=e239]
+                    - paragraph [ref=e240]: Bedrijfsnaam en details
+                  - generic [ref=e241] [cursor=pointer]:
+                    - generic [ref=e242]:
+                      - img [ref=e244]
+                      - img [ref=e248]
+                    - heading "Pipedrive gekoppeld" [level=4] [ref=e251]
+                    - paragraph [ref=e252]: CRM data synchronisatie
+                  - generic [ref=e253] [cursor=pointer]:
+                    - img [ref=e256]
+                    - heading "SMTP gekoppeld" [level=4] [ref=e260]
+                    - paragraph [ref=e261]: Uitgaande e-mails
+                  - generic [ref=e262] [cursor=pointer]:
+                    - img [ref=e265]
+                    - heading "Stripe gekoppeld" [level=4] [ref=e268]
+                    - paragraph [ref=e269]: Betalingen klaarzetten
+              - generic [ref=e270]:
+                - generic [ref=e271]:
+                  - heading "Persoonlijk profiel" [level=2] [ref=e272]
+                  - paragraph [ref=e273]: Beheer je persoonlijke instellingen en voorkeuren
+                - generic [ref=e274]:
+                  - generic [ref=e276]: Basis gegevens
+                  - generic [ref=e277]:
+                    - generic [ref=e278]:
+                      - generic [ref=e279]: AP
+                      - generic [ref=e280]:
+                        - button "Profielfoto wijzigen" [ref=e281]
+                        - paragraph [ref=e282]: "Toegestaan: JPG, GIF of PNG. Max 2MB."
+                    - generic [ref=e283]:
+                      - generic [ref=e284]:
+                        - generic [ref=e285]: Volledige naam
+                        - textbox "Volledige naam" [ref=e286]:
+                          - /placeholder: Roustam Yandiev
+                      - generic [ref=e287]:
+                        - generic [ref=e288]: E-mailadres
+                        - textbox "E-mailadres" [ref=e289]:
+                          - /placeholder: naam@bedrijf.nl
+                      - generic [ref=e290]:
+                        - generic [ref=e291]: Telefoonnummer
+                        - textbox "Telefoonnummer" [ref=e292]:
+                          - /placeholder: +32 0490409854
+                    - button "Wijzigingen opslaan" [ref=e319]
+                - generic [ref=e294]:
+                  - generic [ref=e295]:
+                    - generic [ref=e296]: Thema instellingen
+                    - generic [ref=e297]: Pas het uiterlijk van de applicatie aan
+                  - generic [ref=e299]:
+                    - generic [ref=e300]:
+                      - generic [ref=e301]: Thema
+                      - paragraph [ref=e302]: Kies tussen licht, donker of systeem thema
+                    - button "Toggle theme" [ref=e303]:
+                      - img
+                      - generic [ref=e304]: Toggle theme
+      - generic [ref=e305]:
+        - heading "Zoeken" [level=2] [ref=e306]
+        - paragraph [ref=e307]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list [ref=e321]:
+      - listitem [ref=e322]:
+        - generic [ref=e323]:
+          - generic [ref=e324]: Fout
+          - generic [ref=e325]: Niet ingelogd
+        - button [ref=e326]:
+          - img [ref=e327]
+  - generic [ref=e312] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e313]:
+      - img [ref=e314]
+    - generic [ref=e331]:
+      - button "Open issues overlay" [ref=e332]:
+        - generic [ref=e333]:
+          - generic [ref=e334]: "0"
+          - generic [ref=e335]: "1"
+        - generic [ref=e336]: Issue
+      - button "Collapse issues badge" [ref=e337]:
+        - img [ref=e338]
+  - alert [ref=e317]
+  - status [ref=e340]: Notification FoutNiet ingelogd

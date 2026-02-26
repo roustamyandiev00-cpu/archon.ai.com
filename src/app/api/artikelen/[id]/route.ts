@@ -1,39 +1,35 @@
-import { NextResponse } from'next/server'
-import { z } from'zod'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+
+import {
+ normalizeArtikelRow,
+ supportsArtikelUserScope,
+} from '../artikel-utils'
 
 const UpdateArtikelSchema = z.object({
  naam: z.string().trim().min(1).optional(),
- categorie: z.enum(['Diensten','Producten']).optional(),
- prijs: z.number().min(0).optional(),
- eenheid: z.string().optional(),
- voorraad: z.string().optional().nullable(),
- status: z.enum(['Actief','Inactief']).optional(),
- beschrijving: z.string().optional().nullable(),
+ categorie: z.enum(['Diensten', 'Producten']).optional(),
+ prijs: z.coerce.number().min(0).optional(),
+ eenheid: z.string().trim().min(1).optional(),
+ voorraad: z.string().trim().optional().nullable(),
+ status: z.enum(['Actief', 'Inactief']).optional(),
+ beschrijving: z.string().trim().optional().nullable(),
 })
 
 type RouteContext = {
  params: Promise<{ id: string }>
 }
 
-function normalizeArtikelRow(row: any) {
- return {
- id: String(row.id),
- naam: String(row.naam ??''),
- categorie: String(row.categorie ??'Diensten'),
- prijs: Number(row.prijs ?? 0),
- eenheid: String(row.eenheid ??'stuk'),
- voorraad: row.voorraad ? String(row.voorraad) : null,
- status: String(row.status ??'Actief'),
- beschrijving: row.beschrijving ? String(row.beschrijving) : null,
- createdAt: row.created_at ? String(row.created_at) : null,
- updatedAt: row.updated_at ? String(row.updated_at) : null,
- }
-}
-
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
  const { id } = await context.params
+ const user = await getUserFromRequest(request)
+
+ if (!user) {
+ return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+ }
 
  let supabase: ReturnType<typeof getSupabaseAdmin>
 
@@ -41,32 +37,44 @@ export async function GET(_request: Request, context: RouteContext) {
  supabase = getSupabaseAdmin()
  } catch {
  return NextResponse.json(
- { error:'Supabase admin client is niet geconfigureerd.'},
+ { error: 'Supabase admin client is niet geconfigureerd.' },
  { status: 503 }
  )
  }
 
  try {
- const result = await (supabase as any)
+ const supportsUserScope = await supportsArtikelUserScope(supabase as any)
+
+ let query = (supabase as any)
  .from('artikelen')
  .select('*')
  .eq('id', id)
  .maybeSingle()
 
+ if (supportsUserScope) {
+ query = query.eq('user_id', user.id)
+ }
+
+ const result = await query
  if (result.error) throw result.error
  if (!result.data) {
- return NextResponse.json({ error:'Artikel niet gevonden.'}, { status: 404 })
+ return NextResponse.json({ error: 'Artikel niet gevonden.' }, { status: 404 })
  }
 
  return NextResponse.json(normalizeArtikelRow(result.data))
  } catch (error) {
  console.error('Error fetching artikel:', error)
- return NextResponse.json({ error:'Kon artikel niet laden.'}, { status: 500 })
+ return NextResponse.json({ error: 'Kon artikel niet laden.' }, { status: 500 })
  }
 }
 
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
  const { id } = await context.params
+ const user = await getUserFromRequest(request)
+
+ if (!user) {
+ return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+ }
 
  let supabase: ReturnType<typeof getSupabaseAdmin>
 
@@ -74,7 +82,7 @@ export async function PATCH(request: Request, context: RouteContext) {
  supabase = getSupabaseAdmin()
  } catch {
  return NextResponse.json(
- { error:'Supabase admin client is niet geconfigureerd.'},
+ { error: 'Supabase admin client is niet geconfigureerd.' },
  { status: 503 }
  )
  }
@@ -82,48 +90,60 @@ export async function PATCH(request: Request, context: RouteContext) {
  try {
  const body = await request.json()
  const validated = UpdateArtikelSchema.parse(body)
-
  const updateData: Record<string, unknown> = {}
+
  if (validated.naam !== undefined) updateData.naam = validated.naam
  if (validated.categorie !== undefined) updateData.categorie = validated.categorie
  if (validated.prijs !== undefined) updateData.prijs = validated.prijs
  if (validated.eenheid !== undefined) updateData.eenheid = validated.eenheid
- if (validated.voorraad !== undefined) updateData.voorraad = validated.voorraad
+ if (validated.voorraad !== undefined) updateData.voorraad = validated.voorraad || null
  if (validated.status !== undefined) updateData.status = validated.status
- if (validated.beschrijving !== undefined) updateData.beschrijving = validated.beschrijving
+ if (validated.beschrijving !== undefined) updateData.beschrijving = validated.beschrijving || null
 
  if (Object.keys(updateData).length === 0) {
- return NextResponse.json({ error:'Geen wijzigingen opgegeven.'}, { status: 400 })
+ return NextResponse.json({ error: 'Geen wijzigingen opgegeven.' }, { status: 400 })
  }
 
- const result = await (supabase as any)
+ const supportsUserScope = await supportsArtikelUserScope(supabase as any)
+
+ let query = (supabase as any)
  .from('artikelen')
  .update(updateData)
  .eq('id', id)
  .select('*')
  .maybeSingle()
 
+ if (supportsUserScope) {
+ query = query.eq('user_id', user.id)
+ }
+
+ const result = await query
  if (result.error) throw result.error
  if (!result.data) {
- return NextResponse.json({ error:'Artikel niet gevonden.'}, { status: 404 })
+ return NextResponse.json({ error: 'Artikel niet gevonden.' }, { status: 404 })
  }
 
  return NextResponse.json({ success: true, data: normalizeArtikelRow(result.data) })
  } catch (error) {
  if (error instanceof z.ZodError) {
  return NextResponse.json(
- { error:'Validatiefout', details: error.issues },
+ { error: 'Validatiefout', details: error.issues },
  { status: 400 }
  )
  }
 
  console.error('Error updating artikel:', error)
- return NextResponse.json({ error:'Kon artikel niet bijwerken.'}, { status: 500 })
+ return NextResponse.json({ error: 'Kon artikel niet bijwerken.' }, { status: 500 })
  }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
  const { id } = await context.params
+ const user = await getUserFromRequest(request)
+
+ if (!user) {
+ return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+ }
 
  let supabase: ReturnType<typeof getSupabaseAdmin>
 
@@ -131,22 +151,34 @@ export async function DELETE(_request: Request, context: RouteContext) {
  supabase = getSupabaseAdmin()
  } catch {
  return NextResponse.json(
- { error:'Supabase admin client is niet geconfigureerd.'},
+ { error: 'Supabase admin client is niet geconfigureerd.' },
  { status: 503 }
  )
  }
 
  try {
- const result = await (supabase as any)
+ const supportsUserScope = await supportsArtikelUserScope(supabase as any)
+
+ let query = (supabase as any)
  .from('artikelen')
  .delete()
  .eq('id', id)
+ .select('id')
+ .maybeSingle()
 
+ if (supportsUserScope) {
+ query = query.eq('user_id', user.id)
+ }
+
+ const result = await query
  if (result.error) throw result.error
+ if (!result.data) {
+ return NextResponse.json({ error: 'Artikel niet gevonden.' }, { status: 404 })
+ }
 
  return NextResponse.json({ success: true })
  } catch (error) {
  console.error('Error deleting artikel:', error)
- return NextResponse.json({ error:'Kon artikel niet verwijderen.'}, { status: 500 })
+ return NextResponse.json({ error: 'Kon artikel niet verwijderen.' }, { status: 500 })
  }
 }

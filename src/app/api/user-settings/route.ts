@@ -14,26 +14,18 @@ export async function GET(request: NextRequest) {
 
  const supabase = getSupabaseAdmin()
  
- // Get or create user settings
- let { data: settings, error } = await (supabase as any)
+ const { data: settingsRows, error } = await (supabase as any)
  .from('user_settings')
  .select('*')
  .eq('user_id', user.id)
- .single()
+ .order('updated_at', { ascending: false })
+ .limit(1)
 
- if (error && error.code ==='PGRST116') {
- // No settings found, create default
- const { data: newSettings, error: createError } = await (supabase as any)
- .from('user_settings')
- .insert([{ user_id: user.id }])
- .select()
- .single()
+ if (error) throw error
 
- if (createError) throw createError
- settings = newSettings
- } else if (error) {
- throw error
- }
+ const settings = Array.isArray(settingsRows) && settingsRows.length > 0
+ ? settingsRows[0]
+ : null
 
  const s: any = settings || {};
  return NextResponse.json({
@@ -97,11 +89,7 @@ export async function POST(request: NextRequest) {
  const body = await request.json()
  const supabase = getSupabaseAdmin()
 
- // Update user settings
- const { error } = await (supabase as any)
- .from('user_settings')
- .upsert([
- {
+ const payload = {
  user_id: user.id,
  company_name: body.company_name,
  company_address: body.company_address,
@@ -138,9 +126,22 @@ export async function POST(request: NextRequest) {
  pdf_footer_text: body.pdf_footer_text,
  updated_at: new Date().toISOString()
  }
- ])
 
- if (error) throw error
+ const { data: updatedRows, error: updateError } = await (supabase as any)
+ .from('user_settings')
+ .update(payload)
+ .eq('user_id', user.id)
+ .select('id')
+
+ if (updateError) throw updateError
+
+ if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
+ const { error: insertError } = await (supabase as any)
+ .from('user_settings')
+ .insert([payload])
+
+ if (insertError) throw insertError
+ }
 
  return NextResponse.json({ success: true })
  } catch (error) {

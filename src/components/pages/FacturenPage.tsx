@@ -200,15 +200,15 @@ function getStatusIcon(status: FactuurStatus) {
 
 function KPICard({ title, value, icon: Icon, color }: { title: string; value: string; icon: any; color: string }) {
  return (
- <Card className="bg-card shadow-sm border-border/50">
- <CardContent className="p-4">
- <div className="flex items-center justify-between">
- <div>
- <p className="text-sm text-muted-foreground">{title}</p>
- <p className="text-2xl font-bold mt-1">{value}</p>
+ <Card className="h-full rounded-2xl border border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.5)]">
+ <CardContent className="px-4 py-3.5 sm:px-5 sm:py-4">
+ <div className="flex min-h-[96px] items-center justify-between gap-3">
+ <div className="min-w-0">
+ <p className="text-[14px] font-medium leading-tight text-muted-foreground sm:text-[15px]">{title}</p>
+ <p className="mt-2 text-[20px] font-semibold leading-none tracking-tight text-foreground sm:text-[22px]">{value}</p>
  </div>
- <div className={cn("p-2 rounded-lg", color)}>
- <Icon className="w-5 h-5"/>
+ <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", color)}>
+ <Icon className="h-[18px] w-[18px]"/>
  </div>
  </div>
  </CardContent>
@@ -781,30 +781,30 @@ export default function FacturenPage({ autoOpenCreate, prefillData }: FacturenPa
  </div>
 
  {/* KPI Cards */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+ <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:max-w-[1240px] xl:grid-cols-4">
  <KPICard
  title="Openstaand bedrag"
  value={formatCurrency(kpiData.openstaandBedrag)}
  icon={AlertCircle}
- color="bg-orange-100 text-orange-600"
+ color="border-orange-200/80 bg-orange-50 text-orange-600 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"
  />
  <KPICard
  title="Achterstallig bedrag"
  value={formatCurrency(kpiData.achterstalligBedrag)}
  icon={AlertCircle}
- color="bg-red-100 text-red-600"
+ color="border-red-200/80 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
  />
  <KPICard
  title="Betaald deze maand"
  value={formatCurrency(kpiData.betaaldDezeMaandBedrag)}
  icon={CheckCircle2}
- color="bg-green-100 text-green-600"
+ color="border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
  />
  <KPICard
  title="Facturen te verzenden"
  value={kpiData.teVerzendenAantal.toString()}
  icon={Clock}
- color="bg-blue-100 text-blue-600"
+ color="border-blue-200/80 bg-blue-50 text-blue-600 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
  />
  </div>
 

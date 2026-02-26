@@ -5,8 +5,9 @@ import { usePathname, useRouter, useSearchParams } from'next/navigation'
 import { useTheme } from'next-themes'
 import { supabase } from'@/lib/supabase'
 
-import StaticThreads from'@/components/StaticThreads'
-import AIAssistantPanel from'@/components/AIAssistantPanel'
+// Lazy load heavy components
+const AIAssistantPanel = lazy(() => import('@/components/AIAssistantPanel'))
+import { PageTransitionLoader } from '@/components/ui/page-transition-loader'
 import DashboardCommandPalette from'@/components/dashboard/DashboardCommandPalette'
 import DashboardGlobalErrorBoundary from'@/components/dashboard/DashboardGlobalErrorBoundary'
 import DashboardHeader from'@/components/dashboard/DashboardHeader'
@@ -104,14 +105,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
  const targetPath = getPathForPage(page)
  setSidebarOpen(false)
  setCommandOpen(false)
+ 
+ // Optimized navigation with immediate UI feedback
+ if (targetPath !== pathname) {
  startRouteTransition(() => {
  router.push(targetPath)
  })
  }
+ }
 
  const prefetchPage = (page?: string) => {
  if (!page) return
+ // Debounce prefetch to avoid excessive requests
+ const timeoutId = setTimeout(() => {
  void router.prefetch(getPathForPage(page))
+ }, 200)
+ return () => clearTimeout(timeoutId)
  }
 
  const handleLogout = async () => {
@@ -160,14 +169,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
  return () => cancelAnimationFrame(id)
  }, [])
 
- // Check if user is admin
+ // Check if user is admin - optimized with caching
  useEffect(() => {
  const checkAdmin = async () => {
  try {
  // Use cached result from sessionStorage to avoid repeated API calls
  const cached = typeof window !=='undefined'? window.sessionStorage.getItem('archonpro.isAdmin') : null
+ const cachedTrial = typeof window !=='undefined'? window.sessionStorage.getItem('archonpro.trialEndsAt') : null
+ 
  if (cached !== null) {
  setIsAdmin(cached ==='1')
+ if (cachedTrial) {
+ setTrialEndsAt(cachedTrial === 'null' ? null : cachedTrial)
+ }
+ return // Skip API call if we have cached data
  }
 
  const { data: { session } } = await supabase.auth.getSession()
@@ -176,7 +191,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
  const response = await fetch('/api/auth/me', {
  headers: { 
 'Authorization': `Bearer ${session.access_token}` 
- }
+ },
+ cache: 'force-cache' // Cache the response
  });
 
  if (response.ok) {
@@ -188,6 +204,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
  const nextTrialEndsAt = result.data?.trial_ends_at ?? null
  setTrialEndsAt(typeof nextTrialEndsAt ==='string'? nextTrialEndsAt : null)
+ window.sessionStorage.setItem('archonpro.trialEndsAt', nextTrialEndsAt || 'null')
  }
  } catch (error) {
  console.error('Error checking admin status:', error)
@@ -238,7 +255,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
  useEffect(() => {
  if (typeof window ==='undefined') return
- window.scrollTo({ top: 0, behavior:'auto'})
+ // Debounced scroll to top for better performance
+ const timeoutId = setTimeout(() => {
+ window.scrollTo({ top: 0, behavior:'smooth'})
+ }, 100)
+ return () => clearTimeout(timeoutId)
  }, [pathname])
 
  useEffect(() => {
@@ -346,10 +367,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
  <div className="mx-auto w-full max-w-[1760px]">
  <div className="flex items-start gap-6 min-w-0">
  <main
- className="min-w-0 flex-1"
+ className="min-w-0 flex-1 relative"
  aria-busy={isRouteTransitionPending}
  data-page-switching={isRouteTransitionPending ?'true':'false'}
  >
+ {isRouteTransitionPending && <PageTransitionLoader />}
  <DashboardPageErrorBoundary pageKey={pathname} pageLabel={activePageLabel}>
  <QueryProvider>
  {children}
@@ -358,10 +380,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
  </main>
 
  {/* AI kaders alleen verbergen op pagina's waar het dubbelop zou zijn */}
- {!['/whatsapp','/instellingen'].some(path => pathname.includes(path)) && (
+ {!['/whatsapp','/instellingen','/ai-assistant','/dashboard','/abonnement'].some(path => pathname.includes(path)) && (
  <div className="hidden xl:flex flex-col gap-4 w-auto shrink-0 sticky top-24 self-start">
+ <Suspense fallback={<div className="w-80 h-32 bg-card rounded-xl animate-pulse" />}>
  <AIAssistantPanel />
- <StaticThreads />
+ </Suspense>
+ {/* StaticThreads component removed */}
  </div>
  )}
  </div>

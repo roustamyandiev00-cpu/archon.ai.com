@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
  Timer,
  Plus,
@@ -43,16 +43,8 @@ import {
  DialogHeader,
  DialogTitle,
 } from'@/components/ui/dialog'
-import {
- Select,
- SelectContent,
- SelectItem,
- SelectTrigger,
- SelectValue,
-} from'@/components/ui/select'
-import { toast } from'@/hooks/use-toast'
-import { cn } from'@/lib/utils'
-import { PageEmptyState, PageInlineError, PagePanel } from'@/components/dashboard/PageStates'
+import { toast } from '@/hooks/use-toast'
+import { PageEmptyState, PageInlineError, PagePanel } from '@/components/dashboard/PageStates'
 
 interface Timesheet {
  id: string
@@ -69,15 +61,28 @@ interface Timesheet {
 // Helper functions
 function formatDate(dateValue: string): string {
  const date = new Date(dateValue)
- if (Number.isNaN(date.getTime())) return'-'
+ if (Number.isNaN(date.getTime())) return '-'
  return date.toLocaleDateString('nl-NL', {
- day:'numeric',
- month:'short',
- year:'numeric',
+ day: 'numeric',
+ month: 'short',
+ year: 'numeric',
  })
 }
 
-function getWeekBounds(weekOffset: number): { start: Date; end: Date; label: string } {
+function toLocalDateInput(date: Date): string {
+ const local = new Date(date)
+ local.setMinutes(local.getMinutes() - local.getTimezoneOffset())
+ return local.toISOString().slice(0, 10)
+}
+
+function parseHoursInput(value: string): number | null {
+ const parsed = Number(value.replace(',', '.'))
+ if (!Number.isFinite(parsed) || parsed <= 0) return null
+ if (parsed > 24) return null
+ return Math.round(parsed * 100) / 100
+}
+
+function getWeekBounds(weekOffset: number): { start: Date; end: Date; startDate: string; endDate: string; label: string } {
  const now = new Date()
  const currentDay = now.getDay()
  const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay
@@ -91,15 +96,17 @@ function getWeekBounds(weekOffset: number): { start: Date; end: Date; label: str
  sunday.setHours(23, 59, 59, 999)
  
  const formatDay = (d: Date) => d.getDate()
- const formatMonth = (d: Date) => d.toLocaleDateString('nl-NL', { month:'short'})
+ const formatMonth = (d: Date) => d.toLocaleDateString('nl-NL', { month: 'short' })
  
  const label = `${formatDay(monday)} - ${formatDay(sunday)} ${formatMonth(sunday)} ${sunday.getFullYear()}`
  
- return { start: monday, end: sunday, label }
-}
-
-function getDayName(date: Date): string {
- return date.toLocaleDateString('nl-NL', { weekday:'short'})
+ return {
+  start: monday,
+  end: sunday,
+  startDate: toLocalDateInput(monday),
+  endDate: toLocalDateInput(sunday),
+  label,
+ }
 }
 
 // Custom Tooltip for Chart
@@ -166,8 +173,8 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  
  try {
  const params = new URLSearchParams({
- weekStart: currentWeek.start.toISOString(),
- weekEnd: currentWeek.end.toISOString(),
+ weekStart: currentWeek.startDate,
+ weekEnd: currentWeek.endDate,
  })
  
  const response = await fetch(`/api/timesheets?${params}`, { cache:'no-store'})
@@ -177,7 +184,17 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  }
  
  const data = await response.json()
- setTimesheets(Array.isArray(data) ? data : [])
+ const mapped = Array.isArray(data)
+  ? data.map((entry) => ({
+    ...entry,
+    id: String(entry.id),
+    project: String(entry.project ?? ''),
+    activiteit: String(entry.activiteit ?? ''),
+    uren: Number(entry.uren ?? 0),
+    billable: Boolean(entry.billable),
+   }))
+  : []
+ setTimesheets(mapped)
  } catch (err: any) {
  setError(err?.message ??'Onbekende fout bij laden van timesheets')
  setTimesheets([])
@@ -206,8 +223,8 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  const fetchPrevWeek = async () => {
  const prevWeek = getWeekBounds(weekOffset - 1)
  const params = new URLSearchParams({
- weekStart: prevWeek.start.toISOString(),
- weekEnd: prevWeek.end.toISOString(),
+ weekStart: prevWeek.startDate,
+ weekEnd: prevWeek.endDate,
  })
  
  try {
@@ -251,7 +268,7 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  }
 
  const resetForm = () => {
- setFormDatum(new Date().toISOString().split('T')[0])
+ setFormDatum(toLocalDateInput(new Date()))
  setFormProject('')
  setFormActiviteit('')
  setFormUren('')
@@ -266,7 +283,7 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
 
  const openEditModal = (timesheet: Timesheet) => {
  setSelectedTimesheet(timesheet)
- setFormDatum(new Date(timesheet.datum).toISOString().split('T')[0])
+ setFormDatum(toLocalDateInput(new Date(timesheet.datum)))
  setFormProject(timesheet.project)
  setFormActiviteit(timesheet.activiteit)
  setFormUren(timesheet.uren.toString())
@@ -278,8 +295,13 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  const handleAddTimesheet = async (e: React.FormEvent) => {
  e.preventDefault()
  
- if (!formProject || !formActiviteit || !formUren) {
+ const parsedHours = parseHoursInput(formUren)
+ if (!formProject.trim() || !formActiviteit.trim()) {
  toast({ title:'Vul alle verplichte velden in', variant:'destructive'})
+ return
+ }
+ if (parsedHours == null) {
+ toast({ title:'Ongeldige uren', description:'Voer een waarde tussen 0 en 24 uur in.', variant:'destructive'})
  return
  }
  
@@ -291,9 +313,9 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  headers: {'Content-Type':'application/json'},
  body: JSON.stringify({
  datum: formDatum,
- project: formProject,
- activiteit: formActiviteit,
- uren: parseFloat(formUren),
+ project: formProject.trim(),
+ activiteit: formActiviteit.trim(),
+ uren: parsedHours,
  billable: formBillable,
  notities: formNotities || null,
  }),
@@ -318,8 +340,13 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  e.preventDefault()
  
  if (!selectedTimesheet) return
- if (!formProject || !formActiviteit || !formUren) {
+ const parsedHours = parseHoursInput(formUren)
+ if (!formProject.trim() || !formActiviteit.trim()) {
  toast({ title:'Vul alle verplichte velden in', variant:'destructive'})
+ return
+ }
+ if (parsedHours == null) {
+ toast({ title:'Ongeldige uren', description:'Voer een waarde tussen 0 en 24 uur in.', variant:'destructive'})
  return
  }
  
@@ -331,9 +358,9 @@ export default function TimesheetsPage({ autoOpenCreate }: { autoOpenCreate?: bo
  headers: {'Content-Type':'application/json'},
  body: JSON.stringify({
  datum: formDatum,
- project: formProject,
- activiteit: formActiviteit,
- uren: parseFloat(formUren),
+ project: formProject.trim(),
+ activiteit: formActiviteit.trim(),
+ uren: parsedHours,
  billable: formBillable,
  notities: formNotities || null,
  }),

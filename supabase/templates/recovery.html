@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wachtwoord reset - ArchonPro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Manrope', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background-color: #f3f7fc;
+      color: #0b1220;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .email-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .email-container {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(11, 18, 32, 0.08);
+      overflow: hidden;
+    }
+    .email-header {
+      background: linear-gradient(135deg, #6861f2 0%, #8b5cf6 100%);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+    .logo span {
+      opacity: 0.9;
+    }
+    .email-body {
+      padding: 40px 32px;
+    }
+    .greeting {
+      font-size: 22px;
+      font-weight: 600;
+      color: #0b1220;
+      margin-bottom: 16px;
+    }
+    .message {
+      font-size: 16px;
+      color: #4b5f7a;
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #6861f2 0%, #8b5cf6 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(104, 97, 242, 0.35);
+    }
+    .button-wrapper {
+      text-align: center;
+      margin: 32px 0;
+    }
+    .fallback-link {
+      background: #eaf0f7;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 24px;
+      word-break: break-all;
+    }
+    .fallback-link p {
+      font-size: 13px;
+      color: #4b5f7a;
+      margin-bottom: 8px;
+    }
+    .fallback-link a {
+      color: #6861f2;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .email-footer {
+      background: #f8fbff;
+      padding: 24px 32px;
+      text-align: center;
+      border-top: 1px solid #e9eff7;
+    }
+    .footer-text {
+      font-size: 13px;
+      color: #4b5f7a;
+    }
+    .footer-brand {
+      font-weight: 600;
+      color: #6861f2;
+    }
+    .divider {
+      height: 1px;
+      background: #e9eff7;
+      margin: 24px 0;
+    }
+    .security-note {
+      background: #fff7ed;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 24px;
+      border-left: 4px solid #f97316;
+    }
+    .security-note p {
+      font-size: 13px;
+      color: #7c2d12;
+    }
+    .security-note strong {
+      color: #9a3412;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-wrapper { padding: 20px 16px; }
+      .email-header { padding: 32px 24px; }
+      .email-body { padding: 32px 24px; }
+      .greeting { font-size: 20px; }
+      .cta-button { display: block; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-container">
+      <div class="email-header">
+        <div class="logo">Archon<span>Pro</span></div>
+      </div>
+      <div class="email-body">
+        <h1 class="greeting">Wachtwoord resetten</h1>
+        <p class="message">
+          We hebben een verzoek ontvangen om het wachtwoord voor je account ({{ .Email }}) te resetten. Klik op de onderstaande knop om een nieuw wachtwoord in te stellen.
+        </p>
+        <div class="button-wrapper">
+          <a href="{{ .ConfirmationURL }}" class="cta-button">Nieuw wachtwoord instellen</a>
+        </div>
+        <div class="divider"></div>
+        <div class="fallback-link">
+          <p>Als de knop niet werkt, kopieer en plak deze link in je browser:</p>
+          <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+        </div>
+        <div class="security-note">
+          <p><strong>Let op:</strong> Als jij dit verzoek niet hebt gedaan, kun je deze e-mail veilig negeren. Je wachtwoord blijft dan ongewijzigd.</p>
+        </div>
+      </div>
+      <div class="email-footer">
+        <p class="footer-text">
+          <span class="footer-brand">ArchonPro</span> — Slim bedrijfsbeheer voor professionals
+        </p>
+        <p class="footer-text" style="margin-top: 8px; opacity: 0.7;">
+          © {{ .Data.Year }} ArchonPro. Alle rechten voorbehouden.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

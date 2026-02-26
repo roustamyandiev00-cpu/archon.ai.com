@@ -1,0 +1,162 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Documenten
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e244]: 10:29
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - generic [ref=e145]:
+          - main [ref=e146]:
+            - generic [ref=e148]:
+              - img "Archon" [ref=e155]
+              - generic [ref=e161]:
+                - paragraph [ref=e162]: ArchonPro
+                - paragraph [ref=e163]: Documenten kluis openen...
+          - generic [ref=e246]:
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - img [ref=e251]
+                - generic [ref=e253]:
+                  - heading "AI Werkruimte" [level=3] [ref=e254]
+                  - paragraph [ref=e255]: Praat met AI en zet acties om in taken.
+              - generic [ref=e256]:
+                - button "Voice" [ref=e257]:
+                  - img [ref=e258]
+                  - generic [ref=e262]: Voice
+                - button "Auto voice aan" [ref=e263]:
+                  - img [ref=e264]
+                - generic [ref=e268]: 0 open
+                - button [ref=e269]:
+                  - img [ref=e270]
+            - generic [ref=e274]:
+              - button "Llama 3.3" [ref=e275]:
+                - img [ref=e276]
+                - text: Llama 3.3
+              - button "Gemini" [ref=e279]:
+                - img [ref=e280]
+                - text: Gemini
+            - generic [ref=e283]:
+              - button "AI Chat" [ref=e284]:
+                - img [ref=e285]
+                - text: AI Chat
+              - button "Taken" [ref=e288]:
+                - img [ref=e289]
+                - text: Taken
+            - generic [ref=e295]:
+              - img [ref=e297]
+              - generic [ref=e299]:
+                - paragraph [ref=e300]: Hoi! Ik ben je AI assistent. Geef me een taak of stel een vraag en ik pak het direct op.
+                - button "Lees voor" [ref=e302]:
+                  - img [ref=e303]
+            - generic [ref=e307]:
+              - generic [ref=e308]:
+                - textbox "Vraag Llama 3.3 iets..." [ref=e309]
+                - button "Start spraakopname" [ref=e310]:
+                  - img
+                - button [disabled]:
+                  - img
+              - paragraph [ref=e311]: "Tip: gebruik de microfoon voor spraak-naar-tekst, of Voice voor direct versturen."
+      - generic [ref=e231]:
+        - heading "Zoeken" [level=2] [ref=e232]
+        - paragraph [ref=e233]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e239] [cursor=pointer]:
+    - img [ref=e240]
+  - alert [ref=e243]

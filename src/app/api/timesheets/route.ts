@@ -1,6 +1,22 @@
-import { NextRequest, NextResponse } from'next/server'
-import { getSupabaseAdmin } from'@/lib/supabaseAdmin'
-import { getUserFromRequest } from'@/lib/admin'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getUserFromRequest } from '@/lib/admin'
+
+const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+
+const CreateTimesheetSchema = z.object({
+ datum: IsoDateSchema.optional(),
+ projectId: z.string().trim().min(1).nullable().optional(),
+ project: z.string().trim().min(1, 'Project is verplicht.'),
+ activiteit: z.string().trim().min(1, 'Activiteit is verplicht.'),
+ uren: z.coerce
+  .number()
+  .positive('Uren moeten groter zijn dan 0.')
+  .max(24, 'Uren mogen maximaal 24 per dag zijn.'),
+ billable: z.boolean().optional(),
+ notities: z.string().trim().nullable().optional(),
+})
 
 // GET /api/timesheets - Get all timesheets for user, optionally filtered by week
 export async function GET(request: NextRequest) {
@@ -13,6 +29,24 @@ export async function GET(request: NextRequest) {
  const { searchParams } = new URL(request.url)
  const weekStart = searchParams.get('weekStart')
  const weekEnd = searchParams.get('weekEnd')
+
+ if ((weekStart && !weekEnd) || (!weekStart && weekEnd)) {
+ return NextResponse.json(
+ { success: false, error: 'Gebruik weekStart en weekEnd samen.' },
+ { status: 400 }
+ )
+ }
+
+ if (weekStart && weekEnd) {
+ const parsedStart = IsoDateSchema.safeParse(weekStart)
+ const parsedEnd = IsoDateSchema.safeParse(weekEnd)
+ if (!parsedStart.success || !parsedEnd.success) {
+ return NextResponse.json(
+ { success: false, error: 'Week filters moeten in formaat YYYY-MM-DD zijn.' },
+ { status: 400 }
+ )
+ }
+ }
 
  const supabase = getSupabaseAdmin()
 
@@ -49,14 +83,7 @@ export async function POST(request: NextRequest) {
  }
 
  const body = await request.json()
- const { datum, projectId, project, activiteit, uren, billable, notities } = body
-
- if (!project || !activiteit || uren === undefined) {
- return NextResponse.json(
- { success: false, error:'Project, activiteit en uren zijn verplicht'},
- { status: 400 }
- )
- }
+ const validated = CreateTimesheetSchema.parse(body)
 
  const supabase = getSupabaseAdmin()
 
@@ -64,13 +91,13 @@ export async function POST(request: NextRequest) {
  .from('timesheets') as any)
  .insert({
  user_id: user.id,
- datum: datum || new Date().toISOString().split('T')[0],
- project_id: projectId || null,
- project,
- activiteit,
- uren: parseFloat(uren),
- billable: billable ?? true,
- notities: notities || null,
+ datum: validated.datum || new Date().toISOString().split('T')[0],
+ project_id: validated.projectId || null,
+ project: validated.project,
+ activiteit: validated.activiteit,
+ uren: validated.uren,
+ billable: validated.billable ?? true,
+ notities: validated.notities || null,
  })
  .select()
  .single()
@@ -79,6 +106,12 @@ export async function POST(request: NextRequest) {
 
  return NextResponse.json({ success: true, data: timesheet })
  } catch (error) {
+ if (error instanceof z.ZodError) {
+ return NextResponse.json(
+ { success: false, error: 'Validatiefout', details: error.issues },
+ { status: 400 }
+ )
+ }
  console.error('Error creating timesheet:', error)
  return NextResponse.json(
  { success: false, error:'Kon timesheet niet aanmaken'},

@@ -1,0 +1,170 @@
+[     476ms] [WARNING] Image with src "/Gemini_Generated_Image_hhbh51hhbh51hhbh.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  277298ms] [ERROR] ./src/components/pages/InstellingenPageSimple.tsx:1416:16
+Parsing ecmascript source code failed
+  1414 |  </Button>
+  1415 |  </div>
+> 1416 |  </CardContent>
+       |                ^
+> 1417 |  </Card>
+       | ^^
+  1418 |
+  1419 |  <Card className="shadow-sm border-border">
+  1420 |  <CardHeader className="border-b bg-muted">
+
+Expected '</', got 'jsx text (
+ )'
+
+Import trace:
+  Server Component:
+    ./src/components/pages/InstellingenPageSimple.tsx
+    ./src/app/(dashboard)/instellingen/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  279123ms] [ERROR] ./src/components/pages/InstellingenPageSimple.tsx:1416:16
+Parsing ecmascript source code failed
+  1414 |  </Button>
+  1415 |  </div>
+> 1416 |  </CardContent>
+       |                ^
+> 1417 |  </Card>
+       | ^^
+  1418 |
+  1419 |  <Card className="shadow-sm border-border">
+  1420 |  <CardHeader className="border-b bg-muted">
+
+Expected '</', got 'jsx text (
+ )'
+
+Import trace:
+  Server Component:
+    ./src/components/pages/InstellingenPageSimple.tsx
+    ./src/app/(dashboard)/instellingen/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  283972ms] [ERROR] ./src/components/pages/InstellingenPageSimple.tsx:1416:16
+Parsing ecmascript source code failed
+  1414 |  </Button>
+  1415 |  </div>
+> 1416 |  </CardContent>
+       |                ^
+> 1417 |  </Card>
+       | ^^
+  1418 |
+  1419 |  <Card className="shadow-sm border-border">
+  1420 |  <CardHeader className="border-b bg-muted">
+
+Expected '</', got 'jsx text (
+ )'
+
+Import trace:
+  Server Component:
+    ./src/components/pages/InstellingenPageSimple.tsx
+    ./src/app/(dashboard)/instellingen/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 1344329ms] [ERROR] ./src/app/page.tsx:538:1
+Parsing ecmascript source code failed
+  536 |  </div>
+  537 |  )
+> 538 | }
+      | ^
+  539 |
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 1352023ms] [ERROR] ./src/app/page.tsx:538:1
+Parsing ecmascript source code failed
+  536 |  </div>
+  537 |  )
+> 538 | }
+      | ^
+  539 |
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 2232987ms] [ERROR] ./src/app/(auth)/register/page.tsx:532:2
+Parsing ecmascript source code failed
+  530 |  </div>
+  531 |  );
+> 532 | }
+      |  ^
+  533 |
+
+Expected '}', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(auth)/register/page.tsx [Client Component Browser]
+    ./src/app/(auth)/register/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(auth)/register/page.tsx [Client Component SSR]
+    ./src/app/(auth)/register/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 2232987ms] [ERROR] ./src/app/(auth)/register/page.tsx:135:3
+Parsing ecmascript source code failed
+  133 |  setLoading(false);
+  134 |  }
+> 135 |  };
+      |   ^
+  136 |
+  137 |  const handleGoogleRegister = async () => {
+  138 |  try {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(auth)/register/page.tsx [Client Component Browser]
+    ./src/app/(auth)/register/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(auth)/register/page.tsx [Client Component SSR]
+    ./src/app/(auth)/register/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 2260434ms] [ERROR] ./src/app/(auth)/register/page.tsx:532:2
+Parsing ecmascript source code failed
+  530 |  </div>
+  531 |  );
+> 532 | }
+      |  ^
+  533 |
+
+Expected '}', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(auth)/register/page.tsx [Client Component Browser]
+    ./src/app/(auth)/register/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(auth)/register/page.tsx [Client Component SSR]
+    ./src/app/(auth)/register/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[ 2260434ms] [ERROR] ./src/app/(auth)/register/page.tsx:135:3
+Parsing ecmascript source code failed
+  133 |  setLoading(false);
+  134 |  }
+> 135 |  };
+      |   ^
+  136 |
+  137 |  const handleGoogleRegister = async () => {
+  138 |  try {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(auth)/register/page.tsx [Client Component Browser]
+    ./src/app/(auth)/register/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(auth)/register/page.tsx [Client Component SSR]
+    ./src/app/(auth)/register/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127

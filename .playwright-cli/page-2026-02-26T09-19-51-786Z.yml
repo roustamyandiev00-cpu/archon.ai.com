@@ -1,0 +1,255 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Abonnement
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e315]: 10:19
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - main [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - heading "Abonnement" [level=1] [ref=e149]
+              - paragraph [ref=e150]: Beheer uw abonnement en facturen
+            - generic [ref=e151]:
+              - generic [ref=e154]:
+                - generic [ref=e155]:
+                  - img [ref=e157]
+                  - generic [ref=e159]:
+                    - generic [ref=e161]:
+                      - img
+                      - text: PRO PLAN
+                    - paragraph [ref=e162]: €49/maand
+                - generic [ref=e163]:
+                  - generic [ref=e164]:
+                    - paragraph [ref=e165]: Volgende factuur
+                    - generic [ref=e166]:
+                      - img [ref=e167]
+                      - generic [ref=e169]: 1 Mrt 2025
+                  - generic [ref=e170]:
+                    - paragraph [ref=e171]: Gebruikers
+                    - generic [ref=e172]:
+                      - progressbar [ref=e173]
+                      - generic [ref=e175]: 3/5
+                - button "Facturen bekijken" [ref=e176]:
+                  - img
+                  - text: Facturen bekijken
+              - generic [ref=e178]:
+                - generic [ref=e179]:
+                  - img [ref=e180]
+                  - generic [ref=e182]: Onbeperkte bedrijven
+                - generic [ref=e183]:
+                  - img [ref=e184]
+                  - generic [ref=e186]: Onbeperkte contacten
+                - generic [ref=e187]:
+                  - img [ref=e188]
+                  - generic [ref=e190]: AI Assistant
+                - generic [ref=e191]:
+                  - img [ref=e192]
+                  - generic [ref=e194]: Rapportages
+                - generic [ref=e195]:
+                  - img [ref=e196]
+                  - generic [ref=e198]: API toegang
+            - generic [ref=e199]:
+              - heading "Beschikbare plannen" [level=2] [ref=e200]
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - generic [ref=e203]:
+                    - img [ref=e205]
+                    - generic [ref=e207]:
+                      - heading "Starter" [level=3] [ref=e208]
+                      - paragraph [ref=e209]: Perfect voor beginners
+                  - generic [ref=e210]:
+                    - generic [ref=e211]: €0
+                    - text: /maand
+                  - list [ref=e212]:
+                    - listitem [ref=e213]:
+                      - img [ref=e214]
+                      - text: 5 bedrijven
+                    - listitem [ref=e216]:
+                      - img [ref=e217]
+                      - text: 50 contacten
+                    - listitem [ref=e219]:
+                      - img [ref=e220]
+                      - text: Basis rapportages
+                    - listitem [ref=e222]:
+                      - img [ref=e223]
+                      - text: Email support
+                  - button "Upgrade naar Starter" [ref=e225]:
+                    - text: Upgrade naar Starter
+                    - img
+                - generic [ref=e226]:
+                  - generic [ref=e228]: Huidig plan
+                  - generic [ref=e229]:
+                    - img [ref=e231]
+                    - generic [ref=e233]:
+                      - heading "Pro" [level=3] [ref=e234]
+                      - paragraph [ref=e235]: Populair voor groeiende bedrijven
+                  - generic [ref=e236]:
+                    - generic [ref=e237]: €49
+                    - text: /maand
+                  - list [ref=e238]:
+                    - listitem [ref=e239]:
+                      - img [ref=e240]
+                      - text: Onbeperkte bedrijven
+                    - listitem [ref=e242]:
+                      - img [ref=e243]
+                      - text: Onbeperkte contacten
+                    - listitem [ref=e245]:
+                      - img [ref=e246]
+                      - text: AI Assistant
+                    - listitem [ref=e248]:
+                      - img [ref=e249]
+                      - text: Rapportages
+                    - listitem [ref=e251]:
+                      - img [ref=e252]
+                      - text: API toegang
+                    - listitem [ref=e254]:
+                      - img [ref=e255]
+                      - text: Priority support
+                  - button "Actief" [disabled]:
+                    - img
+                    - text: Actief
+                - generic [ref=e257]:
+                  - generic [ref=e258]:
+                    - img [ref=e260]
+                    - generic [ref=e264]:
+                      - heading "Enterprise" [level=3] [ref=e265]
+                      - paragraph [ref=e266]: Voor grote organisaties
+                  - generic [ref=e267]:
+                    - generic [ref=e268]: €149
+                    - text: /maand
+                  - list [ref=e269]:
+                    - listitem [ref=e270]:
+                      - img [ref=e271]
+                      - text: Alles uit Pro
+                    - listitem [ref=e273]:
+                      - img [ref=e274]
+                      - text: Custom integraties
+                    - listitem [ref=e276]:
+                      - img [ref=e277]
+                      - text: Priority support
+                    - listitem [ref=e279]:
+                      - img [ref=e280]
+                      - text: Onbeperkte gebruikers
+                    - listitem [ref=e282]:
+                      - img [ref=e283]
+                      - text: SLA garanties
+                    - listitem [ref=e285]:
+                      - img [ref=e286]
+                      - text: Dedicated account manager
+                  - button "Upgrade naar Enterprise" [ref=e288]:
+                    - text: Upgrade naar Enterprise
+                    - img
+            - generic [ref=e290]:
+              - generic [ref=e291]:
+                - img [ref=e293]
+                - generic [ref=e298]:
+                  - heading "Team leden uitnodigen" [level=3] [ref=e299]
+                  - paragraph [ref=e300]: U heeft nog 2 plekken over in uw abonnement
+              - button "Team beheren" [ref=e301]:
+                - text: Team beheren
+                - img
+      - generic [ref=e302]:
+        - heading "Zoeken" [level=2] [ref=e303]
+        - paragraph [ref=e304]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e310] [cursor=pointer]:
+    - img [ref=e311]
+  - alert [ref=e314]

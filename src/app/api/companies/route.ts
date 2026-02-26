@@ -35,22 +35,43 @@ async function listSupabaseCompanies(params: {
  const { status, sector, search, userId } = params
  const supabase = getSupabaseAdmin()
 
- const bedrijvenResult = await (supabase.from('bedrijven') as any)
+ let query = (supabase.from('bedrijven') as any)
  .select('id, naam, stad, email, created_at, btw')
  .eq('user_id', userId)
 
- if (bedrijvenResult.error) throw bedrijvenResult.error
+ // Apply filters server-side
+ if (status && status !== 'all') {
+ // Derive status based on creation date
+ if (status === 'Nieuw') {
+ const thirtyDaysAgo = new Date()
+ thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+ query = query.gte('created_at', thirtyDaysAgo.toISOString())
+ } else if (status === 'Actief') {
+ const thirtyDaysAgo = new Date()
+ thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+ query = query.lt('created_at', thirtyDaysAgo.toISOString())
+ }
+ }
 
- const normalizedSearch = search?.trim().toLowerCase() ??''
+ if (search && search.trim()) {
+ query = query.or(`naam.ilike.%${search}%,stad.ilike.%${search}%,email.ilike.%${search}%`)
+ }
 
- const payload = ((bedrijvenResult.data || []) as any[])
+ // Apply ordering and limit
+ query = query.order('naam', { ascending: true }).limit(100)
+
+ const { data: bedrijvenResult, error } = await query
+ 
+ if (error) throw error
+
+ const payload = ((bedrijvenResult || []) as any[])
  .map((bedrijf) => {
  const computedStatus = deriveStatus(bedrijf.created_at ?? null)
 
  return {
  id: String(bedrijf.id),
  name: bedrijf.naam,
- sector:'Onbekend',
+ sector: 'Onbekend',
  location: bedrijf.stad ?? null,
  email: bedrijf.email ?? null,
  vatNumber: bedrijf.btw ?? null,
@@ -63,18 +84,6 @@ async function listSupabaseCompanies(params: {
  },
  }
  })
- .filter((company) => {
- if (status && company.status !== status) return false
- if (sector && company.sector !== sector) return false
- if (!normalizedSearch) return true
-
- return (
- company.name.toLowerCase().includes(normalizedSearch) ||
- (company.location ??'').toLowerCase().includes(normalizedSearch) ||
- (company.email ??'').toLowerCase().includes(normalizedSearch)
- )
- })
- .sort((a, b) => a.name.localeCompare(b.name))
 
  return payload
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from'react'
+import { useRouter } from'next/navigation'
 import {
  Crown,
  Check,
@@ -10,12 +11,12 @@ import {
  Users,
  CreditCard,
  Calendar,
- ArrowRight
+ ArrowRight,
+ Loader2
 } from'lucide-react'
 import { Button } from'@/components/ui/button'
 import { Badge } from'@/components/ui/badge'
 import { Progress } from'@/components/ui/progress'
-import { toast } from'@/hooks/use-toast'
 import { cn } from'@/lib/utils'
 
 // Sample Data
@@ -31,7 +32,7 @@ const currentPlan = {
 const plans = [
  {
  naam:"Starter",
- prijs: 0,
+ prijs: 29,
  description:"Perfect voor beginners",
  features: ["5 bedrijven","50 contacten","Basis rapportages","Email support"],
  current: false,
@@ -47,7 +48,7 @@ const plans = [
  },
  {
  naam:"Enterprise",
- prijs: 149,
+ prijs: 99,
  description:"Voor grote organisaties",
  features: ["Alles uit Pro","Custom integraties","Priority support","Onbeperkte gebruikers","SLA garanties","Dedicated account manager"],
  current: false,
@@ -56,23 +57,23 @@ const plans = [
 ]
 
 export default function AbonnementPage() {
- const handleViewInvoices = () =>
- toast({
- title:'Facturen',
- description:'Facturenoverzicht wordt geïmplementeerd.',
- })
+ const router = useRouter()
+ const [pendingAction, setPendingAction] = useState<string | null>(null)
 
- const handleUpgrade = (planName: string) =>
- toast({
- title:'Upgrade',
- description: `Upgrade naar ${planName} wordt voorbereid (demo).`,
- })
+ const handleViewInvoices = () => {
+ setPendingAction('invoices')
+ router.push('/facturen')
+ }
 
- const handleTeamManage = () =>
- toast({
- title:'Team beheren',
- description:'Teambeheer wordt geïmplementeerd.',
- })
+ const handleUpgrade = (planName: string) => {
+ setPendingAction(`upgrade-${planName}`)
+ router.push(`/upgrade?plan=${encodeURIComponent(planName.toLowerCase())}`)
+ }
+
+ const handleTeamManage = () => {
+ setPendingAction('team')
+ router.push('/instellingen')
+ }
 
  return (
  <div className="space-y-6">
@@ -124,8 +125,10 @@ export default function AbonnementPage() {
  <Button
  className="bg-inverse text-inverse-foreground hover:bg-inverse/90 shadow-lg transition-all duration-200"
  onClick={handleViewInvoices}
+ disabled={pendingAction ==='invoices'}
  >
- <CreditCard className="w-4 h-4 mr-2"/>
+ {pendingAction ==='invoices'&& <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
+ {pendingAction !=='invoices'&& <CreditCard className="w-4 h-4 mr-2"/>}
  Facturen bekijken
  </Button>
  </div>
@@ -201,13 +204,18 @@ export default function AbonnementPage() {
  ?"bg-muted text-muted-foreground hover:bg-muted"
  :"bg-linear-to-r from-blue-500 to-sky-600 hover:from-blue-600 hover:to-sky-700 text-white shadow-lg shadow-blue-500/25"
  )}
- disabled={plan.current}
+ disabled={plan.current || pendingAction ===`upgrade-${plan.naam}`}
  onClick={() => !plan.current && handleUpgrade(plan.naam)}
  >
  {plan.current ? (
  <>
  <Check className="w-4 h-4 mr-2"/>
  Actief
+ </>
+ ) : pendingAction ===`upgrade-${plan.naam}` ? (
+ <>
+ <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+ Doorsturen...
  </>
  ) : (
  <>
@@ -233,9 +241,23 @@ export default function AbonnementPage() {
  <p className="text-sm text-muted-foreground">U heeft nog {currentPlan.gebruikersLimiet - currentPlan.gebruikers} plekken over in uw abonnement</p>
  </div>
  </div>
- <Button variant="outline"className="bg-card shadow-sm border-border/50"onClick={handleTeamManage}>
+ <Button
+ variant="outline"
+ className="bg-card shadow-sm border-border/50"
+ onClick={handleTeamManage}
+ disabled={pendingAction ==='team'}
+ >
+ {pendingAction ==='team' ? (
+ <>
+ <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+ Openen...
+ </>
+ ) : (
+ <>
  Team beheren
  <ArrowRight className="w-4 h-4 ml-2"/>
+ </>
+ )}
  </Button>
  </div>
  </div>

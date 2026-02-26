@@ -1,8 +1,9 @@
 'use client'
-import { useEffect, useState } from'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
  Package,
  Plus,
+ RefreshCcw,
  MoreHorizontal,
  Search,
  Edit,
@@ -51,7 +52,8 @@ import {
 import { toast } from'@/hooks/use-toast'
 import { cn } from'@/lib/utils'
 import { PagePanel } from'@/components/dashboard/PageStates'
-import { useDashboardQueryText } from'@/hooks/use-dashboard-query-state'
+import { useDashboardQueryEnum, useDashboardQueryText } from '@/hooks/use-dashboard-query-state'
+import { supabase } from'@/lib/supabase'
 
 interface Artikel {
  id: string
@@ -71,10 +73,45 @@ const categorieKleuren: Record<string, string> = {
 "Producten":"bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
 }
 
+const categorieOptions = ['all', 'Diensten', 'Producten'] as const
+const statusOptions = ['all', 'Actief', 'Inactief'] as const
+
+function parsePriceValue(value: FormDataEntryValue | null) {
+ if (typeof value !== 'string') return 0
+ const parsed = Number(value.replace(',', '.'))
+ return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0
+}
+
+function parseOptionalValue(value: FormDataEntryValue | null) {
+ if (typeof value !== 'string') return null
+ const trimmed = value.trim()
+ return trimmed.length > 0 ? trimmed : null
+}
+
+async function getAuthHeaders(contentType?: 'application/json'): Promise<Record<string, string>> {
+ const { data, error } = await supabase.auth.getSession()
+ if (error) throw new Error('Kon sessie niet ophalen.')
+
+ const token = data.session?.access_token
+ if (!token) throw new Error('Niet ingelogd.')
+
+ return contentType
+ ? { Authorization: `Bearer ${token}`, 'Content-Type': contentType }
+ : { Authorization: `Bearer ${token}` }
+}
+
 export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
  const [searchQuery, setSearchQuery] = useDashboardQueryText('artikelen_q')
- const [categorieFilter, setCategorieFilter] = useState<string>('all')
- const [statusFilter, setStatusFilter] = useState<string>('all')
+ const [categorieFilter, setCategorieFilter] = useDashboardQueryEnum(
+ 'artikelen_categorie',
+ 'all',
+ categorieOptions
+ )
+ const [statusFilter, setStatusFilter] = useDashboardQueryEnum(
+ 'artikelen_status',
+ 'all',
+ statusOptions
+ )
  
  const [artikelen, setArtikelen] = useState<Artikel[]>([])
  const [loading, setLoading] = useState(true)
@@ -88,25 +125,32 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  const [isSaving, setIsSaving] = useState(false)
  const [isDeleting, setIsDeleting] = useState(false)
 
- const fetchArtikelen = async () => {
+ const fetchArtikelen = useCallback(async () => {
  setLoading(true)
  setError(null)
  try {
- const response = await fetch('/api/artikelen')
- if (!response.ok) throw new Error('Kon artikelen niet laden')
+ const headers = await getAuthHeaders()
+ const response = await fetch('/api/artikelen', {
+ cache:'no-store',
+ headers,
+ })
+ if (!response.ok) {
+ const body = await response.json().catch(() => null)
+ throw new Error(body?.error ??'Kon artikelen niet laden')
+ }
  const data = await response.json()
  setArtikelen(Array.isArray(data) ? data : [])
- } catch (err) {
- setError('Er is een fout opgetreden bij het laden van de artikelen.')
+ } catch (err: any) {
+ setError(err?.message ??'Er is een fout opgetreden bij het laden van de artikelen.')
  setArtikelen([])
  } finally {
  setLoading(false)
  }
- }
+ }, [])
 
  useEffect(() => {
- fetchArtikelen()
- }, [])
+ void fetchArtikelen()
+ }, [fetchArtikelen])
 
  useEffect(() => {
  if (autoOpenCreate && !isAddModalOpen) {
@@ -114,40 +158,44 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  }
  }, [autoOpenCreate, isAddModalOpen])
 
- const filteredArtikelen = artikelen.filter(artikel => {
+ const filteredArtikelen = useMemo(() => artikelen.filter(artikel => {
  const matchesSearch = artikel.naam.toLowerCase().includes(searchQuery.toLowerCase()) ||
  artikel.categorie.toLowerCase().includes(searchQuery.toLowerCase())
  const matchesCategorie = categorieFilter ==='all'|| artikel.categorie === categorieFilter
  const matchesStatus = statusFilter ==='all'|| artikel.status === statusFilter
  return matchesSearch && matchesCategorie && matchesStatus
- })
+ }), [artikelen, categorieFilter, searchQuery, statusFilter])
 
  const handleAddArtikel = async (e: React.FormEvent<HTMLFormElement>) => {
  e.preventDefault()
  setIsSaving(true)
  const formData = new FormData(e.currentTarget)
  const artikel = {
- naam: formData.get('naam') as string,
+ naam: (formData.get('naam') as string)?.trim(),
  categorie: formData.get('categorie') as string,
- prijs: Number(formData.get('prijs')) || 0,
+ prijs: parsePriceValue(formData.get('prijs')),
  eenheid: formData.get('eenheid') as string,
- voorraad: formData.get('voorraad') as string || null,
+ voorraad: parseOptionalValue(formData.get('voorraad')),
  status: formData.get('status') as string,
- beschrijving: formData.get('beschrijving') as string || null,
+ beschrijving: parseOptionalValue(formData.get('beschrijving')),
  }
 
  try {
+ const headers = await getAuthHeaders('application/json')
  const response = await fetch('/api/artikelen', {
  method:'POST',
- headers: {'Content-Type':'application/json'},
+ headers,
  body: JSON.stringify(artikel),
  })
- if (!response.ok) throw new Error('Aanmaken mislukt')
+ if (!response.ok) {
+ const body = await response.json().catch(() => null)
+ throw new Error(body?.error ??'Aanmaken mislukt')
+ }
  toast({ title:'Artikel aangemaakt'})
  setIsAddModalOpen(false)
- fetchArtikelen()
- } catch (err) {
- toast({ title:'Fout bij aanmaken', variant:'destructive'})
+ await fetchArtikelen()
+ } catch (err: any) {
+ toast({ title:'Fout bij aanmaken', description: err?.message, variant:'destructive'})
  } finally {
  setIsSaving(false)
  }
@@ -159,27 +207,31 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  setIsSaving(true)
  const formData = new FormData(e.currentTarget)
  const artikel = {
- naam: formData.get('naam') as string,
+ naam: (formData.get('naam') as string)?.trim(),
  categorie: formData.get('categorie') as string,
- prijs: Number(formData.get('prijs')) || 0,
+ prijs: parsePriceValue(formData.get('prijs')),
  eenheid: formData.get('eenheid') as string,
- voorraad: formData.get('voorraad') as string || null,
+ voorraad: parseOptionalValue(formData.get('voorraad')),
  status: formData.get('status') as string,
- beschrijving: formData.get('beschrijving') as string || null,
+ beschrijving: parseOptionalValue(formData.get('beschrijving')),
  }
 
  try {
+ const headers = await getAuthHeaders('application/json')
  const response = await fetch(`/api/artikelen/${selectedArtikel.id}`, {
  method:'PATCH',
- headers: {'Content-Type':'application/json'},
+ headers,
  body: JSON.stringify(artikel),
  })
- if (!response.ok) throw new Error('Bijwerken mislukt')
+ if (!response.ok) {
+ const body = await response.json().catch(() => null)
+ throw new Error(body?.error ??'Bijwerken mislukt')
+ }
  toast({ title:'Artikel bijgewerkt'})
  setIsEditModalOpen(false)
- fetchArtikelen()
- } catch (err) {
- toast({ title:'Fout bij bijwerken', variant:'destructive'})
+ await fetchArtikelen()
+ } catch (err: any) {
+ toast({ title:'Fout bij bijwerken', description: err?.message, variant:'destructive'})
  } finally {
  setIsSaving(false)
  }
@@ -189,15 +241,20 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  if (!selectedArtikel) return
  setIsDeleting(true)
  try {
+ const headers = await getAuthHeaders()
  const response = await fetch(`/api/artikelen/${selectedArtikel.id}`, {
  method:'DELETE',
+ headers,
  })
- if (!response.ok) throw new Error('Verwijderen mislukt')
+ if (!response.ok) {
+ const body = await response.json().catch(() => null)
+ throw new Error(body?.error ??'Verwijderen mislukt')
+ }
  toast({ title:'Artikel verwijderd'})
  setIsDeleteDialogOpen(false)
- fetchArtikelen()
- } catch (err) {
- toast({ title:'Fout bij verwijderen', variant:'destructive'})
+ await fetchArtikelen()
+ } catch (err: any) {
+ toast({ title:'Fout bij verwijderen', description: err?.message, variant:'destructive'})
  } finally {
  setIsDeleting(false)
  }
@@ -264,7 +321,10 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  className="pl-10 bg-card shadow-sm border-border/50 focus-visible:ring-2 focus-visible:ring-blue-500/20"
  />
  </div>
- <Select value={categorieFilter} onValueChange={setCategorieFilter}>
+ <Select
+ value={categorieFilter}
+ onValueChange={(value) => setCategorieFilter(value as typeof categorieOptions[number])}
+ >
  <SelectTrigger className="w-[150px] bg-card shadow-sm border-border/50">
  <SelectValue placeholder="Categorie"/>
  </SelectTrigger>
@@ -274,7 +334,10 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  <SelectItem value="Producten">Producten</SelectItem>
  </SelectContent>
  </Select>
- <Select value={statusFilter} onValueChange={setStatusFilter}>
+ <Select
+ value={statusFilter}
+ onValueChange={(value) => setStatusFilter(value as typeof statusOptions[number])}
+ >
  <SelectTrigger className="w-[130px] bg-card shadow-sm border-border/50">
  <SelectValue placeholder="Status"/>
  </SelectTrigger>
@@ -284,6 +347,16 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  <SelectItem value="Inactief">Inactief</SelectItem>
  </SelectContent>
  </Select>
+ <Button
+ variant="outline"
+ onClick={() => {
+ setSearchQuery('')
+ setCategorieFilter('all')
+ setStatusFilter('all')
+ }}
+ >
+ Filters wissen
+ </Button>
  </div>
  </PagePanel>
 
@@ -294,7 +367,13 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground"/>
  </div>
  ) : error ? (
- <div className="text-center py-10 text-red-500">{error}</div>
+ <div className="flex flex-col items-center justify-center gap-3 py-10">
+ <p className="text-sm text-red-500">{error}</p>
+ <Button variant="outline"onClick={() => void fetchArtikelen()}>
+ <RefreshCcw className="w-4 h-4 mr-2"/>
+ Opnieuw laden
+ </Button>
+ </div>
  ) : (
  <Table>
  <TableHeader>
@@ -310,7 +389,7 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  <TableBody>
  {filteredArtikelen.length > 0 ? (
  filteredArtikelen.map((artikel) => (
- <tr
+ <TableRow
  key={artikel.id}
  className="border-border/20 hover:bg-muted transition-colors"
  >
@@ -404,12 +483,14 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  </DropdownMenuContent>
  </DropdownMenu>
  </TableCell>
- </tr>
+ </TableRow>
  ))
  ) : (
  <TableRow className="border-border/20">
  <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
- Geen artikelen gevonden voor deze zoekopdracht.
+ {artikelen.length === 0
+ ? 'Nog geen artikelen. Voeg uw eerste artikel toe met "Nieuw Artikel".'
+ : 'Geen artikelen gevonden voor deze zoekopdracht.'}
  </TableCell>
  </TableRow>
  )}
@@ -603,7 +684,7 @@ export default function ArtikelenPage({ autoOpenCreate }: { autoOpenCreate?: boo
  <DialogHeader>
  <DialogTitle>Artikel verwijderen</DialogTitle>
  <DialogDescription>
- Weet je zeker dat je"{selectedArtikel?.naam}"wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+ Weet je zeker dat je "{selectedArtikel?.naam}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
  </DialogDescription>
  </DialogHeader>
  <DialogFooter>

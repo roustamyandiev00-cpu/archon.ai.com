@@ -16,8 +16,6 @@ const CreateContactSchema = z.object({
 })
 
 function normalizeContactRow(row: any) {
- const bedrijfLink = Array.isArray(row?.bedrijven) ? row.bedrijven[0] : row?.bedrijven
-
  return {
  id: String(row.id),
  voornaam: String(row.voornaam ??''),
@@ -25,7 +23,7 @@ function normalizeContactRow(row: any) {
  email: row.email ? String(row.email) : null,
  telefoon: row.telefoon ? String(row.telefoon) : null,
  functie: row.functie ? String(row.functie) : null,
- bedrijf: bedrijfLink?.naam ? String(bedrijfLink.naam) : null,
+ bedrijf: null, // Remove JOIN for performance
  bedrijfId: row.bedrijf_id == null ? null : Number(row.bedrijf_id),
  created_at: row.created_at ? String(row.created_at) : null,
  updated_at: row.updated_at ? String(row.updated_at) : (row.created_at ? String(row.created_at) : null),
@@ -54,7 +52,7 @@ export async function GET(request: NextRequest) {
  
  const result = await (supabase as any)
  .from('contacten')
- .select('id, voornaam, achternaam, email, telefoon, functie, bedrijf_id, created_at, updated_at, bedrijven:bedrijf_id ( id, naam )')
+ .select('id, voornaam, achternaam, email, telefoon, functie, bedrijf_id, created_at, updated_at')
  .eq('user_id', user.id)
  .order('created_at', { ascending: false })
  .range(offset, offset + limit - 1)

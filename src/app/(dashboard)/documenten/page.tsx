@@ -188,14 +188,15 @@ export default function DocumentenPage() {
  const [selectedProject, setSelectedProject] = useState<string>("all");
  const [userId, setUserId] = useState<string | null>(null);
  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+ const [syncError, setSyncError] = useState<string | null>(null);
 
- const fetchProjects = useCallback(async () => {
+ const fetchProjects = useCallback(async (): Promise<Project[]> => {
  try {
  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
  if (sessionError) throw sessionError;
  if (!session?.access_token) {
  setProjects([]);
- return;
+ return [];
  }
 
  const response = await fetch("/api/projecten?limit=200&offset=0", {
@@ -220,6 +221,7 @@ export default function DocumentenPage() {
 
  mapped.sort((a, b) => a.naam.localeCompare(b.naam,"nl-NL"));
  setProjects(mapped);
+ return mapped;
  } catch (error) {
  // In dev toont Next een overlay bij console.error; gebruik een zachte melding i.p.v. een harde fout.
  console.warn('Projecten konden niet worden geladen:', error);
@@ -229,12 +231,14 @@ export default function DocumentenPage() {
  description:'We konden uw projecten niet ophalen, maar uw documentenkluis blijft beschikbaar.',
  variant:'default',
  });
+ return [];
  }
  }, []);
 
  const fetchFiles = useCallback(async (uid: string, projectId: string, projectList: Project[]) => {
  try {
  setLoading(true);
+ setSyncError(null);
  const collected: DocumentRecord[] = [];
 
  const listAndNormalize = async (params: {
@@ -299,13 +303,15 @@ export default function DocumentenPage() {
  console.error("Error fetching files:", error);
  const message = error instanceof Error ? error.message.toLowerCase() :"";
  const bucketMissing = message.includes("bucket") && message.includes("not found");
- toast({
- title:"Fout",
- description: bucketMissing
- ?"Storage bucket'user-assets'ontbreekt. Maak deze bucket aan in Supabase."
- :"Kon documenten niet ophalen",
- variant:"destructive",
- });
+ const nextError = bucketMissing
+ ?"Storage bucket 'user-assets' ontbreekt. Maak deze bucket aan in Supabase."
+ :"Kon documenten niet ophalen.";
+ setSyncError(nextError);
+  toast({
+  title:"Fout",
+ description: nextError,
+  variant:"destructive",
+  });
  } finally {
  setLoading(false);
  }
@@ -406,7 +412,7 @@ export default function DocumentenPage() {
  };
 
  const handleDelete = async (file: DocumentRecord) => {
- if (!confirm(`Weet je zeker dat je"${file.name}"wilt verwijderen?`)) return;
+ if (!confirm(`Weet je zeker dat je "${file.name}" wilt verwijderen?`)) return;
 
  try {
  const { error } = await supabase.storage
@@ -435,8 +441,8 @@ export default function DocumentenPage() {
 
  setRefreshing(true);
  try {
- await fetchProjects();
- await fetchFiles(userId, selectedProject, projects);
+ const nextProjects = await fetchProjects();
+ await fetchFiles(userId, selectedProject, nextProjects);
  toast({
  title:"Vernieuwd",
  description:"Documenten zijn opnieuw geladen.",
@@ -531,8 +537,13 @@ export default function DocumentenPage() {
  <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Mijn Documenten</h1>
  <p className="text-muted-foreground">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
  <p className="text-xs text-muted-foreground mt-2">
- Laatst gesynchroniseerd: {lastSyncedAt ? lastSyncedAt.toLocaleTimeString("nl-NL") :"Nog niet geladen"}
+ Laatst gesynchroniseerd: {lastSyncedAt
+ ? lastSyncedAt.toLocaleTimeString("nl-NL")
+ : syncError
+ ? "Synchronisatie mislukt"
+ : "Nog niet geladen"}
  </p>
+ {syncError && <p className="text-xs text-red-400 mt-1">{syncError}</p>}
  </div>
 
  <div className="w-full xl:w-auto flex flex-col xl:flex-row items-stretch xl:items-center gap-2">
@@ -621,32 +632,32 @@ export default function DocumentenPage() {
  </div>
 
  {/* Stats row */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
  <Card>
- <CardContent className="pt-6">
- <div className="flex items-center gap-4">
- <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
- <FileText className="w-6 h-6 text-blue-500"/>
+ <CardContent className="p-3">
+ <div className="flex items-center gap-2.5">
+ <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+ <FileText className="w-3.5 h-3.5 text-blue-500"/>
  </div>
  <div>
- <p className="text-sm text-muted-foreground">Totaal Bestanden</p>
- <p className="text-2xl font-bold text-foreground">{filteredFiles.length}</p>
+ <p className="text-[11px] text-muted-foreground">Totaal Bestanden</p>
+ <p className="text-base font-bold text-foreground leading-tight">{filteredFiles.length}</p>
  {filteredFiles.length !== files.length && (
- <p className="text-xs text-muted-foreground">van {files.length} totaal</p>
+ <p className="text-[11px] text-muted-foreground">van {files.length} totaal</p>
  )}
  </div>
  </div>
  </CardContent>
  </Card>
  <Card>
- <CardContent className="pt-6">
- <div className="flex items-center gap-4">
- <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
- <Filter className="w-6 h-6 text-amber-500"/>
+ <CardContent className="p-3">
+ <div className="flex items-center gap-2.5">
+ <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+ <Filter className="w-3.5 h-3.5 text-amber-500"/>
  </div>
  <div>
- <p className="text-sm text-muted-foreground">Opslag Gebruik</p>
- <p className="text-2xl font-bold text-foreground">
+ <p className="text-[11px] text-muted-foreground">Opslag Gebruik</p>
+ <p className="text-base font-bold text-foreground leading-tight">
  {formatSize(totalStorage)}
  </p>
  </div>
@@ -654,14 +665,14 @@ export default function DocumentenPage() {
  </CardContent>
  </Card>
  <Card>
- <CardContent className="pt-6">
- <div className="flex items-center gap-4">
- <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
- <Sparkles className="w-6 h-6 text-emerald-500"/>
+ <CardContent className="p-3">
+ <div className="flex items-center gap-2.5">
+ <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+ <Sparkles className="w-3.5 h-3.5 text-emerald-500"/>
  </div>
  <div>
- <p className="text-sm text-muted-foreground">Nieuw Vandaag</p>
- <p className="text-2xl font-bold text-foreground">
+ <p className="text-[11px] text-muted-foreground">Nieuw Vandaag</p>
+ <p className="text-base font-bold text-foreground leading-tight">
  {uploadedToday}
  </p>
  </div>
@@ -669,16 +680,16 @@ export default function DocumentenPage() {
  </CardContent>
  </Card>
  <Card>
- <CardContent className="pt-6">
- <div className="flex items-center gap-4">
- <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
- <FolderKanban className="w-6 h-6 text-purple-500"/>
+ <CardContent className="p-3">
+ <div className="flex items-center gap-2.5">
+ <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
+ <FolderKanban className="w-3.5 h-3.5 text-purple-500"/>
  </div>
  <div>
- <p className="text-sm text-muted-foreground">
+ <p className="text-[11px] text-muted-foreground">
  {selectedProject ==="all"?"Alle Projecten":"Huidig Project"}
  </p>
- <p className="text-xl md:text-2xl font-bold text-foreground truncate max-w-[220px]">
+ <p className="text-base font-bold text-foreground truncate max-w-[140px] leading-tight">
  {activeProjectCount}
  </p>
  </div>

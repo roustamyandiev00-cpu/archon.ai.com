@@ -11,7 +11,11 @@ import { ScrollArea } from'@/components/ui/scroll-area'
 import { motion, AnimatePresence } from'framer-motion'
 import { cn } from'@/lib/utils'
 import { supabase } from'@/lib/supabase'
-import { buildFactuurCreateUrl, type AiAssistantAction } from'@/lib/ai-assistant-actions'
+import {
+ buildDashboardPageUrl,
+ buildFactuurCreateUrl,
+ type AiAssistantAction,
+} from'@/lib/ai-assistant-actions'
 
 interface Message {
  role:'user'|'ai'
@@ -158,6 +162,11 @@ export default function AIAssistantPage() {
 
  if (action.type ==='open_factuur_modal') {
  window.location.assign(buildFactuurCreateUrl(action.prefillData))
+ return
+ }
+
+ if (action.type ==='open_page') {
+ window.location.assign(buildDashboardPageUrl(action.page))
  }
  }, [])
 
@@ -187,7 +196,12 @@ export default function AIAssistantPage() {
  body: JSON.stringify({
  message: userMessage,
  history: messages.map(m => ({ role: m.role, content: m.content })),
- model:'gemini'
+ model:'gemini',
+ context: {
+ pagePath: typeof window !=='undefined'? window.location.pathname : null,
+ locale: typeof navigator !=='undefined'? navigator.language :'nl-NL',
+ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+ },
  })
  })
 

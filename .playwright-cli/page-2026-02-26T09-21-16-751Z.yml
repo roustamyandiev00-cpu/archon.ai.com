@@ -1,0 +1,227 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e27]:
+            - button "Dashboard" [ref=e28]:
+              - img [ref=e30]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e33]:
+              - img [ref=e35]
+              - text: Bedrijven
+            - button "Contacten" [ref=e39]:
+              - img [ref=e41]
+              - text: Contacten
+            - button "Deals" [ref=e46]:
+              - img [ref=e48]
+              - text: Deals
+            - button "Offertes" [ref=e51]:
+              - img [ref=e53]
+              - text: Offertes
+            - button "Facturen" [ref=e56]:
+              - img [ref=e58]
+              - text: Facturen
+            - button "Projecten" [ref=e61]:
+              - img [ref=e63]
+              - text: Projecten
+            - button "Agenda" [ref=e65]:
+              - img [ref=e67]
+              - text: Agenda
+            - button "Artikelen" [ref=e69]:
+              - img [ref=e71]
+              - text: Artikelen
+            - button "Timesheets" [ref=e75]:
+              - img [ref=e77]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e80]:
+              - img [ref=e82]
+              - text: WhatsApp
+            - button "Support" [ref=e84]:
+              - img [ref=e86]
+              - text: Support
+            - button "Documenten" [ref=e88]:
+              - img [ref=e90]
+              - text: Documenten
+        - generic [ref=e92]:
+          - paragraph [ref=e93]: Tools
+          - generic [ref=e94]:
+            - button "AI Assistant" [ref=e95]:
+              - img [ref=e97]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e100]:
+              - img [ref=e102]
+              - text: Abonnement
+            - button "Instellingen" [ref=e104]:
+              - img [ref=e106]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e109]:
+              - img [ref=e111]
+              - text: Uitloggen
+      - generic [ref=e114]:
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e120]: Instellingen
+            - search "Zoek" [ref=e121]:
+              - img
+              - button "Open zoeken" [ref=e122]:
+                - generic [ref=e123]:
+                  - generic [ref=e124]: Zoek pagina, klant of actie...
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: Ctrl
+                    - generic [ref=e127]: K
+          - generic [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e132]: 10:21
+            - button "Thema wisselen" [ref=e133]:
+              - img [ref=e134]
+            - button "Meldingen" [ref=e136]:
+              - img
+            - button "Account" [ref=e138]:
+              - img
+          - button "Upgrade" [ref=e139]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e140]:
+            - img
+        - main [ref=e144]:
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - heading "Instellingen" [level=1] [ref=e149]
+                - paragraph [ref=e150]: Beheer account en voorkeuren
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - heading "Persoonlijk" [level=3] [ref=e153]
+                  - navigation [ref=e154]:
+                    - button "Profiel" [ref=e155]:
+                      - img [ref=e156]
+                      - text: Profiel
+                    - button "Notificaties" [ref=e159]:
+                      - img [ref=e160]
+                      - text: Notificaties
+                - generic [ref=e163]:
+                  - heading "Bedrijf" [level=3] [ref=e164]
+                  - navigation [ref=e165]:
+                    - button "Bedrijfsgegevens" [ref=e166]:
+                      - img [ref=e167]
+                      - text: Bedrijfsgegevens
+                    - button "Betalingen & Facturatie" [ref=e171]:
+                      - img [ref=e172]
+                      - text: Betalingen & Facturatie
+                    - button "Weergave & Sidebar" [ref=e174]:
+                      - img [ref=e175]
+                      - text: Weergave & Sidebar
+                - generic [ref=e179]:
+                  - heading "Tools & Apps" [level=3] [ref=e180]
+                  - navigation [ref=e181]:
+                    - button "Integraties (Pipedrive)" [ref=e182]:
+                      - img [ref=e183]
+                      - text: Integraties (Pipedrive)
+                    - button "Email configuratie" [ref=e186]:
+                      - img [ref=e187]
+                      - text: Email configuratie
+                    - button "PDF Sjablonen" [ref=e190]:
+                      - img [ref=e191]
+                      - text: PDF Sjablonen
+                    - button "AI & Automatisering" [ref=e194]:
+                      - img [ref=e195]
+                      - text: AI & Automatisering
+                    - button "Import & Data Historie" [ref=e198]:
+                      - img [ref=e199]
+                      - text: Import & Data Historie
+            - generic [ref=e518]:
+              - generic [ref=e519]:
+                - heading "PDF Sjablonen & Huisstijl" [level=2] [ref=e520]
+                - paragraph [ref=e521]: Pas het uiterlijk van je offertes en facturen aan
+              - generic [ref=e522]:
+                - generic [ref=e524]:
+                  - img [ref=e525]
+                  - text: Offerte Design
+                - generic [ref=e528]:
+                  - generic [ref=e529]:
+                    - generic [ref=e538] [cursor=pointer]:
+                      - generic [ref=e539]: Modern
+                      - img [ref=e540]
+                    - generic [ref=e553] [cursor=pointer]: Klassiek
+                    - generic [ref=e563] [cursor=pointer]: Minimalistisch
+                  - generic [ref=e564]:
+                    - button "Voorbeeldweergave" [ref=e566]:
+                      - img
+                      - text: Voorbeeldweergave
+                    - button "Offertesjabloon toepassen" [ref=e567]
+              - generic [ref=e568]:
+                - generic [ref=e570]:
+                  - img [ref=e571]
+                  - text: Factuur Design
+                - generic [ref=e573]:
+                  - generic [ref=e574]:
+                    - generic [ref=e575] [cursor=pointer]:
+                      - generic [ref=e577]: modern variant
+                      - generic [ref=e578]:
+                        - generic [ref=e579]: Modern
+                        - img [ref=e580]
+                    - generic [ref=e583] [cursor=pointer]:
+                      - generic [ref=e585]: classic variant
+                      - generic [ref=e587]: Klassiek
+                    - generic [ref=e588] [cursor=pointer]:
+                      - generic [ref=e590]: minimal variant
+                      - generic [ref=e592]: Minimalistisch
+                  - generic [ref=e593]:
+                    - button "Voorbeeldweergave" [ref=e595]:
+                      - img
+                      - text: Voorbeeldweergave
+                    - button "Factuursjabloon toepassen" [ref=e596]
+              - generic [ref=e597]:
+                - generic [ref=e599]: Locatie & Details
+                - generic [ref=e600]:
+                  - generic [ref=e601]:
+                    - generic [ref=e602]:
+                      - generic [ref=e603]: Standaard documenttaal
+                      - combobox "Standaard documenttaal" [ref=e604]:
+                        - option "Nederlands" [selected]
+                        - option "English (US)"
+                        - option "Deutsch"
+                        - option "Français"
+                    - generic [ref=e605]:
+                      - generic [ref=e606]: Standaard Valuta weergave
+                      - combobox "Standaard Valuta weergave" [ref=e607]:
+                        - option "EUR (€)" [selected]
+                        - option "USD ($)"
+                        - option "GBP (£)"
+                  - generic [ref=e608]:
+                    - generic [ref=e609]: Standaard voettekst (Wordt op elke pagina getoond)
+                    - textbox "Standaard voettekst (Wordt op elke pagina getoond)" [ref=e610]:
+                      - /placeholder: Bijv. Archon B.V. • KvK 12345678 • IBAN NL99 ABCD 1234 5678 90
+                  - button "Algemene instellingen opslaan" [ref=e612]
+      - generic [ref=e300]:
+        - heading "Zoeken" [level=2] [ref=e301]
+        - paragraph [ref=e302]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list [ref=e304]:
+      - listitem [ref=e614]:
+        - generic [ref=e615]:
+          - generic [ref=e616]: Fout bij opslaan
+          - generic [ref=e617]: Niet ingelogd
+        - button [ref=e618]:
+          - img [ref=e619]
+  - button "Open Next.js Dev Tools" [ref=e319] [cursor=pointer]:
+    - img [ref=e320]
+  - alert [ref=e323]
