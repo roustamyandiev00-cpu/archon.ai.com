@@ -13,6 +13,7 @@ import DashboardPageErrorBoundary from '@/components/dashboard/DashboardPageErro
 import DesktopSidebar from '@/components/dashboard/DesktopSidebar'
 import MobileSidebar from '@/components/dashboard/MobileSidebar'
 import { pageLabelById, validPages } from '@/components/dashboard/navigation'
+import QueryProvider from '@/components/providers/QueryProvider'
 import { toast } from '@/hooks/use-toast'
 
 const ROUTE_BACKED_PAGES = new Set<string>([
@@ -349,7 +350,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 data-page-switching={isRouteTransitionPending ? 'true' : 'false'}
               >
                 <DashboardPageErrorBoundary pageKey={pathname} pageLabel={activePageLabel}>
-                  {children}
+                  <QueryProvider>
+                    {children}
+                  </QueryProvider>
                 </DashboardPageErrorBoundary>
               </main>
 

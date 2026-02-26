@@ -3,16 +3,96 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MessageSquare, Send, Search, Filter, Reply, Phone, Mail, Loader2 } from 'lucide-react'
+import { MessageSquare, Send, Filter, Reply, Phone, Mail, Loader2 } from 'lucide-react'
 import { useWhatsApp } from '@/hooks/use-whatsapp'
+import { DataTable } from '@/components/ui/data-table'
 
 export default function WhatsAppPage() {
   const [selectedTab, setSelectedTab] = useState('chats')
-  const [searchTerm, setSearchTerm] = useState('')
   const { chats, templates, loading, error } = useWhatsApp()
+
+  const chatColumns = [
+    {
+      key: 'name',
+      header: 'Contact',
+      sortable: true,
+      render: (chat: any) => (
+        <div>
+          <p className="font-medium">{chat.name || chat.phone_number}</p>
+          <p className="text-sm text-muted-foreground">{chat.unread_count || 0} ongelezen</p>
+        </div>
+      )
+    },
+    {
+      key: 'phone_number',
+      header: 'Telefoon',
+      sortable: true
+    },
+    {
+      key: 'updated_at',
+      header: 'Laatste activiteit',
+      sortable: true,
+      render: (chat: any) => new Date(chat.updated_at).toLocaleDateString('nl-NL')
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (chat: any) => (
+        <Badge variant="outline" className={chat.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100'}>
+          {chat.status === 'active' ? 'Actief' : 'Inactief'}
+        </Badge>
+      )
+    }
+  ]
+
+  const templateColumns = [
+    {
+      key: 'name',
+      header: 'Template',
+      sortable: true,
+      render: (template: any) => (
+        <div>
+          <p className="font-medium">{template.name}</p>
+          <p className="text-sm text-muted-foreground line-clamp-1">{template.content}</p>
+        </div>
+      )
+    },
+    {
+      key: 'category',
+      header: 'Categorie',
+      sortable: true
+    },
+    {
+      key: 'language',
+      header: 'Taal',
+      sortable: true
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (template: any) => (
+        <Badge className={template.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+          {template.status === 'approved' ? 'Goedgekeurd' : template.status}
+        </Badge>
+      )
+    }
+  ]
+
+  const chatActions = (chat: any) => (
+    <Button variant="ghost" size="sm">
+      <MessageSquare className="h-4 w-4 mr-1" />
+      Open chat
+    </Button>
+  )
+
+  const templateActions = (template: any) => (
+    <Button variant="ghost" size="sm">
+      <Send className="h-4 w-4 mr-1" />
+      Gebruiken
+    </Button>
+  )
 
   if (loading) {
     return (
@@ -47,28 +127,12 @@ export default function WhatsAppPage() {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Gesprekken zoeken..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filter
-        </Button>
-      </div>
-
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
           <TabsTrigger value="chats">
             <MessageSquare className="mr-2 h-4 w-4" />
             Gesprekken
-            <Badge variant="secondary" className="ml-2">0</Badge>
+            <Badge variant="secondary" className="ml-2">{chats.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="contacts">
             <Phone className="mr-2 h-4 w-4" />
@@ -77,24 +141,29 @@ export default function WhatsAppPage() {
           <TabsTrigger value="templates">
             <Mail className="mr-2 h-4 w-4" />
             Templates
+            <Badge variant="secondary" className="ml-2">{templates.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="chats" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>WhatsApp Gesprekken</CardTitle>
-              <CardDescription>Actieve WhatsApp conversaties</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>WhatsApp Gesprekken</CardTitle>
+                <CardDescription>Actieve WhatsApp conversaties</CardDescription>
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <MessageSquare className="mx-auto h-12 w-12 mb-4" />
-                <p>Geen actieve gesprekken</p>
-                <Button className="mt-4">
-                  <Send className="mr-2 h-4 w-4" />
-                  Start je eerste gesprek
-                </Button>
-              </div>
+              <DataTable
+                data={chats}
+                columns={chatColumns}
+                searchFields={['name', 'phone_number']}
+                actions={chatActions}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -106,10 +175,12 @@ export default function WhatsAppPage() {
               <CardDescription>Contacten voor WhatsApp communicatie</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Phone className="mx-auto h-12 w-12 mb-4" />
-                <p>Geen WhatsApp contacten</p>
-              </div>
+              <DataTable
+                data={chats}
+                columns={chatColumns}
+                searchFields={['name', 'phone_number']}
+                actions={chatActions}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -121,10 +192,12 @@ export default function WhatsAppPage() {
               <CardDescription>Herbruikbare bericht templates</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Mail className="mx-auto h-12 w-12 mb-4" />
-                <p>Geen templates gevonden</p>
-              </div>
+              <DataTable
+                data={templates}
+                columns={templateColumns}
+                searchFields={['name', 'category']}
+                actions={templateActions}
+              />
             </CardContent>
           </Card>
         </TabsContent>
