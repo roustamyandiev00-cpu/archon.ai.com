@@ -6,11 +6,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MessageSquare, Plus, Search, Filter, Reply, Archive, Trash2 } from 'lucide-react'
+import { MessageSquare, Plus, Search, Filter, Reply, Archive, Trash2, Loader2 } from 'lucide-react'
+import { useSupport } from '@/hooks/use-support'
 
 export default function SupportPage() {
   const [selectedTab, setSelectedTab] = useState('open')
   const [searchTerm, setSearchTerm] = useState('')
+  const { tickets, loading, error } = useSupport()
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6 flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-600">Fout bij laden tickets: {error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">

@@ -287,6 +287,139 @@ export type Database = {
           stripe_test_mode?: boolean
         }
       }
+      agenda: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          start_time: string
+          end_time: string
+          location: string | null
+          attendees: string[] | null
+          status: 'scheduled' | 'completed' | 'cancelled'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          title: string
+          description?: string | null
+          start_time: string
+          end_time?: string
+          location?: string | null
+          attendees?: string[] | null
+          status?: 'scheduled' | 'completed' | 'cancelled'
+        }
+        Update: {
+          title?: string
+          description?: string | null
+          start_time?: string
+          end_time?: string
+          location?: string | null
+          attendees?: string[] | null
+          status?: 'scheduled' | 'completed' | 'cancelled'
+        }
+      }
+      facturen: {
+        Row: {
+          id: number
+          nummer: string
+          klant: string
+          bedrag: number
+          btw_bedrag: number
+          totaal_bedrag: number
+          datum: string
+          vervaldatum: string | null
+          status: 'concept' | 'verstuurd' | 'betaald' | 'verlopen'
+          bedrijf_id: number | null
+          contact_id: number | null
+          offerte_id: number | null
+          user_id: string | null
+          notities: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          nummer: string
+          klant: string
+          bedrag: number
+          btw_bedrag?: number
+          totaal_bedrag?: number
+          datum?: string
+          vervaldatum?: string | null
+          status?: 'concept' | 'verstuurd' | 'betaald' | 'verlopen'
+          bedrijf_id?: number | null
+          contact_id?: number | null
+          offerte_id?: number | null
+          user_id?: string | null
+          notities?: string | null
+        }
+        Update: {
+          nummer?: string
+          klant?: string
+          bedrag?: number
+          btw_bedrag?: number
+          totaal_bedrag?: number
+          datum?: string
+          vervaldatum?: string | null
+          status?: 'concept' | 'verstuurd' | 'betaald' | 'verlopen'
+          bedrijf_id?: number | null
+          contact_id?: number | null
+          offerte_id?: number | null
+          user_id?: string | null
+          notities?: string | null
+        }
+      }
+      support_tickets: {
+        Row: {
+          id: string
+          subject: string
+          description: string | null
+          status: 'open' | 'in_progress' | 'resolved' | 'closed'
+          priority: 'low' | 'medium' | 'high' | 'urgent'
+          user_id: string | null
+          contact_id: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          subject: string
+          description?: string | null
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed'
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          user_id?: string | null
+          contact_id?: number | null
+        }
+        Update: {
+          subject?: string
+          description?: string | null
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed'
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          user_id?: string | null
+          contact_id?: number | null
+        }
+      }
+      support_replies: {
+        Row: {
+          id: string
+          ticket_id: string
+          message: string
+          user_id: string | null
+          is_staff: boolean
+          created_at: string
+        }
+        Insert: {
+          ticket_id: string
+          message: string
+          user_id?: string | null
+          is_staff?: boolean
+        }
+        Update: {
+          ticket_id?: string
+          message?: string
+          user_id?: string | null
+          is_staff?: boolean
+        }
+      }
     }
   }
 }

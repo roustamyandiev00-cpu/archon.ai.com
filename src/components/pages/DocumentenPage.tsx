@@ -6,11 +6,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { FileText, Upload, Search, Filter, Download, Eye, Trash2 } from 'lucide-react'
+import { FileText, Upload, Search, Filter, Download, Eye, Trash2, Loader2 } from 'lucide-react'
+import { useDocumenten } from '@/hooks/use-documenten'
+import { toast } from 'sonner'
 
 export default function DocumentenPage() {
   const [selectedTab, setSelectedTab] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const { documenten, loading, error, deleteDocument } = useDocumenten()
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6 flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-600">Fout bij laden documenten: {error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">

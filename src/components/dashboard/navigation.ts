@@ -71,6 +71,7 @@ export const navigationItems: NavigationItem[] = [
   { icon: Receipt, label: 'Betalingen', page: 'betalingen', module: 'betalingen', minTier: 'groei' },
   { icon: Mail, label: 'AI Inbox', page: 'ai-inbox', module: 'ai-email', minTier: 'premium' },
   { icon: MessageSquare, label: 'WhatsApp', page: 'whatsapp', module: 'whatsapp-integration', minTier: 'premium' },
+  { icon: Ticket, label: 'Support', page: 'support', minTier: 'basis' },
   { icon: FolderClosed, label: 'Documenten', page: 'documenten', minTier: 'basis' },
 ]
 
