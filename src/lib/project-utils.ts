@@ -8,8 +8,9 @@ import logger from '@/lib/logger'
  * @returns Promise<boolean> - True als succesvol, false bij fout
  */
 export async function createProjectDocumentFolder(
-  projectId: number | string, 
-  projectName: string
+  projectId: number | string,
+  projectName: string,
+  userId: string
 ): Promise<boolean> {
   try {
     const supabase = getSupabaseAdmin()
@@ -30,9 +31,11 @@ ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl
 
     const readmeBlob = new Blob([readmeContent], { type: 'text/markdown' })
     
+    const folderPath = `${userId}/projects/${projectId}`
+
     const { error } = await supabase.storage
       .from('user-assets')
-      .upload(`projects/${projectId}/README.md`, readmeBlob, {
+      .upload(`${folderPath}/README.md`, readmeBlob, {
         contentType: 'text/markdown',
         upsert: false
       })
@@ -54,15 +57,19 @@ ${new Date().toLocaleDateString('nl-NL')} om ${new Date().toLocaleTimeString('nl
 /**
  * Controleert of een project document map bestaat
  * @param projectId - Het ID van het project
+ * @param userId - Het ID van de gebruiker
  * @returns Promise<boolean> - True als map bestaat
  */
-export async function projectDocumentFolderExists(projectId: number | string): Promise<boolean> {
+export async function projectDocumentFolderExists(
+  projectId: number | string,
+  userId: string
+): Promise<boolean> {
   try {
     const supabase = getSupabaseAdmin()
     
     const { data, error } = await supabase.storage
       .from('user-assets')
-      .list(`projects/${projectId}`, {
+      .list(`${userId}/projects/${projectId}`, {
         limit: 1
       })
 
@@ -80,16 +87,20 @@ export async function projectDocumentFolderExists(projectId: number | string): P
 /**
  * Verwijdert de document map van een project (bij project verwijdering)
  * @param projectId - Het ID van het project
+ * @param userId - Het ID van de gebruiker
  * @returns Promise<boolean> - True als succesvol verwijderd
  */
-export async function deleteProjectDocumentFolder(projectId: number | string): Promise<boolean> {
+export async function deleteProjectDocumentFolder(
+  projectId: number | string,
+  userId: string
+): Promise<boolean> {
   try {
     const supabase = getSupabaseAdmin()
     
     // Haal alle bestanden in de project map op
     const { data: files, error: listError } = await supabase.storage
       .from('user-assets')
-      .list(`projects/${projectId}`, {
+      .list(`${userId}/projects/${projectId}`, {
         limit: 1000
       })
 
@@ -100,7 +111,7 @@ export async function deleteProjectDocumentFolder(projectId: number | string): P
 
     if (files && files.length > 0) {
       // Verwijder alle bestanden in de map
-      const filePaths = files.map(file => `projects/${projectId}/${file.name}`)
+      const filePaths = files.map(file => `${userId}/projects/${projectId}/${file.name}`)
       
       const { error: deleteError } = await supabase.storage
         .from('user-assets')

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import { 
   FileText, 
-  Upload, 
   Trash2, 
   Download, 
-  Search, 
   File, 
   Image as ImageIcon, 
   FileCode, 
@@ -16,14 +14,12 @@ import {
   Filter,
   FolderClosed,
   Sparkles,
-  FolderKanban,
-  Building2
+  FolderKanban
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { ArchonInlineLoader, ArchonLoader } from "@/components/archon-loader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,32 +39,26 @@ import {
 
 interface UserFile {
   name: string;
-  id: string;
-  updated_at: string;
-  created_at: string;
-  last_accessed_at: string;
-  metadata: {
-    size: number;
-    mimetype: string;
-  };
+  id?: string;
+  updated_at?: string;
+  created_at?: string;
+  last_accessed_at?: string;
+  metadata?: {
+    size?: number;
+    mimetype?: string;
+  } | null;
 }
 
 interface Project {
-  id: number;
+  id: string;
   naam: string;
   status: string;
 }
 
-interface UserFile {
-  name: string;
+interface ProjectApiRow {
   id: string;
-  updated_at: string;
-  created_at: string;
-  last_accessed_at: string;
-  metadata: {
-    size: number;
-    mimetype: string;
-  };
+  naam: string;
+  status: string;
 }
 
 export default function DocumentenPage() {
@@ -80,18 +70,46 @@ export default function DocumentenPage() {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [userId, setUserId] = useState<string | null>(null);
 
-  const fetchProjects = useCallback(async (uid: string) => {
+  const fetchProjects = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('projecten')
-        .select('id, naam, status')
-        .eq('user_id', uid)
-        .order('naam');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) {
+        setProjects([]);
+        return;
+      }
 
-      if (error) throw error;
-      setProjects(data || []);
+      const response = await fetch("/api/projecten?limit=200&offset=0", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error ?? "Kon projecten niet laden.");
+      }
+
+      const payload = await response.json();
+      const rows = Array.isArray(payload?.data) ? payload.data as ProjectApiRow[] : [];
+      const mapped: Project[] = rows.map((row) => ({
+        id: String(row.id),
+        naam: String(row.naam ?? ""),
+        status: String(row.status ?? "Actief"),
+      }));
+
+      mapped.sort((a, b) => a.naam.localeCompare(b.naam, "nl-NL"));
+      setProjects(mapped);
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      // In dev toont Next een overlay bij console.error; gebruik een zachte melding i.p.v. een harde fout.
+      console.warn('Projecten konden niet worden geladen:', error);
+      setProjects([]);
+      toast({
+        title: 'Projecten niet geladen',
+        description: 'We konden uw projecten niet ophalen, maar uw documentenkluis blijft beschikbaar.',
+        variant: 'default',
+      });
     }
   }, []);
 
@@ -114,12 +132,19 @@ export default function DocumentenPage() {
         });
 
       if (error) throw error;
-      setFiles(data as any || []);
+      const fileItems = (data ?? []).filter((item: any) => {
+        return item && item.name && item.metadata && typeof item.metadata === "object";
+      });
+      setFiles(fileItems as UserFile[]);
     } catch (error) {
       console.error("Error fetching files:", error);
+      const message = error instanceof Error ? error.message.toLowerCase() : "";
+      const bucketMissing = message.includes("bucket") && message.includes("not found");
       toast({
         title: "Fout",
-        description: "Kon documenten niet ophalen",
+        description: bucketMissing
+          ? "Storage bucket 'user-assets' ontbreekt. Maak deze bucket aan in Supabase."
+          : "Kon documenten niet ophalen",
         variant: "destructive",
       });
     } finally {
@@ -138,8 +163,6 @@ export default function DocumentenPage() {
         
         if (session?.user) {
           setUserId(session.user.id)
-          fetchProjects(session.user.id)
-          fetchFiles(session.user.id, selectedProject)
         } else {
           console.log('No authenticated user found')
           setLoading(false)
@@ -149,17 +172,22 @@ export default function DocumentenPage() {
         setLoading(false)
       }
     }
-    checkAuth()
-  }, [fetchFiles, fetchProjects, selectedProject])
+    void checkAuth()
+  }, [])
+
+  useEffect(() => {
+    if (!userId) return;
+    void fetchProjects();
+  }, [fetchProjects, userId])
 
   // Refetch files when project selection changes
   useEffect(() => {
     if (userId) {
-      fetchFiles(userId, selectedProject)
+      void fetchFiles(userId, selectedProject)
     }
   }, [selectedProject, userId, fetchFiles])
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
 
@@ -187,7 +215,7 @@ export default function DocumentenPage() {
           title: "Succes",
           description: "Document succesvol geüpload",
         });
-        fetchFiles(userId, selectedProject);
+        void fetchFiles(userId, selectedProject);
       } else {
         throw new Error(result.error || "Upload mislukt");
       }
@@ -222,7 +250,7 @@ export default function DocumentenPage() {
         title: "Succes",
         description: "Document verwijderd",
       });
-      setFiles(files.filter(f => f.name !== filename));
+      setFiles((current) => current.filter((file) => file.name !== filename));
     } catch (error) {
       console.error("Error deleting file:", error);
       toast({
@@ -249,6 +277,8 @@ export default function DocumentenPage() {
   };
 
   const getPublicUrl = (filename: string) => {
+    if (!userId) return "#";
+
     // Determine the correct file path based on current project selection
     let filePath = `${userId}/${filename}`;
     if (selectedProject && selectedProject !== "all") {
@@ -259,6 +289,13 @@ export default function DocumentenPage() {
       .from("user-assets")
       .getPublicUrl(filePath);
     return publicUrl;
+  };
+
+  const formatFileDate = (value?: string) => {
+    if (!value) return "Onbekend";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "Onbekend";
+    return parsed.toLocaleDateString("nl-NL");
   };
 
   const filteredFiles = files.filter(f => 
@@ -296,7 +333,7 @@ export default function DocumentenPage() {
                 </div>
               </SelectItem>
               {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id.toString()}>
+                <SelectItem key={project.id} value={project.id}>
                   <div className="flex items-center gap-2">
                     <FolderKanban className="w-4 h-4" />
                     {project.naam}
@@ -371,9 +408,12 @@ export default function DocumentenPage() {
                 <Sparkles className="w-6 h-6 text-emerald-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Ging Vandaag</p>
+                <p className="text-sm text-muted-foreground">Nieuw Vandaag</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {files.filter(f => new Date(f.created_at).toDateString() === new Date().toDateString()).length}
+                  {files.filter((file) => {
+                    if (!file.created_at) return false;
+                    return new Date(file.created_at).toDateString() === new Date().toDateString();
+                  }).length}
                 </p>
               </div>
             </div>
@@ -389,9 +429,9 @@ export default function DocumentenPage() {
                 <p className="text-sm text-muted-foreground">
                   {selectedProject === "all" ? "Alle Projecten" : "Huidig Project"}
                 </p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl md:text-2xl font-bold text-foreground truncate max-w-[220px]">
                   {selectedProject === "all" ? projects.length : 
-                   projects.find(p => p.id.toString() === selectedProject)?.naam || "Onbekend"}
+                   projects.find((project) => project.id === selectedProject)?.naam || "Onbekend"}
                 </p>
               </div>
             </div>
@@ -446,7 +486,7 @@ export default function DocumentenPage() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatSize(file.metadata?.size || 0)}</span>
                       <span>•</span>
-                      <span>{new Date(file.created_at).toLocaleDateString()}</span>
+                      <span>{formatFileDate(file.created_at)}</span>
                     </div>
                   </div>
 
@@ -472,7 +512,7 @@ export default function DocumentenPage() {
             <p className="text-lg font-medium">
               {selectedProject === "all" 
                 ? "Geen documenten gevonden" 
-                : `Geen documenten voor ${projects.find(p => p.id.toString() === selectedProject)?.naam || "dit project"}`
+                : `Geen documenten voor ${projects.find((project) => project.id === selectedProject)?.naam || "dit project"}`
               }
             </p>
             <p className="text-sm mt-1">
@@ -487,4 +527,3 @@ export default function DocumentenPage() {
     </div>
   );
 }
-

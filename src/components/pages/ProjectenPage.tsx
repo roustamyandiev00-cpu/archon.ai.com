@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/table'
 import { useDashboardQueryEnum, useDashboardQueryText } from '@/hooks/use-dashboard-query-state'
 import { toast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
 type ProjectStatus = 'Actief' | 'On Hold' | 'Afgerond'
@@ -94,6 +95,18 @@ function nextStatus(current: ProjectStatus): ProjectStatus {
   return 'Actief'
 }
 
+async function getAuthHeaders(contentType?: 'application/json'): Promise<Record<string, string>> {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) throw new Error('Kon sessie niet ophalen.')
+
+  const token = data.session?.access_token
+  if (!token) throw new Error('Niet ingelogd.')
+
+  return contentType
+    ? { Authorization: `Bearer ${token}`, 'Content-Type': contentType }
+    : { Authorization: `Bearer ${token}` }
+}
+
 export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const [searchQuery, setSearchQuery] = useDashboardQueryText('projecten_q')
   const [statusFilter, setStatusFilter] = useDashboardQueryEnum(
@@ -131,7 +144,11 @@ export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
     setError(null)
 
     try {
-      const response = await fetch(`/api/projecten?limit=${limit}&offset=${offset}`, { cache: 'no-store' })
+      const headers = await getAuthHeaders()
+      const response = await fetch(`/api/projecten?limit=${limit}&offset=${offset}`, {
+        cache: 'no-store',
+        headers,
+      })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.error ?? 'Kon projecten niet laden.')
@@ -181,9 +198,10 @@ export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
   const updateProjectStatus = async (projectId: string, status: ProjectStatus) => {
     setStatusUpdatingId(projectId)
     try {
+      const headers = await getAuthHeaders('application/json')
       const response = await fetch(`/api/projecten/${projectId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ status }),
       })
 
@@ -220,7 +238,11 @@ export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
 
     setDeletingId(projectId)
     try {
-      const response = await fetch(`/api/projecten/${projectId}`, { method: 'DELETE' })
+      const headers = await getAuthHeaders()
+      const response = await fetch(`/api/projecten/${projectId}`, {
+        method: 'DELETE',
+        headers,
+      })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.error ?? 'Kon project niet verwijderen.')
@@ -674,9 +696,10 @@ export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) 
               const voortgang = Number(formData.get('voortgang')) || 0
 
               try {
+                const headers = await getAuthHeaders('application/json')
                 const response = await fetch(`/api/projecten/${selectedProject.id}`, {
                   method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers,
                   body: JSON.stringify({ naam, beschrijving, status, deadline, budget, voortgang }),
                 })
                 if (!response.ok) throw new Error('Opslaan mislukt')

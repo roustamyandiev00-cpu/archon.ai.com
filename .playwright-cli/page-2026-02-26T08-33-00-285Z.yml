@@ -1,0 +1,210 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+            - img [ref=e27]
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Offertes
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e134]: "--:--"
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - main [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - heading "Offertes" [level=1] [ref=e150]:
+                  - img [ref=e152]
+                  - text: Offertes
+                - paragraph [ref=e155]: Beheer uw offertes en opvolging
+              - generic [ref=e156]:
+                - button "Nieuwe Offerte" [ref=e157]:
+                  - img
+                  - text: Nieuwe Offerte
+                - button "AI Offerte" [ref=e158]:
+                  - img
+                  - text: AI Offerte
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - img [ref=e162]
+                - textbox "Zoeken op nummer of klant..." [ref=e165]
+              - combobox [ref=e166]:
+                - img
+              - combobox [ref=e167]
+              - combobox [ref=e168]:
+                - img
+              - combobox [ref=e169]
+              - combobox [ref=e170]:
+                - img
+              - combobox [ref=e171]
+              - button "Filters wissen" [ref=e172]
+            - table [ref=e175]:
+              - rowgroup [ref=e176]:
+                - row "Nummer Klant Datum Bedrag Status Geldig Tot Media AI Analyse Schatting Acties" [ref=e177]:
+                  - columnheader "Nummer" [ref=e178]
+                  - columnheader "Klant" [ref=e179]
+                  - columnheader "Datum" [ref=e180]
+                  - columnheader "Bedrag" [ref=e181]
+                  - columnheader "Status" [ref=e182]
+                  - columnheader "Geldig Tot" [ref=e183]
+                  - columnheader "Media" [ref=e184]
+                  - columnheader "AI Analyse" [ref=e185]
+                  - columnheader "Schatting" [ref=e186]
+                  - columnheader "Acties" [ref=e187]
+              - rowgroup [ref=e188]:
+                - row [ref=e189]:
+                  - cell [ref=e190]
+                  - cell [ref=e192]
+                  - cell [ref=e194]
+                  - cell [ref=e196]
+                  - cell [ref=e198]
+                  - cell [ref=e200]
+                  - cell [ref=e202]
+                  - cell [ref=e204]
+                  - cell [ref=e206]
+                  - cell [ref=e208]
+                - row [ref=e214]:
+                  - cell [ref=e215]
+                  - cell [ref=e217]
+                  - cell [ref=e219]
+                  - cell [ref=e221]
+                  - cell [ref=e223]
+                  - cell [ref=e225]
+                  - cell [ref=e227]
+                  - cell [ref=e229]
+                  - cell [ref=e231]
+                  - cell [ref=e233]
+                - row [ref=e239]:
+                  - cell [ref=e240]
+                  - cell [ref=e242]
+                  - cell [ref=e244]
+                  - cell [ref=e246]
+                  - cell [ref=e248]
+                  - cell [ref=e250]
+                  - cell [ref=e252]
+                  - cell [ref=e254]
+                  - cell [ref=e256]
+                  - cell [ref=e258]
+                - row [ref=e264]:
+                  - cell [ref=e265]
+                  - cell [ref=e267]
+                  - cell [ref=e269]
+                  - cell [ref=e271]
+                  - cell [ref=e273]
+                  - cell [ref=e275]
+                  - cell [ref=e277]
+                  - cell [ref=e279]
+                  - cell [ref=e281]
+                  - cell [ref=e283]
+                - row [ref=e289]:
+                  - cell [ref=e290]
+                  - cell [ref=e292]
+                  - cell [ref=e294]
+                  - cell [ref=e296]
+                  - cell [ref=e298]
+                  - cell [ref=e300]
+                  - cell [ref=e302]
+                  - cell [ref=e304]
+                  - cell [ref=e306]
+                  - cell [ref=e308]
+      - generic [ref=e314]:
+        - heading "Zoeken" [level=2] [ref=e315]
+        - paragraph [ref=e316]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e322] [cursor=pointer]:
+    - img [ref=e323]
+  - alert [ref=e326]

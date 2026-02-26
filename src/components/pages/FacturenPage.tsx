@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   Banknote,
@@ -21,6 +21,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Sparkles,
   Trash2,
   X,
 } from 'lucide-react'
@@ -77,6 +78,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import AddFactuurModal from '@/components/modals/AddFactuurModal'
+import type { FactuurPrefillData } from '@/lib/ai-assistant-actions'
+import AIFactuurModal from '@/components/modals/AIFactuurModal'
 
 function parseDimension(value: string) {
   const trimmed = value.trim();
@@ -127,136 +130,7 @@ interface Factuur {
   createdAt: string
 }
 
-// Sample data
-const sampleFacturen: Factuur[] = [
-  {
-    id: '1',
-    nummer: 'F-2024-001',
-    klant: 'Janssen BV',
-    klantEmail: 'info@janssenbv.nl',
-    bedrag: 2500,
-    btwBedrag: 525,
-    totaalBedrag: 3025,
-    datum: '2024-02-01',
-    vervalDatum: '2024-02-15',
-    status: 'Betaald',
-    betaaldOp: '2024-02-10',
-    betaalMethode: 'Bankoverschrijving',
-    items: [
-      { id: '1', omschrijving: 'Consultancy werkzaamheden', aantal: 10, prijs: 150, btw: 21 },
-      { id: '2', omschrijving: 'Reiskosten', aantal: 1, prijs: 1000, btw: 21 },
-    ],
-    timeline: [
-      { id: '1', type: 'created', date: '2024-02-01T10:00:00Z', description: 'Factuur aangemaakt', user: 'Pieter' },
-      { id: '2', type: 'sent', date: '2024-02-01T11:30:00Z', description: 'Factuur verzonden naar info@janssenbv.nl', user: 'Pieter' },
-      { id: '3', type: 'paid', date: '2024-02-10T14:20:00Z', description: 'Betaling ontvangen via bankoverschrijving', user: 'Systeem' },
-    ],
-    herinneringenVerstuurd: 0,
-    pdfUrl: null,
-    notities: '',
-    createdAt: '2024-02-01T10:00:00Z',
-  },
-  {
-    id: '2',
-    nummer: 'F-2024-002',
-    klant: 'De Vries Constructie',
-    klantEmail: 'admin@devries.nl',
-    bedrag: 8500,
-    btwBedrag: 1785,
-    totaalBedrag: 10285,
-    datum: '2024-02-05',
-    vervalDatum: '2024-03-06',
-    status: 'Openstaand',
-    betaaldOp: null,
-    betaalMethode: null,
-    items: [
-      { id: '1', omschrijving: 'Project renovatie keuken', aantal: 1, prijs: 8500, btw: 21 },
-    ],
-    timeline: [
-      { id: '1', type: 'created', date: '2024-02-05T09:00:00Z', description: 'Factuur aangemaakt', user: 'Pieter' },
-      { id: '2', type: 'sent', date: '2024-02-05T09:15:00Z', description: 'Factuur verzonden naar admin@devries.nl', user: 'Pieter' },
-    ],
-    herinneringenVerstuurd: 0,
-    pdfUrl: null,
-    notities: 'Betaling verwacht binnen 30 dagen',
-    createdAt: '2024-02-05T09:00:00Z',
-  },
-  {
-    id: '3',
-    nummer: 'F-2024-003',
-    klant: 'Bakkerij Van Dam',
-    klantEmail: 'bestelling@bakkerijvandam.nl',
-    bedrag: 450,
-    btwBedrag: 94.5,
-    totaalBedrag: 544.5,
-    datum: '2024-01-15',
-    vervalDatum: '2024-02-14',
-    status: 'Achterstallig',
-    betaaldOp: null,
-    betaalMethode: null,
-    items: [
-      { id: '1', omschrijving: 'Maandelijkse IT support', aantal: 1, prijs: 450, btw: 21 },
-    ],
-    timeline: [
-      { id: '1', type: 'created', date: '2024-01-15T08:00:00Z', description: 'Factuur aangemaakt', user: 'Pieter' },
-      { id: '2', type: 'sent', date: '2024-01-15T08:30:00Z', description: 'Factuur verzonden', user: 'Pieter' },
-      { id: '3', type: 'reminder', date: '2024-02-20T10:00:00Z', description: 'Betalingsherinnering verstuurd', user: 'Systeem' },
-    ],
-    herinneringenVerstuurd: 1,
-    pdfUrl: null,
-    notities: 'Klant heeft beloofd volgende week te betalen',
-    createdAt: '2024-01-15T08:00:00Z',
-  },
-  {
-    id: '4',
-    nummer: 'F-2024-004',
-    klant: 'TechStart Solutions',
-    klantEmail: 'finance@techstart.nl',
-    bedrag: 3200,
-    btwBedrag: 672,
-    totaalBedrag: 3872,
-    datum: '2024-02-10',
-    vervalDatum: '2024-02-24',
-    status: 'Verzonden',
-    betaaldOp: null,
-    betaalMethode: null,
-    items: [
-      { id: '1', omschrijving: 'Software ontwikkeling - Fase 1', aantal: 40, prijs: 80, btw: 21 },
-    ],
-    timeline: [
-      { id: '1', type: 'created', date: '2024-02-10T13:00:00Z', description: 'Factuur aangemaakt', user: 'Pieter' },
-      { id: '2', type: 'sent', date: '2024-02-10T13:15:00Z', description: 'Factuur verzonden naar finance@techstart.nl', user: 'Pieter' },
-    ],
-    herinneringenVerstuurd: 0,
-    pdfUrl: null,
-    notities: '',
-    createdAt: '2024-02-10T13:00:00Z',
-  },
-  {
-    id: '5',
-    nummer: 'F-2024-005',
-    klant: 'Marketing Masters',
-    klantEmail: 'info@marketingmasters.nl',
-    bedrag: 1200,
-    btwBedrag: 252,
-    totaalBedrag: 1452,
-    datum: '2024-02-12',
-    vervalDatum: '2024-02-26',
-    status: 'Concept',
-    betaaldOp: null,
-    betaalMethode: null,
-    items: [
-      { id: '1', omschrijving: 'Advies uren marketing strategie', aantal: 8, prijs: 150, btw: 21 },
-    ],
-    timeline: [
-      { id: '1', type: 'created', date: '2024-02-12T15:00:00Z', description: 'Factuur aangemaakt als concept', user: 'Pieter' },
-    ],
-    herinneringenVerstuurd: 0,
-    pdfUrl: null,
-    notities: 'Nog te controleren voor verzending',
-    createdAt: '2024-02-12T15:00:00Z',
-  },
-]
+// Sample data removed - now using real API data
 
 const statusTabs = [
   { value: 'Alle', label: 'Alle' },
@@ -381,7 +255,12 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
   )
 }
 
-export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
+type FacturenPageProps = {
+  autoOpenCreate?: boolean
+  prefillData?: FactuurPrefillData | null
+}
+
+export default function FacturenPage({ autoOpenCreate, prefillData }: FacturenPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusTab, setStatusTab] = useState<string>('Alle')
   const [klantFilter, setKlantFilter] = useState('')
@@ -401,13 +280,18 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [aiCreateOpen, setAiCreateOpen] = useState(false)
+  const autoOpenHandledRef = useRef(false)
 
-  // Auto-open create modal when prop is true
+  // Auto-open create modal once for query or programmatic triggers
   useEffect(() => {
-    if (autoOpenCreate && !createOpen) {
+    if (autoOpenHandledRef.current) return
+
+    if (autoOpenCreate || prefillData) {
       setCreateOpen(true)
+      autoOpenHandledRef.current = true
     }
-  }, [autoOpenCreate, createOpen])
+  }, [autoOpenCreate, prefillData])
 
   // Fetch invoices from API with pagination
   const fetchFacturen = useCallback(async (limit = 25, offset = 0) => {
@@ -773,6 +657,9 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
         title: 'Factuur aangemaakt',
         description: `Factuur ${created.nummer} is succesvol aangemaakt.`,
       })
+      
+      // Refresh the list to get updated data
+      await fetchFacturen()
     } catch (error: any) {
       toast({
         title: 'Aanmaken mislukt',
@@ -781,7 +668,7 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
       })
       throw error
     }
-  }, [])
+  }, [fetchFacturen])
 
   const handleExportCSV = useCallback(() => {
     if (filteredFacturen.length === 0) {
@@ -870,7 +757,7 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-linear-to-br from-emerald-500/20 to-teal-500/20">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
               <FileText className="w-6 h-6 text-emerald-600" />
             </div>
             Facturen
@@ -882,9 +769,13 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Button className="bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25" onClick={() => setCreateOpen(true)}>
+          <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25" onClick={() => setCreateOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Nieuwe factuur
+          </Button>
+          <Button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25" onClick={() => setAiCreateOpen(true)}>
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI Factuur
           </Button>
         </div>
       </div>
@@ -1020,7 +911,42 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
       </div>
 
       {/* Table */}
-      <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl overflow-hidden">
+      {loading ? (
+        <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl p-8 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Facturen laden...</p>
+        </div>
+      ) : filteredFacturen.length === 0 ? (
+        <PageEmptyState
+          icon={FileText}
+          title="Geen facturen gevonden"
+          description={
+            facturen.length === 0
+              ? 'U heeft nog geen facturen aangemaakt. Maak uw eerste factuur aan om te beginnen.'
+              : 'Pas uw zoekterm of filters aan.'
+          }
+          actionLabel={facturen.length === 0 ? 'Nieuwe factuur' : 'Filters wissen'}
+          onAction={() => {
+            if (facturen.length === 0) {
+              setCreateOpen(true)
+              return
+            }
+            // Reset filters
+            setSearchQuery('')
+            setStatusTab('Alle')
+            setKlantFilter('')
+            setDateFrom('')
+            setDateTo('')
+            setDueDateFrom('')
+            setDueDateTo('')
+            setAmountMin('')
+            setAmountMax('')
+            setShowOverdueOnly(false)
+            setShowPaidStatus('all')
+          }}
+        />
+      ) : (
+        <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -1166,9 +1092,12 @@ export default function FacturenPage({ autoOpenCreate }: { autoOpenCreate?: bool
             ))}
           </TableBody>
         </Table>
-      </div>
+        </div>
+      )}
 
       <AddFactuurModal open={createOpen} onOpenChange={setCreateOpen} onCreate={handleCreateFactuur} />
+
+      <AIFactuurModal open={aiCreateOpen} onOpenChange={setAiCreateOpen} onSuccess={fetchFacturen} />
 
       {/* Detail Sheet */}
       <Sheet open={detailOpen} onOpenChange={setDetailOpen}>

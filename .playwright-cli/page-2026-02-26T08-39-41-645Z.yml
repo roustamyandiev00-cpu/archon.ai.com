@@ -1,0 +1,262 @@
+- generic [active] [ref=e1]:
+  - link "Ga naar inhoud" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - button "Zijbalk inklappen" [expanded] [ref=e5]:
+        - img [ref=e6]
+      - complementary [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - img [ref=e11]
+            - generic [ref=e13]:
+              - heading "ArchonPro" [level=1] [ref=e14]
+              - paragraph [ref=e15]: Business Suite
+          - generic [ref=e16]:
+            - button "Sidebar bewerken" [ref=e17]:
+              - img [ref=e18]
+            - button "Zijbalk inklappen" [ref=e21]:
+              - img [ref=e22]
+        - navigation "Hoofdnavigatie" [ref=e24]:
+          - paragraph [ref=e25]:
+            - generic [ref=e26]: Navigatie
+          - generic [ref=e29]:
+            - button "Dashboard" [ref=e30]:
+              - img [ref=e32]
+              - text: Dashboard
+            - button "Bedrijven" [ref=e35]:
+              - img [ref=e37]
+              - text: Bedrijven
+            - button "Contacten" [ref=e41]:
+              - img [ref=e43]
+              - text: Contacten
+            - button "Deals" [ref=e48]:
+              - img [ref=e50]
+              - text: Deals
+            - button "Offertes" [ref=e53]:
+              - img [ref=e55]
+              - text: Offertes
+            - button "Facturen" [ref=e58]:
+              - img [ref=e60]
+              - text: Facturen
+            - button "Projecten" [ref=e63]:
+              - img [ref=e65]
+              - text: Projecten
+            - button "Agenda" [ref=e67]:
+              - img [ref=e69]
+              - text: Agenda
+            - button "Artikelen" [ref=e71]:
+              - img [ref=e73]
+              - text: Artikelen
+            - button "Timesheets" [ref=e77]:
+              - img [ref=e79]
+              - text: Timesheets
+            - button "WhatsApp" [ref=e82]:
+              - img [ref=e84]
+              - text: WhatsApp
+            - button "Support" [ref=e86]:
+              - img [ref=e88]
+              - text: Support
+            - button "Documenten" [ref=e90]:
+              - img [ref=e92]
+              - text: Documenten
+        - generic [ref=e94]:
+          - paragraph [ref=e95]: Tools
+          - generic [ref=e96]:
+            - button "AI Assistant" [ref=e97]:
+              - img [ref=e99]
+              - text: AI Assistant
+            - button "Abonnement" [ref=e102]:
+              - img [ref=e104]
+              - text: Abonnement
+            - button "Instellingen" [ref=e106]:
+              - img [ref=e108]
+              - text: Instellingen
+            - button "Uitloggen" [ref=e111]:
+              - img [ref=e113]
+              - text: Uitloggen
+      - generic [ref=e116]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e122]: Offertes
+            - search "Zoek" [ref=e123]:
+              - img
+              - button "Open zoeken" [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Zoek pagina, klant of actie...
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Ctrl
+                    - generic [ref=e129]: K
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic [ref=e327]: 09:39
+            - button "Thema wisselen" [ref=e135]:
+              - img [ref=e136]
+            - button "Meldingen" [ref=e138]:
+              - img
+            - button "Account" [ref=e140]:
+              - img
+          - button "Upgrade" [ref=e141]:
+            - img
+            - text: Upgrade
+          - button "Nieuwe actie" [ref=e142]:
+            - img
+        - main [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - heading "Offertes" [level=1] [ref=e150]:
+                  - img [ref=e152]
+                  - text: Offertes
+                - paragraph [ref=e155]: Beheer uw offertes en opvolging
+              - generic [ref=e156]:
+                - button "Nieuwe Offerte" [ref=e157]:
+                  - img
+                  - text: Nieuwe Offerte
+                - button "AI Offerte" [ref=e158]:
+                  - img
+                  - text: AI Offerte
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - img [ref=e162]
+                - textbox "Zoeken op nummer of klant..." [ref=e165]
+              - combobox [ref=e166]:
+                - generic: Alle statussen
+                - img
+              - combobox [ref=e168]:
+                - generic: Datum
+                - img
+              - combobox [ref=e170]:
+                - generic: "AI: Gemini"
+                - img
+              - button "Filters wissen" [ref=e172]
+            - table [ref=e493]:
+              - rowgroup [ref=e494]:
+                - row "Nummer Klant Datum Bedrag Status Geldig Tot Media AI Analyse Schatting Acties" [ref=e495]:
+                  - columnheader "Nummer" [ref=e496]
+                  - columnheader "Klant" [ref=e497]
+                  - columnheader "Datum" [ref=e498]
+                  - columnheader "Bedrag" [ref=e499]
+                  - columnheader "Status" [ref=e500]
+                  - columnheader "Geldig Tot" [ref=e501]
+                  - columnheader "Media" [ref=e502]
+                  - columnheader "AI Analyse" [ref=e503]
+                  - columnheader "Schatting" [ref=e504]
+                  - columnheader "Acties" [ref=e505]
+              - rowgroup [ref=e506]:
+                - row "OFF-2026-179757 Playwright Test Klant 26-2-2026 €1.234 Openstaand 12-3-2026 0 foto's - Niet geanalyseerd -" [ref=e660]:
+                  - cell "OFF-2026-179757" [ref=e661]
+                  - cell "Playwright Test Klant" [ref=e662]
+                  - cell "26-2-2026" [ref=e663]
+                  - cell "€1.234" [ref=e664]
+                  - cell "Openstaand" [ref=e665]
+                  - cell "12-3-2026" [ref=e666]
+                  - cell "0 foto's -" [ref=e667]:
+                    - generic [ref=e668]:
+                      - generic [ref=e669]:
+                        - img [ref=e670]
+                        - generic [ref=e674]: 0 foto's
+                      - generic [ref=e675]:
+                        - img [ref=e676]
+                        - generic [ref=e682]: "-"
+                  - cell "Niet geanalyseerd" [ref=e683]:
+                    - generic [ref=e684]: Niet geanalyseerd
+                  - cell "-" [ref=e685]
+                  - cell [ref=e686]:
+                    - generic [ref=e687]:
+                      - button "Offerte details bekijken" [ref=e688]:
+                        - img
+                      - button "Offerte bewerken" [ref=e689]:
+                        - img
+                      - button "AI-analyse opnieuw uitvoeren" [ref=e690]:
+                        - img
+                      - button "Markeer als openstaand" [ref=e691]:
+                        - img
+                      - button "Markeer als geaccepteerd" [ref=e692]:
+                        - img
+                      - button "Markeer als afgewezen" [ref=e693]:
+                        - img
+                      - button "Verwijder offerte" [ref=e694]:
+                        - img
+                - row "2025-002 TechStart NV 5-2-2025 €61.000 Geaccepteerd 19-2-2025 0 foto's - Niet geanalyseerd -" [ref=e695]:
+                  - cell "2025-002" [ref=e696]
+                  - cell "TechStart NV" [ref=e697]
+                  - cell "5-2-2025" [ref=e698]
+                  - cell "€61.000" [ref=e699]
+                  - cell "Geaccepteerd" [ref=e700]
+                  - cell "19-2-2025" [ref=e701]
+                  - cell "0 foto's -" [ref=e702]:
+                    - generic [ref=e703]:
+                      - generic [ref=e704]:
+                        - img [ref=e705]
+                        - generic [ref=e709]: 0 foto's
+                      - generic [ref=e710]:
+                        - img [ref=e711]
+                        - generic [ref=e717]: "-"
+                  - cell "Niet geanalyseerd" [ref=e718]:
+                    - generic [ref=e719]: Niet geanalyseerd
+                  - cell "-" [ref=e720]
+                  - cell [ref=e721]:
+                    - generic [ref=e722]:
+                      - button "Offerte details bekijken" [ref=e723]:
+                        - img
+                      - button "Offerte bewerken" [ref=e724]:
+                        - img
+                      - button "AI-analyse opnieuw uitvoeren" [ref=e725]:
+                        - img
+                      - button "Markeer als openstaand" [ref=e726]:
+                        - img
+                      - button "Markeer als geaccepteerd" [ref=e727]:
+                        - img
+                      - button "Markeer als afgewezen" [ref=e728]:
+                        - img
+                      - button "Verwijder offerte" [ref=e729]:
+                        - img
+                - row "2025-001 ACME BV 1-2-2025 €45.000 Geaccepteerd 15-2-2025 0 foto's - Niet geanalyseerd -" [ref=e730]:
+                  - cell "2025-001" [ref=e731]
+                  - cell "ACME BV" [ref=e732]
+                  - cell "1-2-2025" [ref=e733]
+                  - cell "€45.000" [ref=e734]
+                  - cell "Geaccepteerd" [ref=e735]
+                  - cell "15-2-2025" [ref=e736]
+                  - cell "0 foto's -" [ref=e737]:
+                    - generic [ref=e738]:
+                      - generic [ref=e739]:
+                        - img [ref=e740]
+                        - generic [ref=e744]: 0 foto's
+                      - generic [ref=e745]:
+                        - img [ref=e746]
+                        - generic [ref=e752]: "-"
+                  - cell "Niet geanalyseerd" [ref=e753]:
+                    - generic [ref=e754]: Niet geanalyseerd
+                  - cell "-" [ref=e755]
+                  - cell [ref=e756]:
+                    - generic [ref=e757]:
+                      - button "Offerte details bekijken" [ref=e758]:
+                        - img
+                      - button "Offerte bewerken" [ref=e759]:
+                        - img
+                      - button "AI-analyse opnieuw uitvoeren" [ref=e760]:
+                        - img
+                      - button "Markeer als openstaand" [ref=e761]:
+                        - img
+                      - button "Markeer als geaccepteerd" [ref=e762]:
+                        - img
+                      - button "Markeer als afgewezen" [ref=e763]:
+                        - img
+                      - button "Verwijder offerte" [ref=e764]:
+                        - img
+      - generic [ref=e314]:
+        - heading "Zoeken" [level=2] [ref=e315]
+        - paragraph [ref=e316]: Zoek een pagina of voer een actie uit.
+  - region "Notifications (F8)":
+    - list [ref=e445]:
+      - listitem [ref=e766]:
+        - generic [ref=e767]:
+          - generic [ref=e768]: Offerte aangemaakt
+          - generic [ref=e769]: De offerte is succesvol toegevoegd.
+        - button [ref=e770]:
+          - img [ref=e771]
+  - button "Open Next.js Dev Tools" [ref=e322] [cursor=pointer]:
+    - img [ref=e323]
+  - alert [ref=e326]: ArchonPro - Business Suite Dashboard

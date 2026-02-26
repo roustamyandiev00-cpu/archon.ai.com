@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import {
@@ -6,10 +6,16 @@ import {
   resolveCompanyId,
   toIsoDate,
 } from '@/app/api/finance/finance-utils'
+import { getUserFromRequest } from '@/lib/admin'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { deleteProjectDocumentFolder } from '@/lib/project-utils'
 
-import { normalizeProjectRow, parseNumericId, projectStatusValues } from '../project-utils'
+import {
+  normalizeProjectRow,
+  parseNumericId,
+  projectStatusValues,
+  supportsProjectUserScope,
+} from '../project-utils'
 
 const UpdateProjectSchema = z.object({
   naam: z.string().trim().min(1).optional(),
@@ -29,12 +35,17 @@ type RouteContext = {
 
 const projectSelect = 'id, naam, beschrijving, status, voortgang, deadline, budget, budget_gebruikt, bedrijf_id, created_at'
 
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
   const { id: rawId } = await context.params
   const id = parseNumericId(rawId)
 
   if (id == null) {
     return NextResponse.json({ error: 'Ongeldig project-ID.' }, { status: 400 })
+  }
+
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
   }
 
   let supabase: ReturnType<typeof getSupabaseAdmin>
@@ -85,12 +96,23 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Geen wijzigingen opgegeven.' }, { status: 400 })
     }
 
-    const result = await (supabase as any)
+    const supportsUserScope = await supportsProjectUserScope(supabase as any)
+    if (!supportsUserScope) {
+      console.warn('projecten.user_id ontbreekt; PATCH /api/projecten/[id] valt terug op id-only update.')
+    }
+
+    let updateQuery = (supabase as any)
       .from('projecten')
       .update(updateData)
       .eq('id', id)
       .select(projectSelect)
       .maybeSingle()
+
+    if (supportsUserScope) {
+      updateQuery = updateQuery.eq('user_id', user.id)
+    }
+
+    const result = await updateQuery
 
     if (result.error) throw result.error
     if (!result.data) return NextResponse.json({ error: 'Project niet gevonden.' }, { status: 404 })
@@ -116,12 +138,17 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   const { id: rawId } = await context.params
   const id = parseNumericId(rawId)
 
   if (id == null) {
     return NextResponse.json({ error: 'Ongeldig project-ID.' }, { status: 400 })
+  }
+
+  const user = await getUserFromRequest(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
   }
 
   let supabase: ReturnType<typeof getSupabaseAdmin>
@@ -136,15 +163,29 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   try {
-    const result = await (supabase as any)
+    const supportsUserScope = await supportsProjectUserScope(supabase as any)
+    if (!supportsUserScope) {
+      console.warn('projecten.user_id ontbreekt; DELETE /api/projecten/[id] valt terug op id-only delete.')
+    }
+
+    let deleteQuery = (supabase as any)
       .from('projecten')
       .delete()
       .eq('id', id)
+      .select('id')
+      .maybeSingle()
+
+    if (supportsUserScope) {
+      deleteQuery = deleteQuery.eq('user_id', user.id)
+    }
+
+    const result = await deleteQuery
 
     if (result.error) throw result.error
+    if (!result.data) return NextResponse.json({ error: 'Project niet gevonden.' }, { status: 404 })
 
     // Ruim de document map op na succesvolle verwijdering van het project
-    const folderDeleted = await deleteProjectDocumentFolder(id)
+    const folderDeleted = await deleteProjectDocumentFolder(id, user.id)
     
     if (!folderDeleted) {
       // Log de waarschuwing maar laat de project verwijdering slagen

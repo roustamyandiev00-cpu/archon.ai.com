@@ -67,6 +67,8 @@ interface UserSettings {
   companyAddress: string | null
   companyKvk: string | null
   companyBtw: string | null
+  quotationTemplate: string | null
+  invoiceTemplate: string | null
   smtpProvider: string | null
   smtpGmailUser: string | null
   smtpGmailPassword: string | null
@@ -134,6 +136,12 @@ export default function InstellingenPage() {
     btw: '',
     invoicePrefix: 'FACT-',
     paymentTerm: '14'
+  })
+  
+  // Template Settings State
+  const [templates, setTemplates] = useState({
+    quotation: 'quotation-variant-1a-basic',
+    invoice: 'invoice-variant-1-basic'
   })
   
   // Notifications State
@@ -234,6 +242,12 @@ export default function InstellingenPage() {
             pushTaken: s.notifyPushTask ?? false,
             weeklyDigest: s.notifyEmailWeekly ?? true,
             marketingEmails: s.notifyEmailMarketing ?? false,
+          })
+          
+          // Set Templates
+          setTemplates({
+            quotation: s.quotationTemplate || 'quotation-variant-1a-basic',
+            invoice: s.invoiceTemplate || 'invoice-variant-1-basic'
           })
           
           // Set SMTP
@@ -447,6 +461,37 @@ export default function InstellingenPage() {
     }
   }
 
+  // Save Template Settings
+  const saveTemplates = async () => {
+    const token = await getAuthToken()
+    if (!token) return
+
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/user-settings', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          quotation_template: templates.quotation,
+          invoice_template: templates.invoice
+        })
+      })
+
+      if (response.ok) {
+        toast({ title: 'Opgeslagen', description: 'Sjabloon instellingen zijn opgeslagen' })
+      } else {
+        throw new Error('Failed to save')
+      }
+    } catch (error) {
+      toast({ title: 'Fout', description: 'Kon sjabloon instellingen niet opslaan', variant: 'destructive' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // Send Test Email
   const sendTestEmail = async () => {
     const token = await getAuthToken()
@@ -558,6 +603,13 @@ export default function InstellingenPage() {
           >
             <Puzzle className="w-4 h-4 mr-2" />
             Integraties
+          </TabsTrigger>
+          <TabsTrigger
+            value="sjablonen"
+            className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Sjablonen
           </TabsTrigger>
           <TabsTrigger
             value="email"
@@ -1572,6 +1624,106 @@ export default function InstellingenPage() {
                    Start AI Migratie
                  </Button>
                </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Sjablonen Tab */}
+        <TabsContent value="sjablonen">
+          <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-6">Document Sjablonen</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Offerte Templates */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-foreground/80 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-500" />
+                  Offerte Sjablonen
+                </h3>
+                
+                <div className="space-y-3">
+                  {[
+                    { id: 'quotation-variant-1a-basic', name: 'Basic Template', description: 'Standaard template met handtekeninggebied' },
+                    { id: 'quotation-variant-3-header', name: 'Header Template', description: 'Met nummer en datum in header' }
+                  ].map((template) => (
+                    <div key={template.id} className="flex items-center justify-between p-4 rounded-xl border border-border/30 hover:bg-muted/20 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="quotation-template"
+                          checked={templates.quotation === template.id}
+                          onChange={() => setTemplates({ ...templates, quotation: template.id })}
+                          className="w-4 h-4 text-blue-500"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">{template.name}</p>
+                          <p className="text-sm text-muted-foreground">{template.description}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`/templates/${template.id}.docx`, '_blank')}
+                        className="border-border/30"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Factuur Templates */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-foreground/80 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-green-500" />
+                  Factuur Sjablonen
+                </h3>
+                
+                <div className="space-y-3">
+                  {[
+                    { id: 'invoice-variant-1-basic', name: 'Basic Template', description: 'Standaard factuur template' },
+                    { id: 'invoice-variant-3-header', name: 'Header Template', description: 'Met nummer en datum in header' }
+                  ].map((template) => (
+                    <div key={template.id} className="flex items-center justify-between p-4 rounded-xl border border-border/30 hover:bg-muted/20 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="invoice-template"
+                          checked={templates.invoice === template.id}
+                          onChange={() => setTemplates({ ...templates, invoice: template.id })}
+                          className="w-4 h-4 text-green-500"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">{template.name}</p>
+                          <p className="text-sm text-muted-foreground">{template.description}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`/templates/${template.id}.docx`, '_blank')}
+                        className="border-border/30"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-8 flex justify-end">
+              <Button
+                className="bg-linear-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                onClick={saveTemplates}
+                disabled={isSaving}
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Sjabloon Instellingen Opslaan
+              </Button>
             </div>
           </div>
         </TabsContent>

@@ -1,0 +1,288 @@
+- generic:
+  - link:
+    - /url: "#main-content"
+    - text: Ga naar inhoud
+  - main:
+    - generic:
+      - button [expanded]:
+        - img
+      - complementary:
+        - generic:
+          - generic:
+            - generic:
+              - img
+            - generic:
+              - heading [level=1]: ArchonPro
+              - paragraph: Business Suite
+          - generic:
+            - button:
+              - img
+            - button:
+              - img
+        - navigation:
+          - paragraph:
+            - generic: Navigatie
+          - generic:
+            - button:
+              - img
+              - text: Dashboard
+            - button:
+              - img
+              - text: Bedrijven
+            - button:
+              - img
+              - text: Contacten
+            - button:
+              - img
+              - text: Deals
+            - button:
+              - img
+              - text: Offertes
+            - button:
+              - img
+              - text: Facturen
+            - button:
+              - img
+              - text: Projecten
+            - button:
+              - img
+              - text: Agenda
+            - button:
+              - img
+              - text: Artikelen
+            - button:
+              - img
+              - text: Timesheets
+            - button:
+              - img
+              - text: WhatsApp
+            - button:
+              - img
+              - text: Support
+            - button:
+              - img
+              - text: Documenten
+        - generic:
+          - paragraph: Tools
+          - generic:
+            - button:
+              - img
+              - text: AI Assistant
+            - button:
+              - img
+              - text: Abonnement
+            - button:
+              - img
+              - text: Instellingen
+            - button:
+              - img
+              - text: Uitloggen
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Offertes
+                - search:
+                  - img
+                  - button:
+                    - generic:
+                      - generic: Zoek pagina, klant of actie...
+                      - generic:
+                        - generic: Ctrl
+                        - generic: K
+              - generic:
+                - generic:
+                  - img
+                - generic: 09:39
+                - button:
+                  - img
+                - button:
+                  - img
+                - button:
+                  - img
+              - button:
+                - img
+                - text: Upgrade
+              - button:
+                - img
+        - generic:
+          - generic:
+            - generic:
+              - main:
+                - generic:
+                  - generic:
+                    - generic:
+                      - heading [level=1]:
+                        - generic:
+                          - img
+                        - text: Offertes
+                      - paragraph: Beheer uw offertes en opvolging
+                    - generic:
+                      - button:
+                        - img
+                        - text: Nieuwe Offerte
+                      - button:
+                        - img
+                        - text: AI Offerte
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - textbox:
+                          - /placeholder: Zoeken op nummer of klant...
+                      - combobox:
+                        - generic: Alle statussen
+                        - img
+                      - combobox:
+                        - generic: Datum
+                        - img
+                      - combobox:
+                        - generic: "AI: Gemini"
+                        - img
+                      - button: Filters wissen
+                  - generic:
+                    - generic:
+                      - table:
+                        - rowgroup:
+                          - row:
+                            - columnheader: Nummer
+                            - columnheader: Klant
+                            - columnheader: Datum
+                            - columnheader: Bedrag
+                            - columnheader: Status
+                            - columnheader: Geldig Tot
+                            - columnheader: Media
+                            - columnheader: AI Analyse
+                            - columnheader: Schatting
+                            - columnheader: Acties
+                        - rowgroup:
+                          - row:
+                            - cell: 2025-002
+                            - cell: TechStart NV
+                            - cell: 5-2-2025
+                            - cell: €61.000
+                            - cell: Geaccepteerd
+                            - cell: 19-2-2025
+                            - cell:
+                              - generic:
+                                - generic:
+                                  - img
+                                  - generic: 0 foto's
+                                - generic:
+                                  - img
+                                  - generic: "-"
+                            - cell:
+                              - generic: Niet geanalyseerd
+                            - cell: "-"
+                            - cell:
+                              - generic:
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                          - row:
+                            - cell: 2025-001
+                            - cell: ACME BV
+                            - cell: 1-2-2025
+                            - cell: €45.000
+                            - cell: Geaccepteerd
+                            - cell: 15-2-2025
+                            - cell:
+                              - generic:
+                                - generic:
+                                  - img
+                                  - generic: 0 foto's
+                                - generic:
+                                  - img
+                                  - generic: "-"
+                            - cell:
+                              - generic: Niet geanalyseerd
+                            - cell: "-"
+                            - cell:
+                              - generic:
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+                                - button:
+                                  - img
+      - generic:
+        - heading [level=2]: Zoeken
+        - paragraph: Zoek een pagina of voer een actie uit.
+  - list
+  - button "Open Next.js Dev Tools" [ref=e322] [cursor=pointer]:
+    - img [ref=e323]
+  - alert: ArchonPro - Business Suite Dashboard
+  - dialog "Nieuwe Offerte" [ref=e613]:
+    - generic [ref=e614]:
+      - heading "Nieuwe Offerte" [level=2] [ref=e615]
+      - paragraph [ref=e616]: Vul de gegevens in. Voeg ruimtes toe voor gedetailleerde AI-analyse.
+    - generic [ref=e617]:
+      - generic [ref=e621]:
+        - generic [ref=e622]:
+          - generic [ref=e623]:
+            - generic [ref=e624]: Offertenummer
+            - textbox "Offertenummer" [ref=e625]:
+              - /placeholder: Auto (optioneel)
+          - generic [ref=e626]:
+            - generic [ref=e627]: Klant *
+            - textbox "Klant *" [ref=e628]:
+              - /placeholder: Klantnaam
+              - text: Playwright Test Klant
+        - generic [ref=e629]:
+          - generic [ref=e630]: Bedrag (€) *
+          - spinbutton "Bedrag (€) *" [active] [ref=e631]: "1234"
+        - generic [ref=e632]:
+          - generic [ref=e633]:
+            - generic [ref=e634]: Datum *
+            - textbox "Datum *" [ref=e635]: 2026-02-26
+          - generic [ref=e636]:
+            - generic [ref=e637]: Geldig tot *
+            - textbox "Geldig tot *" [ref=e638]: 2026-03-12
+        - generic [ref=e639]:
+          - generic [ref=e640]:
+            - generic [ref=e641]:
+              - img [ref=e642]
+              - generic [ref=e644]: Ruimtes & Afmetingen
+            - generic [ref=e645]:
+              - combobox [ref=e646]:
+                - generic: cm
+                - img
+              - combobox [ref=e647]
+              - button "Ruimte" [ref=e648]:
+                - img
+                - text: Ruimte
+          - generic [ref=e649]: Nog geen ruimtes toegevoegd. Klik op "Ruimte" om te beginnen.
+        - generic [ref=e650]:
+          - generic [ref=e651]: AI provider
+          - combobox "AI provider" [ref=e652]:
+            - generic: Gemini
+            - img
+          - combobox [ref=e653]
+          - paragraph [ref=e654]: Analyseert foto's en afmetingen voor kostenindicatie.
+      - generic [ref=e655]:
+        - button "Annuleren" [ref=e656]
+        - button "Offerte opslaan" [ref=e659]
+    - button "Sluiten" [ref=e657]:
+      - img
+      - generic [ref=e658]: Sluiten

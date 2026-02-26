@@ -157,6 +157,11 @@ export default function AgendaPage({ autoOpenCreate }: { autoOpenCreate?: boolea
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [createDefaults, setCreateDefaults] = useState<{
+    date?: string
+    startTime?: string
+    endTime?: string
+  }>({})
 
   // Auto-open create modal when prop is true
   useEffect(() => {
@@ -215,6 +220,20 @@ export default function AgendaPage({ autoOpenCreate }: { autoOpenCreate?: boolea
   }, [afspraken, searchQuery, selectedDate, typeFilter])
 
   const refreshAfspraken = () => setRefreshKey((current) => current + 1)
+
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), [])
+
+  const handleOpenCreateForSlot = (date: string, hour: number) => {
+    const safeDate = date || todayIso
+    const start = `${hour.toString().padStart(2, '0')}:00`
+    const end = `${(hour + 1).toString().padStart(2, '0')}:00`
+    setCreateDefaults({
+      date: safeDate,
+      startTime: start,
+      endTime: end,
+    })
+    setModalOpen(true)
+  }
 
   const handleEdit = (afspraak: Afspraak) => {
     setSelectedAfspraak(afspraak)
@@ -323,6 +342,82 @@ export default function AgendaPage({ autoOpenCreate }: { autoOpenCreate?: boolea
               <SelectItem value="task">Task</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </PagePanel>
+
+      {/* Eenvoudige dag/uren-grid */}
+      <PagePanel className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Klik in een vak om snel een afspraak te plannen op een specifieke dag en tijd.
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[720px] border border-border/30 rounded-xl bg-linear-to-br from-background/60 via-card/70 to-background/80">
+            <div className="grid grid-cols-[80px_repeat(7,1fr)] text-xs border-b border-border/30">
+              <div className="p-2 text-muted-foreground bg-background/40" />
+              {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((label, index) => {
+                const baseDate = selectedDate ? new Date(selectedDate) : new Date()
+                const currentDay = new Date(baseDate)
+                const currentWeekDay = (baseDate.getDay() + 6) % 7
+                const diff = index - currentWeekDay
+                currentDay.setDate(baseDate.getDate() + diff)
+                const iso = currentDay.toISOString().slice(0, 10)
+                const isSelected = iso === selectedDate
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    className={cn(
+                      'p-2 text-center border-l border-border/20 bg-card/40 hover:bg-card/70 transition-colors',
+                      isSelected && 'bg-sky-500/15 text-sky-100 font-medium border-sky-500/60'
+                    )}
+                    onClick={() => setSelectedDate(iso)}
+                  >
+                    <div>{label}</div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                      {currentDay.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="max-h-[520px] overflow-y-auto">
+              {Array.from({ length: 18 }).map((_, rowIndex) => {
+                const hour = 6 + rowIndex
+                return (
+                  <div
+                    key={`agenda-grid-row-${hour}`}
+                    className="grid grid-cols-[80px_repeat(7,1fr)] border-t border-border/20 text-xs"
+                  >
+                    <div className="px-2 py-2 text-right text-muted-foreground bg-background/40">
+                      {hour.toString().padStart(2, '0')}:00
+                    </div>
+                    {Array.from({ length: 7 }).map((__, colIndex) => {
+                      const baseDate = selectedDate ? new Date(selectedDate) : new Date()
+                      const currentDay = new Date(baseDate)
+                      const currentWeekDay = (baseDate.getDay() + 6) % 7
+                      const diff = colIndex - currentWeekDay
+                      currentDay.setDate(baseDate.getDate() + diff)
+                      const iso = currentDay.toISOString().slice(0, 10)
+                      return (
+                        <button
+                          key={`agenda-grid-cell-${iso}-${hour}`}
+                          type="button"
+                          className="border-l border-border/10 h-9 bg-card/30 hover:bg-sky-500/15 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-500/60 transition-colors"
+                          onClick={() => handleOpenCreateForSlot(iso, hour)}
+                          title={`Nieuwe afspraak op ${iso} om ${hour.toString().padStart(2, '0')}:00`}
+                        />
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </PagePanel>
 
@@ -456,6 +551,9 @@ export default function AgendaPage({ autoOpenCreate }: { autoOpenCreate?: boolea
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSuccess={refreshAfspraken}
+        initialDate={createDefaults.date ?? selectedDate}
+        initialStartTime={createDefaults.startTime}
+        initialEndTime={createDefaults.endTime}
       />
 
       <EditAfspraakModal

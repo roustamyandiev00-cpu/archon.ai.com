@@ -14,6 +14,9 @@ interface AddAfspraakModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
+  initialDate?: string
+  initialStartTime?: string
+  initialEndTime?: string
 }
 
 function getTodayIso() {
@@ -34,14 +37,21 @@ function getDefaultEnd() {
   return now.toISOString().slice(11, 16)
 }
 
-export default function AddAfspraakModal({ open, onOpenChange, onSuccess }: AddAfspraakModalProps) {
+export default function AddAfspraakModal({
+  open,
+  onOpenChange,
+  onSuccess,
+  initialDate,
+  initialStartTime,
+  initialEndTime,
+}: AddAfspraakModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [titel, setTitel] = useState('')
   const [beschrijving, setBeschrijving] = useState('')
   const [notities, setNotities] = useState('')
-  const [datum, setDatum] = useState(getTodayIso)
-  const [startTijd, setStartTijd] = useState(getDefaultStart)
-  const [eindTijd, setEindTijd] = useState(getDefaultEnd)
+  const [datum, setDatum] = useState(() => initialDate ?? getTodayIso())
+  const [startTijd, setStartTijd] = useState(() => initialStartTime ?? getDefaultStart())
+  const [eindTijd, setEindTijd] = useState(() => initialEndTime ?? getDefaultEnd())
   const [locatie, setLocatie] = useState('')
   const [bedrijf, setBedrijf] = useState('')
   const [deelnemers, setDeelnemers] = useState('')
@@ -52,9 +62,9 @@ export default function AddAfspraakModal({ open, onOpenChange, onSuccess }: AddA
     setTitel('')
     setBeschrijving('')
     setNotities('')
-    setDatum(getTodayIso)
-    setStartTijd(getDefaultStart)
-    setEindTijd(getDefaultEnd)
+    setDatum(initialDate ?? getTodayIso())
+    setStartTijd(initialStartTime ?? getDefaultStart())
+    setEindTijd(initialEndTime ?? getDefaultEnd())
     setLocatie('')
     setBedrijf('')
     setDeelnemers('')

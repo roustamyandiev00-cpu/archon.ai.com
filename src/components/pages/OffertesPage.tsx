@@ -21,6 +21,8 @@ import {
 
 import { PageEmptyState, PageInlineError, PagePanel } from '@/components/dashboard/PageStates'
 import AddOfferteModal from '@/components/modals/AddOfferteModal'
+import { AIAnalysisDisplay } from '@/components/ui/ai-analysis-display'
+import AIOfferteModal from '@/components/modals/AIOfferteModal'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -198,6 +200,7 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
     ['datum', 'bedrag', 'nummer'] as const
   )
   const [modalOpen, setModalOpen] = useState(false)
+  const [aiModalOpen, setAiModalOpen] = useState(false)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedOfferte, setSelectedOfferte] = useState<Offerte | null>(null)
@@ -462,13 +465,23 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
           <p className="text-muted-foreground mt-1">Beheer uw offertes en opvolging</p>
         </div>
 
-        <Button
-          className="bg-linear-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-500/25"
-          onClick={() => setModalOpen(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nieuwe Offerte
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-500/25"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nieuwe Offerte
+          </Button>
+          
+          <Button
+            className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25"
+            onClick={() => setAiModalOpen(true)}
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI Offerte
+          </Button>
+        </div>
       </div>
 
       <PagePanel className="p-4">
@@ -765,10 +778,16 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
         onSuccess={refreshOffertes}
       />
 
+      <AIOfferteModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        onSuccess={refreshOffertes}
+      />
+
       {/* Detail Modal */}
       {selectedOfferte && (
         <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
@@ -811,21 +830,9 @@ export default function OffertesPage({ autoOpenCreate }: { autoOpenCreate?: bool
               )}
 
               {selectedOfferte.aiAnalyse && (
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-500" />
-                    <span className="font-medium">AI Analyse</span>
-                    <AiStatusBadge status={selectedOfferte.aiAnalyseStatus} />
-                  </div>
-                  {selectedOfferte.aiAnalyse.summary && (
-                    <p className="text-sm">{selectedOfferte.aiAnalyse.summary}</p>
-                  )}
-                  {selectedOfferte.aiAnalyse.estimatedCost && (
-                    <p className="text-sm">
-                      <span className="font-medium">Schatting: </span>
-                      {selectedOfferte.aiAnalyse.estimatedCost.currency} {selectedOfferte.aiAnalyse.estimatedCost.min} - {selectedOfferte.aiAnalyse.estimatedCost.max}
-                    </p>
-                  )}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">AI Analyse</Label>
+                  <AIAnalysisDisplay analysis={selectedOfferte.aiAnalyse} />
                 </div>
               )}
             </div>

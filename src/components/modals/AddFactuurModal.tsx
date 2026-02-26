@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/hooks/use-toast'
+import type { FactuurPrefillData } from '@/lib/ai-assistant-actions'
 
 type FactuurItemDraft = {
   id: string
@@ -25,6 +26,13 @@ type CreateFactuurPayload = {
   vervalDatum: string
   items: FactuurItemDraft[]
   notities?: string
+}
+
+type AddFactuurModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onCreate: (factuur: any) => void
+  prefillData?: FactuurPrefillData | null
 }
 
 function todayIso() {
@@ -53,11 +61,8 @@ export default function AddFactuurModal({
   open,
   onOpenChange,
   onCreate,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCreate: (factuur: any) => void
-}) {
+  prefillData,
+}: AddFactuurModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nummer, setNummer] = useState(generateNumber)
   const [klant, setKlant] = useState('')
@@ -68,6 +73,7 @@ export default function AddFactuurModal({
     { id: `${Date.now()}`, omschrijving: '', aantal: 1, prijs: 0, btw: 21 },
   ])
   const [notities, setNotities] = useState('')
+  const appliedPrefillKeyRef = useRef<string | null>(null)
 
   const totals = useMemo(() => {
     const subtotaal = items.reduce((sum, it) => sum + (it.aantal || 0) * (it.prijs || 0), 0)
@@ -104,6 +110,49 @@ export default function AddFactuurModal({
     setItems([{ id: `${Date.now()}`, omschrijving: '', aantal: 1, prijs: 0, btw: 21 }])
     setNotities('')
   }
+
+  useEffect(() => {
+    if (!open || !prefillData) return
+
+    const prefillKey = JSON.stringify(prefillData)
+    if (appliedPrefillKeyRef.current === prefillKey) {
+      return
+    }
+
+    if (prefillData.nummer?.trim()) {
+      setNummer(prefillData.nummer.trim())
+    }
+    if (prefillData.klant?.trim()) {
+      setKlant(prefillData.klant.trim())
+    }
+    if (prefillData.klantEmail?.trim()) {
+      setKlantEmail(prefillData.klantEmail.trim())
+    }
+    if (prefillData.datum) {
+      setDatum(prefillData.datum)
+    }
+    if (prefillData.vervalDatum) {
+      setVervalDatum(prefillData.vervalDatum)
+    }
+
+    if (Array.isArray(prefillData.items) && prefillData.items.length > 0) {
+      setItems(
+        prefillData.items.map((item, index) => ({
+          id: item.id || `${Date.now()}-${index}`,
+          omschrijving: item.omschrijving?.trim() || '',
+          aantal: item.aantal && item.aantal > 0 ? item.aantal : 1,
+          prijs: item.prijs && item.prijs >= 0 ? item.prijs : 0,
+          btw: item.btw != null && item.btw >= 0 ? item.btw : 21,
+        }))
+      )
+    }
+
+    if (prefillData.notities?.trim()) {
+      setNotities(prefillData.notities.trim())
+    }
+
+    appliedPrefillKeyRef.current = prefillKey
+  }, [open, prefillData])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -317,4 +366,3 @@ export default function AddFactuurModal({
     </Dialog>
   )
 }
-

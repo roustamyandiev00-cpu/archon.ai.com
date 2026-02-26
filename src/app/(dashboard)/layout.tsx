@@ -42,6 +42,7 @@ const ROUTE_BACKED_PAGES = new Set<string>([
 function getPageFromPath(pathname: string): string {
   const normalizedPath = pathname.replace(/^\/+/, '')
   if (!normalizedPath) return 'home'
+  if (normalizedPath === 'dashboard') return 'home'
   
   // Probeer eerst een exacte match (voor admin/modules etc)
   if (validPages.has(normalizedPath)) return normalizedPath
@@ -55,7 +56,7 @@ function getPageFromPath(pathname: string): string {
 
 function getPathForPage(page: string): string {
   const normalizedPage = validPages.has(page) ? page : 'home'
-  if (normalizedPage === 'home') return '/'
+  if (normalizedPage === 'home') return '/dashboard'
   
   // Als het een admin sub-pagina is die geen eigen route heeft, navigeer naar /admin met tab
   if (normalizedPage.startsWith('admin/') && !ROUTE_BACKED_PAGES.has(normalizedPage)) {
@@ -343,9 +344,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         <div className="p-4 lg:p-6">
           <div className="mx-auto w-full max-w-[1760px]">
-            <div className="flex items-start gap-6">
+            <div className="flex items-start gap-6 min-w-0">
               <main
-                className="flex-1"
+                className="min-w-0 flex-1"
                 aria-busy={isRouteTransitionPending}
                 data-page-switching={isRouteTransitionPending ? 'true' : 'false'}
               >

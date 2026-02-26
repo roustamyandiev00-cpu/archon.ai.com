@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 
 interface AddProjectModalProps {
   open: boolean
@@ -81,9 +82,16 @@ export default function AddProjectModal({ open, onOpenChange, onSuccess }: AddPr
     setIsSubmitting(true)
 
     try {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) throw new Error('Kon sessie niet ophalen.')
+      if (!data.session?.access_token) throw new Error('Niet ingelogd.')
+
       const response = await fetch('/api/projecten', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
         body: JSON.stringify({
           naam: naam.trim(),
           beschrijving: beschrijving.trim() || null,

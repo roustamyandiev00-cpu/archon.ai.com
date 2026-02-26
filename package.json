@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/run-dev.cjs",
     "dev:log": "next dev -p ${PORT:-3000} 2>&1 | tee dev.log",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "NODE_ENV=production node .next/standalone/server.js",
     "start:log": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js .",

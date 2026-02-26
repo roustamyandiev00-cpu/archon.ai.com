@@ -36,7 +36,7 @@ export default function RootLayout({
     <html lang="nl-NL" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground">
         <a href="#main-content" className="skip-to-content">Ga naar inhoud</a>
-        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <QueryProvider>
             <main id="main-content" tabIndex={-1} className="focus:outline-none">
               {children}

@@ -41,6 +41,7 @@ type AnalyzeInput = {
 
 type AnalyzeOptions = {
   provider?: OfferteAiProvider | 'auto'
+  enhancedPrompt?: string
 }
 
 function cleanFileName(fileName: string) {
@@ -204,7 +205,7 @@ function chooseProvider(requested: OfferteAiProvider | 'auto') {
   } as const
 }
 
-async function analyzeWithOpenAi(input: AnalyzeInput, apiKey: string): Promise<OfferteAiAnalysis | null> {
+async function analyzeWithOpenAi(input: AnalyzeInput, apiKey: string, enhancedPrompt?: string): Promise<OfferteAiAnalysis | null> {
 
   const model = process.env.OPENAI_VISION_MODEL?.trim() || 'gpt-4.1-mini'
   const dimensionsText = input.dimensions && 'rooms' in input.dimensions && Array.isArray((input.dimensions as any).rooms)
@@ -215,7 +216,7 @@ async function analyzeWithOpenAi(input: AnalyzeInput, apiKey: string): Promise<O
       ? `Lengte: ${toNumberString(input.dimensions.lengte ?? null, input.dimensions.eenheid)}, breedte: ${toNumberString(input.dimensions.breedte ?? null, input.dimensions.eenheid)}, hoogte: ${toNumberString(input.dimensions.hoogte ?? null, input.dimensions.eenheid)}.`
       : 'Geen afmetingen opgegeven.'
 
-  const prompt = [
+  const basePrompt = [
     'Je bent een offerte-assistent voor technische inschattingen.',
     'Analyseer de beelden en afmetingen en geef een zakelijke samenvatting.',
     'Schat ook de materiaalkosten en benodigde materialen in.',
@@ -224,6 +225,8 @@ async function analyzeWithOpenAi(input: AnalyzeInput, apiKey: string): Promise<O
     `Offerte: ${input.nummer}, klant: ${input.klant}, bedrag: ${input.bedrag}.`,
     `Afmetingen: ${dimensionsText}`,
   ].join('\n')
+
+  const prompt = enhancedPrompt ? `${enhancedPrompt}\n\n${basePrompt}` : basePrompt
 
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -278,7 +281,7 @@ async function analyzeWithOpenAi(input: AnalyzeInput, apiKey: string): Promise<O
   }
 }
 
-async function analyzeWithGemini(input: AnalyzeInput, apiKey: string): Promise<OfferteAiAnalysis | null> {
+async function analyzeWithGemini(input: AnalyzeInput, apiKey: string, enhancedPrompt?: string): Promise<OfferteAiAnalysis | null> {
   if (input.photos.length === 0) return null
 
   const model = process.env.GEMINI_VISION_MODEL?.trim() || 'gemini-1.5-flash'
@@ -290,7 +293,7 @@ async function analyzeWithGemini(input: AnalyzeInput, apiKey: string): Promise<O
       ? `Lengte: ${toNumberString(input.dimensions.lengte ?? null, input.dimensions.eenheid)}, breedte: ${toNumberString(input.dimensions.breedte ?? null, input.dimensions.eenheid)}, hoogte: ${toNumberString(input.dimensions.hoogte ?? null, input.dimensions.eenheid)}.`
       : 'Geen afmetingen opgegeven.'
 
-  const prompt = [
+  const basePrompt = [
     'Je bent een offerte-assistent voor technische inschattingen.',
     'Analyseer de beelden en afmetingen en geef een zakelijke samenvatting.',
     'Schat ook de materiaalkosten en benodigde materialen in.',
@@ -299,6 +302,8 @@ async function analyzeWithGemini(input: AnalyzeInput, apiKey: string): Promise<O
     `Offerte: ${input.nummer}, klant: ${input.klant}, bedrag: ${input.bedrag}.`,
     `Afmetingen: ${dimensionsText}`,
   ].join('\n')
+
+  const prompt = enhancedPrompt ? `${enhancedPrompt}\n\n${basePrompt}` : basePrompt
 
   const inlineParts = await Promise.all(
     input.photos.slice(0, MAX_PHOTOS).map((photo) => toGeminiInlinePart(photo))
@@ -371,8 +376,8 @@ export async function runOfferteAiAnalysis(input: AnalyzeInput, options: Analyze
 
   try {
     const result = selection.provider === 'gemini'
-      ? await analyzeWithGemini(input, selection.apiKey)
-      : await analyzeWithOpenAi(input, selection.apiKey)
+      ? await analyzeWithGemini(input, selection.apiKey, options.enhancedPrompt)
+      : await analyzeWithOpenAi(input, selection.apiKey, options.enhancedPrompt)
 
     if (result) {
       return {

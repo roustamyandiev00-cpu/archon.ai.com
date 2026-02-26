@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Bot, Sparkles, Send, Lightbulb, Clock3, ArrowUpRight, User, Loader2, Zap, RotateCcw } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react'
+import { Bot, Sparkles, Send, ArrowUpRight, User, Loader2, Zap, RotateCcw, Mic, Volume2, PhoneCall, PhoneOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +16,34 @@ interface Message {
   role: 'user' | 'ai'
   content: string
   timestamp: Date
+}
+
+type BrowserSpeechRecognitionResult = {
+  isFinal: boolean
+  length: number
+  [index: number]: { transcript: string }
+}
+
+type BrowserSpeechRecognitionEvent = {
+  resultIndex: number
+  results: ArrayLike<BrowserSpeechRecognitionResult>
+}
+
+type BrowserSpeechRecognition = {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onstart: (() => void) | null
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null
+  onerror: ((event: { error?: string }) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
+type SpeakOptions = {
+  messageIndex?: number
+  onEnd?: () => void
 }
 
 const quickPrompts = [
@@ -34,7 +62,17 @@ export default function AIAssistantPage() {
     }
   ])
   const [isLoading, setIsLoading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(false)
+  const [speakingMessageIndex, setSpeakingMessageIndex] = useState<number | null>(null)
+  const [autoSpeakResponses, setAutoSpeakResponses] = useState(false)
+  const [voiceQuestionMode, setVoiceQuestionMode] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
+  const promptBeforeRecordingRef = useRef('')
+  const promptRef = useRef('')
+  const shouldSubmitAfterStopRef = useRef(false)
+  const isVoiceQuestionRecordingRef = useRef(false)
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -49,14 +87,78 @@ export default function AIAssistantPage() {
     }
   }, [messages, isLoading])
 
-  const submitPrompt = async (e?: React.FormEvent) => {
-    e?.preventDefault()
-    if (!prompt.trim() || isLoading) return
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-    const userMessage = prompt.trim()
+    const browserWindow = window as unknown as {
+      SpeechRecognition?: new () => BrowserSpeechRecognition
+      webkitSpeechRecognition?: new () => BrowserSpeechRecognition
+    }
+    setVoiceSupported(Boolean(browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition))
+  }, [])
+
+  useEffect(() => {
+    promptRef.current = prompt
+  }, [prompt])
+
+  const stopRecording = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      return
+    }
+    setIsRecording(false)
+  }, [])
+
+  const speakText = useCallback((content: string, options?: SpeakOptions) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      toast({
+        title: 'Spraak niet beschikbaar',
+        description: 'Deze browser ondersteunt tekst-naar-spraak niet.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const messageIndex = options?.messageIndex
+    const onEnd = options?.onEnd
+    const synth = window.speechSynthesis
+    if (synth.speaking && speakingMessageIndex === messageIndex) {
+      synth.cancel()
+      setSpeakingMessageIndex(null)
+      onEnd?.()
+      return
+    }
+
+    synth.cancel()
+    const utterance = new SpeechSynthesisUtterance(content)
+    utterance.lang = 'nl-NL'
+    utterance.rate = 1
+    utterance.pitch = 1
+    utterance.onend = () => {
+      setSpeakingMessageIndex(null)
+      onEnd?.()
+    }
+    utterance.onerror = () => {
+      setSpeakingMessageIndex(null)
+      toast({
+        title: 'Voorlezen mislukt',
+        description: 'Kon de AI-reactie niet uitspreken.',
+        variant: 'destructive',
+      })
+      onEnd?.()
+    }
+
+    setSpeakingMessageIndex(messageIndex ?? null)
+    synth.speak(utterance)
+  }, [speakingMessageIndex])
+
+  const submitPromptText = useCallback(async (userMessage: string, options?: { forceSpeak?: boolean }) => {
+    if (!userMessage.trim() || isLoading) return
+    if (isRecording) stopRecording()
+
     setPrompt('')
-    
-    // Add user message
+    promptRef.current = ''
+
     const newMessages: Message[] = [
       ...messages,
       { role: 'user', content: userMessage, timestamp: new Date() }
@@ -66,7 +168,7 @@ export default function AIAssistantPage() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       const response = await fetch('/api/ai-assistant/chat', {
         method: 'POST',
         headers: {
@@ -82,10 +184,16 @@ export default function AIAssistantPage() {
       const result = await response.json()
 
       if (result.success) {
+        const aiReply = result.reply as string
+        const aiMessageIndex = newMessages.length
         setMessages(prev => [
           ...prev,
-          { role: 'ai', content: result.reply, timestamp: new Date() }
+          { role: 'ai', content: aiReply, timestamp: new Date() }
         ])
+        const shouldSpeak = Boolean(options?.forceSpeak || autoSpeakResponses)
+        if (shouldSpeak && aiReply?.trim()) {
+          speakText(aiReply, { messageIndex: aiMessageIndex })
+        }
       } else {
         throw new Error(result.error)
       }
@@ -98,9 +206,137 @@ export default function AIAssistantPage() {
     } finally {
       setIsLoading(false)
     }
+  }, [autoSpeakResponses, isLoading, isRecording, messages, speakText, stopRecording])
+
+  const startRecording = useCallback((options?: { resetPrompt?: boolean }) => {
+    if (typeof window === 'undefined') return
+
+    const browserWindow = window as unknown as {
+      SpeechRecognition?: new () => BrowserSpeechRecognition
+      webkitSpeechRecognition?: new () => BrowserSpeechRecognition
+    }
+    const RecognitionCtor = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition
+
+    if (!RecognitionCtor) {
+      toast({
+        title: 'Spraak niet ondersteund',
+        description: 'Gebruik Chrome of Safari voor spraak-naar-tekst.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const resetPrompt = Boolean(options?.resetPrompt)
+    const existingPrompt = resetPrompt ? '' : promptRef.current.trim()
+    promptBeforeRecordingRef.current = existingPrompt
+    if (resetPrompt) {
+      setPrompt('')
+      promptRef.current = ''
+    }
+
+    const recognition = new RecognitionCtor()
+    recognition.lang = 'nl-NL'
+    recognition.continuous = true
+    recognition.interimResults = true
+    shouldSubmitAfterStopRef.current = false
+
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onresult = (event) => {
+      const spokenChunks: string[] = []
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const chunk = event.results[i]?.[0]?.transcript?.trim()
+        if (chunk) spokenChunks.push(chunk)
+      }
+
+      const transcript = spokenChunks.join(' ').trim()
+      if (!transcript) return
+      const nextPrompt = [promptBeforeRecordingRef.current, transcript].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+      setPrompt(nextPrompt)
+      promptRef.current = nextPrompt
+    }
+    recognition.onerror = (event) => {
+      setIsRecording(false)
+      recognitionRef.current = null
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+      setVoiceQuestionMode(false)
+      toast({
+        title: 'Microfoonfout',
+        description: event.error ? `Spraakherkenning fout: ${event.error}` : 'Spraakherkenning stopte onverwacht.',
+        variant: 'destructive',
+      })
+    }
+    recognition.onend = () => {
+      setIsRecording(false)
+      recognitionRef.current = null
+      const shouldSubmitVoiceQuestion = shouldSubmitAfterStopRef.current && isVoiceQuestionRecordingRef.current
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+      setVoiceQuestionMode(false)
+
+      if (shouldSubmitVoiceQuestion) {
+        const spokenPrompt = promptRef.current.trim()
+        if (!spokenPrompt) {
+          toast({
+            title: 'Geen spraak herkend',
+            description: 'Probeer opnieuw en spreek iets duidelijker in.',
+            variant: 'destructive',
+          })
+          return
+        }
+        void submitPromptText(spokenPrompt, { forceSpeak: true })
+      }
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+  }, [submitPromptText])
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      shouldSubmitAfterStopRef.current = false
+      isVoiceQuestionRecordingRef.current = false
+    }
+  }, [])
+
+  const submitPrompt = async (e?: FormEvent) => {
+    e?.preventDefault()
+    const userMessage = prompt.trim()
+    if (!userMessage || isLoading) return
+    if (voiceQuestionMode) setVoiceQuestionMode(false)
+    await submitPromptText(userMessage)
+  }
+
+  const toggleVoiceQuestion = () => {
+    if (!voiceSupported || isLoading) return
+
+    if (!voiceQuestionMode) {
+      isVoiceQuestionRecordingRef.current = true
+      setVoiceQuestionMode(true)
+      startRecording({ resetPrompt: true })
+      return
+    }
+
+    shouldSubmitAfterStopRef.current = true
+    stopRecording()
   }
 
   const resetChat = () => {
+    setVoiceQuestionMode(false)
+    shouldSubmitAfterStopRef.current = false
+    isVoiceQuestionRecordingRef.current = false
+    stopRecording()
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setSpeakingMessageIndex(null)
     setMessages([
       {
         role: 'ai',
@@ -130,6 +366,31 @@ export default function AIAssistantPage() {
         >
           <RotateCcw className="mr-2 h-4 w-4" />
           Chat wissen
+        </Button>
+
+        <Button
+          type="button"
+          variant={autoSpeakResponses ? 'default' : 'outline'}
+          className={cn(
+            autoSpeakResponses ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'border-border/30 text-muted-foreground hover:text-foreground'
+          )}
+          onClick={() => setAutoSpeakResponses((current) => !current)}
+        >
+          <Volume2 className="mr-2 h-4 w-4" />
+          {autoSpeakResponses ? 'Voice Antwoord: Aan' : 'Voice Antwoord: Uit'}
+        </Button>
+
+        <Button
+          type="button"
+          variant={voiceQuestionMode ? 'destructive' : 'outline'}
+          className={cn(
+            voiceQuestionMode ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'border-border/30 text-muted-foreground hover:text-foreground'
+          )}
+          onClick={toggleVoiceQuestion}
+          disabled={!voiceSupported || isLoading}
+        >
+          {voiceQuestionMode ? <PhoneOff className="mr-2 h-4 w-4" /> : <PhoneCall className="mr-2 h-4 w-4" />}
+          {voiceQuestionMode ? 'Stop & Verstuur' : 'Voice Vraag'}
         </Button>
       </div>
 
@@ -166,6 +427,23 @@ export default function AIAssistantPage() {
                       : "bg-card border border-border text-card-foreground rounded-tl-none"
                   )}>
                       {msg.content}
+                      {msg.role === 'ai' && (
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            className={cn(
+                              'inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/40 transition-colors',
+                              speakingMessageIndex === idx
+                                ? 'bg-violet-500/10 text-violet-500 border-violet-500/30'
+                                : 'bg-background/40 text-muted-foreground hover:text-foreground'
+                            )}
+                            onClick={() => speakText(msg.content, { messageIndex: idx })}
+                            title={speakingMessageIndex === idx ? 'Stop voorlezen' : 'Lees antwoord voor'}
+                          >
+                            <Volume2 className={cn('h-3.5 w-3.5', speakingMessageIndex === idx && 'animate-pulse')} />
+                          </button>
+                        </div>
+                      )}
                       <div className={cn(
                         "mt-2 text-[10px] opacity-50",
                         msg.role === 'user' ? "text-right" : "text-left"
@@ -206,22 +484,55 @@ export default function AIAssistantPage() {
 
           {/* Input Area */}
           <div className="p-4 bg-card/20 border-t border-border">
-            <form onSubmit={submitPrompt} className="flex gap-3 relative">
+            <form onSubmit={submitPrompt} className="space-y-2">
+              <div className="flex gap-2">
               <Input
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Stel een vraag over je data..."
-                className="flex-1 bg-background h-12 pr-12 focus-visible:ring-primary/30"
+                className="flex-1 bg-background h-12 focus-visible:ring-primary/30"
                 disabled={isLoading}
               />
-              <Button 
-                type="submit" 
-                size="icon" 
-                className="absolute right-1.5 top-1.5 h-9 w-9 bg-primary hover:bg-primary/90 text-primary-foreground"
-                disabled={!prompt.trim() || isLoading}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+                <Button
+                  type="button"
+                  variant={isRecording ? 'destructive' : 'outline'}
+                  size="icon"
+                  className="h-12 w-12"
+                  onClick={() => {
+                    if (isRecording) {
+                      shouldSubmitAfterStopRef.current = false
+                      isVoiceQuestionRecordingRef.current = false
+                      setVoiceQuestionMode(false)
+                      stopRecording()
+                      return
+                    }
+                    setVoiceQuestionMode(false)
+                    isVoiceQuestionRecordingRef.current = false
+                    startRecording()
+                  }}
+                  disabled={!voiceSupported || isLoading}
+                  title={isRecording ? 'Stop spraakopname' : 'Start spraak-naar-tekst'}
+                >
+                  {isRecording ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+                </Button>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-12 w-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  disabled={!prompt.trim() || isLoading}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {voiceQuestionMode
+                  ? 'Voice-vraag actief: spreek je vraag in en klik op "Stop & Verstuur" voor direct AI-antwoord met voice.'
+                  : isRecording
+                    ? 'Luistert... spreek je vraag in, klik opnieuw op de microfoon om te stoppen.'
+                    : voiceSupported
+                      ? 'Tip: gebruik de microfoon voor spraak-naar-tekst.'
+                      : 'Spraak-naar-tekst wordt niet ondersteund in deze browser.'}
+              </p>
             </form>
           </div>
         </Card>

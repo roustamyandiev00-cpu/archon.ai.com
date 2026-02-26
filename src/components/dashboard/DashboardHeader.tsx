@@ -306,7 +306,11 @@ export default function DashboardHeader({
                   Abonnement
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onSelect={handleLogout} disabled={isLoggingOut}>
+                <DropdownMenuItem
+                  onSelect={handleLogout}
+                  disabled={isLoggingOut}
+                  className="text-destructive focus:text-destructive"
+                >
                   {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
                   {isLoggingOut ? 'Bezig met uitloggen...' : 'Uitloggen'}
                 </DropdownMenuItem>
