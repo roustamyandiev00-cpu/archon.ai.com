@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       { data: dealsRaw },
       { data: projectsRaw }
     ] = await Promise.all([
-      supabase.from('events').select('id, title, startTime').eq('user_id', user.id).gte('startTime', now.split('T')[0]).lte('startTime', now.split('T')[0] + 'T23:59:59'),
+      supabase.from('afspraken').select('id, titel, start_tijd').eq('user_id', user.id).gte('start_tijd', now.split('T')[0]).lte('start_tijd', now.split('T')[0] + 'T23:59:59'),
       supabase.from('facturen').select('totaal_bedrag, datum, status').eq('user_id', user.id).gte('datum', sevenDaysAgo),
       supabase.from('deals').select('status, value').eq('user_id', user.id),
       supabase.from('projecten').select('id, name, status, endDate').eq('user_id', user.id)

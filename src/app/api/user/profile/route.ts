@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseAdmin()
     const { data, error } = await (supabase
-      .from('User') as any)
-      .select('id, email, name, phone, language, avatar, createdAt, updatedAt')
+      .from('users') as any)
+      .select('id, email, naam, telefoon, taal, avatar_url, created_at, updated_at')
       .eq('id', userId)
       .single()
 
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
     if (avatar !== undefined) updateData.avatar = avatar
 
     const { data, error } = await (supabase
-      .from('User') as any)
+      .from('users') as any)
       .update(updateData)
       .eq('id', userId)
       .select()

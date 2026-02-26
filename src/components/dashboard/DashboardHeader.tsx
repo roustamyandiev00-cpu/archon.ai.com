@@ -131,6 +131,7 @@ export default function DashboardHeader({
     const nextTheme = isDarkUi ? 'light' : 'dark'
     setTheme(nextTheme)
     setIsDarkUi(nextTheme === 'dark')
+    onToggleTheme() // Call parent callback
 
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('dark', nextTheme === 'dark')
