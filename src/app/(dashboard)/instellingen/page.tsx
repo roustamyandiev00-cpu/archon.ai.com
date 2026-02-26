@@ -1,5 +1,5 @@
-import InstellingenPage from '@/components/pages/InstellingenPage'
+import InstellingenPageSimple from '@/components/pages/InstellingenPageSimple'
 
 export default function InstellingenRoutePage() {
-  return <InstellingenPage />
+  return <InstellingenPageSimple />
 }

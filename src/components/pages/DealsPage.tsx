@@ -7,14 +7,22 @@ import {
   Building2,
   CheckCircle2,
   Clock,
+  Download,
+  Filter,
+  Kanban,
+  List,
   MoreHorizontal,
   Plus,
   Search,
   TrendingUp,
+  X,
 } from 'lucide-react'
 
 import AddDealModal from '@/components/modals/AddDealModal'
 import EditDealModal from '@/components/modals/EditDealModal'
+import DealsPipeline from '@/components/deals/DealsPipeline'
+import { ImportBanner } from '@/components/deals/ImportBanner'
+import { QuickFilters } from '@/components/deals/QuickFilters'
 import { PageEmptyState, PageInlineError, PagePanel } from '@/components/dashboard/PageStates'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -208,6 +216,9 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [viewMode, setViewMode] = useState<'list' | 'pipeline'>('list')
+  const [showImportBanner, setShowImportBanner] = useState(true)
+  const [minValueFilter, setMinValueFilter] = useState<number | null>(null)
 
   // Auto-open create modal when prop is true
   useEffect(() => {
@@ -251,7 +262,8 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
           (deal.bedrijf ?? '').toLowerCase().includes(loweredSearch)
 
         const matchesStage = stageFilter === 'all' || deal.stadium === stageFilter
-        return matchesSearch && matchesStage
+        const matchesMinValue = !minValueFilter || deal.waarde >= minValueFilter
+        return matchesSearch && matchesStage && matchesMinValue
       })
       .sort((a, b) => {
         if (sortBy === 'titel') return a.titel.localeCompare(b.titel)
@@ -263,7 +275,7 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
         }
         return b.waarde - a.waarde
       })
-  }, [deals, searchQuery, sortBy, stageFilter])
+  }, [deals, searchQuery, sortBy, stageFilter, minValueFilter])
 
   const dealsByStage = useMemo(
     () =>
@@ -287,6 +299,44 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
       wonValue,
     }
   }, [filteredDeals])
+
+  const quickFilters = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      value: stageFilter,
+      options: [
+        { value: 'all', label: 'Alle' },
+        ...stageOrder.map(stage => ({ value: stage, label: stage }))
+      ]
+    },
+    {
+      id: 'waarde',
+      label: 'Min. waarde',
+      value: minValueFilter?.toString() || null,
+      options: [
+        { value: 'all', label: 'Elke waarde' },
+        { value: '1000', label: '€1.000+' },
+        { value: '5000', label: '€5.000+' },
+        { value: '10000', label: '€10.000+' },
+        { value: '50000', label: '€50.000+' }
+      ]
+    }
+  ], [stageFilter, minValueFilter])
+
+  const handleQuickFilterChange = (filterId: string, value: string | null) => {
+    if (filterId === 'status') {
+      setStageFilter((value as DealStage) || 'all')
+    } else if (filterId === 'waarde') {
+      setMinValueFilter(value ? parseInt(value) : null)
+    }
+  }
+
+  const clearQuickFilters = () => {
+    setStageFilter('all')
+    setMinValueFilter(null)
+    setSearchQuery('')
+  }
 
   const refreshDeals = () => setRefreshKey((current) => current + 1)
 
@@ -375,6 +425,46 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
         </div>
       </div>
 
+      {/* Import Banner - Pipedrive Style */}
+      {showImportBanner && deals.length === 0 && !loading && (
+        <ImportBanner onImport={refreshDeals} />
+      )}
+
+      {/* View Toggle */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
+              viewMode === 'list'
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            )}
+          >
+            <List className="w-4 h-4" />
+            Lijst
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('pipeline')}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
+              viewMode === 'pipeline'
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            )}
+          >
+            <Kanban className="w-4 h-4" />
+            Pipeline
+          </button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {filteredDeals.length} deal{filteredDeals.length !== 1 ? 's' : ''} • €{totals.totalValue.toLocaleString('nl-NL')}
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Totaal Deals', value: totals.totalDeals, icon: Briefcase, color: 'from-blue-500 to-sky-500' },
@@ -395,40 +485,38 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
       </div>
 
       <PagePanel className="p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Zoeken op titel of bedrijf..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background/30 border-border/30 focus-visible:ring-blue-500/20"
-            />
+        <div className="flex flex-col gap-4">
+          {/* Search and Sort Row */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Zoeken op titel of bedrijf..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background/30 border-border/30 focus-visible:ring-blue-500/20"
+              />
+            </div>
+
+            <Select value={sortBy} onValueChange={(value: 'waarde' | 'kans' | 'deadline' | 'titel') => setSortBy(value)}>
+              <SelectTrigger className="w-full sm:w-44 bg-background/30 border-border/30">
+                <SelectValue placeholder="Sorteren" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="waarde">Waarde</SelectItem>
+                <SelectItem value="kans">Winskans</SelectItem>
+                <SelectItem value="deadline">Deadline</SelectItem>
+                <SelectItem value="titel">Titel (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <Select value={stageFilter} onValueChange={(value: 'all' | DealStage) => setStageFilter(value)}>
-            <SelectTrigger className="w-full sm:w-44 bg-background/30 border-border/30">
-              <SelectValue placeholder="Stadium" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Alle stadia</SelectItem>
-              {stageOrder.map((stage) => (
-                <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={(value: 'waarde' | 'kans' | 'deadline' | 'titel') => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-44 bg-background/30 border-border/30">
-              <SelectValue placeholder="Sorteren" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="waarde">Waarde</SelectItem>
-              <SelectItem value="kans">Winskans</SelectItem>
-              <SelectItem value="deadline">Deadline</SelectItem>
-              <SelectItem value="titel">Titel (A-Z)</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Quick Filters - Pipedrive Style */}
+          <QuickFilters
+            filters={quickFilters}
+            onFilterChange={handleQuickFilterChange}
+            onClearFilters={clearQuickFilters}
+          />
         </div>
       </PagePanel>
 
@@ -440,7 +528,13 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
         />
       )}
 
-      {!error && (loading || filteredDeals.length > 0) && (
+      {/* Pipeline View */}
+      {viewMode === 'pipeline' && !error && (
+        <DealsPipeline />
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && !error && (loading || filteredDeals.length > 0) && (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {stageOrder.map((stage) => {
             const columnDeals = dealsByStage[stage] ?? []
@@ -493,7 +587,8 @@ export default function DealsPage({ autoOpenCreate }: { autoOpenCreate?: boolean
         </div>
       )}
 
-      {!loading && !error && filteredDeals.length === 0 && (
+      {/* Empty State for List View */}
+      {viewMode === 'list' && !loading && !error && filteredDeals.length === 0 && (
         <PageEmptyState
           icon={Briefcase}
           title={deals.length === 0 ? 'Nog geen deals' : 'Geen deals gevonden'}

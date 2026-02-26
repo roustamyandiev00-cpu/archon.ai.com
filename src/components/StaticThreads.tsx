@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
+import { PanelRightOpen, PanelRightClose } from 'lucide-react'
 
 interface Thread {
   id: string
@@ -125,6 +126,7 @@ function StaticThreads() {
   const [selectedThread, setSelectedThread] = useState<string | null>(null)
   const [threads, setThreads] = useState<Thread[]>(mockThreads)
   const [streams, setStreams] = useState<Stream[]>(mockStreams)
+  const [isExpanded, setIsExpanded] = useState(true)
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -194,51 +196,81 @@ function StaticThreads() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-4">
-      {/* Tab Navigation */}
-      <div
-        role="tablist"
-        aria-label="Discussies en kanalen"
-        className="flex gap-2 p-1 bg-card/40 backdrop-blur-xl rounded-xl border border-border/30"
+    <div className={cn(
+      "transition-all duration-300 ease-in-out",
+      isExpanded ? "w-full max-w-md space-y-4" : "w-auto"
+    )}>
+      {/* Toggle Button (always visible) */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-xl bg-card/60 backdrop-blur-xl border border-border/30",
+          "hover:bg-card/80 transition-all duration-200 text-foreground",
+          !isExpanded && "shadow-lg"
+        )}
+        title={isExpanded ? "Inklappen" : "Uitklappen"}
       >
-        <button
-          id="threads-tab"
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'threads'}
-          aria-controls="threads-panel"
-          onClick={() => setActiveTab('threads')}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-            activeTab === 'threads'
-              ? "bg-background/80 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-background/40"
-          )}
-        >
-          <MessageCircle className="w-4 h-4" />
-          Discussies
-        </button>
-        <button
-          id="streams-tab"
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'streams'}
-          aria-controls="streams-panel"
-          onClick={() => setActiveTab('streams')}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-            activeTab === 'streams'
-              ? "bg-background/80 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-background/40"
-          )}
-        >
-          <Hash className="w-4 h-4" />
-          Kanalen
-        </button>
-      </div>
+        {isExpanded ? (
+          <>
+            <PanelRightClose className="w-4 h-4" />
+            <span className="text-sm font-medium">Sluiten</span>
+          </>
+        ) : (
+          <>
+            <PanelRightOpen className="w-4 h-4" />
+            <span className="text-sm font-medium hidden xl:block">Discussies</span>
+          </>
+        )}
+      </button>
 
-      {/* Content Area */}
-      <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl p-4">
+      {/* Expanded Content */}
+      {isExpanded && (
+        <>
+          {/* Tab Navigation */}
+          <div
+            role="tablist"
+            aria-label="Discussies en kanalen"
+            className="flex gap-2 p-1 bg-card/40 backdrop-blur-xl rounded-xl border border-border/30"
+          >
+            <button
+              id="threads-tab"
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'threads'}
+              aria-controls="threads-panel"
+              onClick={() => setActiveTab('threads')}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                activeTab === 'threads'
+                  ? "bg-background/80 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+              )}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Discussies
+            </button>
+            <button
+              id="streams-tab"
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'streams'}
+              aria-controls="streams-panel"
+              onClick={() => setActiveTab('streams')}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                activeTab === 'streams'
+                  ? "bg-background/80 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+              )}
+            >
+              <Hash className="w-4 h-4" />
+              Kanalen
+            </button>
+          </div>
+
+          {/* Content Area */}
+          <div className="bg-card/60 backdrop-blur-xl border border-border/30 rounded-2xl p-4">
         {activeTab === 'threads' ? (
           <div
             id="threads-panel"
@@ -437,6 +469,8 @@ function StaticThreads() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </div>
   )
 }

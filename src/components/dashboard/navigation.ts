@@ -14,9 +14,7 @@ import {
   Settings,
   Shield,
   Timer,
-  TrendingUp,
   Users,
-  Wallet,
   LayoutDashboard,
   CreditCard,
   Tag,
@@ -37,6 +35,8 @@ export type NavigationItem = {
   adminOnly?: boolean
   module?: string
   minTier?: SubscriptionTier // Minimum subscription tier required (default: 'basis')
+  visible?: boolean
+  order?: number
 }
 
 // Module availability per subscription tier
@@ -46,12 +46,12 @@ const TIER_MODULES: Record<SubscriptionTier, string[]> = {
   ],
   groei: [
     'home', 'bedrijven', 'contacten', 'deals', 'offertes', 'artikelen', 'agenda',
-    'projecten', 'facturen', 'inkomsten', 'betalingen'
+    'projecten', 'facturen'
   ],
   premium: [
     'home', 'bedrijven', 'contacten', 'deals', 'offertes', 'artikelen', 'agenda',
-    'projecten', 'facturen', 'inkomsten', 'betalingen',
-    'uitgaven', 'ai-assistant', 'timesheets'
+    'projecten', 'facturen',
+    'ai-assistant', 'timesheets'
   ]
 }
 
@@ -64,12 +64,8 @@ export const navigationItems: NavigationItem[] = [
   { icon: Receipt, label: 'Facturen', page: 'facturen', module: 'facturen', minTier: 'groei' },
   { icon: FolderKanban, label: 'Projecten', page: 'projecten', module: 'projecten', minTier: 'groei' },
   { icon: CalendarDays, label: 'Agenda', page: 'agenda', module: 'agenda', minTier: 'basis' },
-  { icon: TrendingUp, label: 'Inkomsten', page: 'inkomsten', module: 'inkomsten', minTier: 'groei' },
-  { icon: Wallet, label: 'Uitgaven', page: 'uitgaven', module: 'uitgaven', minTier: 'premium' },
   { icon: Package, label: 'Artikelen', page: 'artikelen', module: 'artikelen', minTier: 'basis' },
   { icon: Timer, label: 'Timesheets', page: 'timesheets', module: 'timesheets', minTier: 'premium' },
-  { icon: Receipt, label: 'Betalingen', page: 'betalingen', module: 'betalingen', minTier: 'groei' },
-  { icon: Mail, label: 'AI Inbox', page: 'ai-inbox', module: 'ai-email', minTier: 'premium' },
   { icon: MessageSquare, label: 'WhatsApp', page: 'whatsapp', module: 'whatsapp-integration', minTier: 'premium' },
   { icon: Ticket, label: 'Support', page: 'support', minTier: 'basis' },
   { icon: FolderClosed, label: 'Documenten', page: 'documenten', minTier: 'basis' },
@@ -82,9 +78,8 @@ export function getTierRank(tier: SubscriptionTier | undefined | null): number {
 }
 
 export function canAccessModule(tierOrTiers: SubscriptionTier | SubscriptionTier[] | undefined | null, minTier: SubscriptionTier = 'basis'): boolean {
-  if (!tierOrTiers) return minTier === 'basis'
-  const tierArray = Array.isArray(tierOrTiers) ? tierOrTiers : [tierOrTiers]
-  return tierArray.some(t => getTierRank(t) >= getTierRank(minTier))
+  // TEMP: Alle pagina's zichtbaar maken voor debugging
+  return true
 }
 
 // Admin navigation items - only visible for admin/ceo users

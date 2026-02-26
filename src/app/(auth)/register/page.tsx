@@ -160,7 +160,7 @@ export default function RegisterPage() {
   const selectedModuleData = modules.find(m => m.id === selectedModule);
 
   return (
-    <div className="min-h-screen flex dark">
+    <div className="min-h-screen flex">
       {/* Left Side - Registration Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-[#0B0F14] p-6 sm:p-12">
         <div className="w-full max-w-md">

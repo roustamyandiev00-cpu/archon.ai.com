@@ -16,7 +16,8 @@ if (fs.existsSync(lockPath)) {
 }
 
 const isWin = process.platform === 'win32'
-const child = spawn(isWin ? 'npx' : 'npx', ['next', 'dev', '-p', '3000'], {
+const port = process.env.PORT || '3000'
+const child = spawn(isWin ? 'npx' : 'npx', ['next', 'dev', '-p', port], {
   cwd: projectRoot,
   stdio: 'inherit',
   shell: isWin, // Windows: npx moet via shell (cmd) draaien i.v.m. spawn EINVAL

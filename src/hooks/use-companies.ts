@@ -31,7 +31,10 @@ export function useCompanies() {
   const query = useQuery({
     queryKey: ['companies'],
     queryFn: fetchCompanies,
-    staleTime: 30000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minuten
+    gcTime: 10 * 60 * 1000, // 10 minuten
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 
   const mutation = useMutation({

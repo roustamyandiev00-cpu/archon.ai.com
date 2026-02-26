@@ -69,6 +69,10 @@ export async function GET(request: NextRequest) {
         offset,
         hasMore: (countResult.count ?? 0) > offset + limit
       }
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+      }
     })
   } catch (error) {
     logger.apiError('/api/contacts', 'GET', error)

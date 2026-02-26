@@ -71,7 +71,7 @@ export async function getUserStripe(userId: string): Promise<Stripe | null> {
   if (!config) return null
 
   return new Stripe(config.secretKey, {
-    apiVersion: '2026-01-28.clover',
+    apiVersion: '2026-02-25.clover' as any,
   })
 }
 

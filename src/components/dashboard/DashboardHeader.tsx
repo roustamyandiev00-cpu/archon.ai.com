@@ -121,29 +121,14 @@ export default function DashboardHeader({
     if (!themeReady && !themeMounted) return
 
     const currentResolvedTheme = resolvedThemeFromHook ?? resolvedTheme
-    const isDark =
-      currentResolvedTheme === 'dark' ||
-      (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
-    setIsDarkUi(Boolean(isDark))
+    const isDark = currentResolvedTheme === 'dark'
+    setIsDarkUi(isDark)
   }, [resolvedTheme, resolvedThemeFromHook, themeMounted, themeReady])
 
   const handleToggleTheme = () => {
-    const nextTheme = isDarkUi ? 'light' : 'dark'
-    setTheme(nextTheme)
-    setIsDarkUi(nextTheme === 'dark')
-    onToggleTheme() // Call parent callback
-
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark', nextTheme === 'dark')
-    }
-
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem('theme', nextTheme)
-      } catch {
-        // ignore
-      }
-    }
+    console.log('Theme toggle clicked, current theme:', resolvedTheme, 'isDarkUi:', isDarkUi)
+    // Gebruik alleen de parent toggle functie
+    onToggleTheme()
   }
 
   const navigateFromMenu = (page: string) => {

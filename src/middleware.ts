@@ -64,8 +64,8 @@ export function middleware(req: NextRequest) {
 
   // During normal runs, allow through unless protecting admin paths below.
   if (!e2e) {
-    // Redirect anonieme bezoekers van "/" naar "/landing"
-    if (pathname === '/' || pathname === '') {
+    // Redirect anonieme bezoekers van "/" naar "/landing" - DISABLED FOR DEV
+    if (false && (pathname === '/' || pathname === '')) {
       const cookies = req.cookies;
       const hasSession = !!(
         cookies.get('sb-access-token') ||

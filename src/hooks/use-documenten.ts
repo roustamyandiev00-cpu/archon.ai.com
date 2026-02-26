@@ -9,10 +9,21 @@ export function useDocumenten() {
   const fetchDocumenten = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      let query = supabase
         .from('documenten')
         .select('*')
         .order('created_at', { ascending: false })
+      
+      // Filter by user if logged in
+      if (user) {
+        query = query.eq('user_id', user.id)
+      }
+      
+      const { data, error } = await query
 
       if (error) throw error
       setDocumenten(data || [])
@@ -25,22 +36,36 @@ export function useDocumenten() {
 
   const uploadDocument = async (file: File, metadata: any) => {
     try {
-      // Upload file to storage
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Gebruiker niet ingelogd')
+
+      // Upload file to storage with user folder
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(`${Date.now()}_${file.name}`, file)
+        .upload(fileName, file)
 
       if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName)
 
       // Save metadata to database
       const { data, error } = await supabase
         .from('documenten')
         .insert({
           ...metadata,
-          file_path: uploadData.path,
-          file_name: file.name,
-          file_size: file.size,
-          mime_type: file.type
+          storage_pad: fileName,
+          bestandsnaam: file.name,
+          bestandsgrootte: file.size,
+          mime_type: file.type,
+          public_url: urlData.publicUrl,
+          user_id: user.id
         })
         .select()
         .single()

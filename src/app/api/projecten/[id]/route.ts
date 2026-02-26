@@ -7,6 +7,7 @@ import {
   toIsoDate,
 } from '@/app/api/finance/finance-utils'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { deleteProjectDocumentFolder } from '@/lib/project-utils'
 
 import { normalizeProjectRow, parseNumericId, projectStatusValues } from '../project-utils'
 
@@ -141,6 +142,14 @@ export async function DELETE(_request: Request, context: RouteContext) {
       .eq('id', id)
 
     if (result.error) throw result.error
+
+    // Ruim de document map op na succesvolle verwijdering van het project
+    const folderDeleted = await deleteProjectDocumentFolder(id)
+    
+    if (!folderDeleted) {
+      // Log de waarschuwing maar laat de project verwijdering slagen
+      console.warn(`Document map kon niet worden verwijderd voor project ${id}`)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

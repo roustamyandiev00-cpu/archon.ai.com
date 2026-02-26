@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
@@ -13,7 +13,9 @@ import { toast } from 'sonner'
 
 export default function DocumentenPage() {
   const [selectedTab, setSelectedTab] = useState('all')
-  const { documenten, loading, error, deleteDocument } = useDocumenten()
+  const { documenten, loading, error, deleteDocument, uploadDocument } = useDocumenten()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
 
   const columns = [
     {
@@ -89,6 +91,32 @@ export default function DocumentenPage() {
     </div>
   )
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      await uploadDocument(file, {
+        titel: file.name,
+        bestandsnaam: file.name,
+        categorie: 'Algemeen'
+      })
+      toast.success('Document geüpload')
+    } catch (err) {
+      toast.error('Upload mislukt: ' + (err instanceof Error ? err.message : 'Onbekende fout'))
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 flex items-center justify-center h-64">
@@ -113,12 +141,22 @@ export default function DocumentenPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Documenten</h1>
-          <p className="text-muted-foreground">Beheer al je bedrijfsdocumenten</p>
+          <h1 className="text-3xl font-bold">Mijn Documenten</h1>
+          <p className="text-muted-foreground">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
         </div>
-        <Button>
-          <Upload className="mr-2 h-4 w-4" />
-          Upload document
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Button onClick={handleUploadClick} disabled={uploading}>
+          {uploading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Upload className="mr-2 h-4 w-4" />
+          )}
+          {uploading ? 'Uploaden...' : 'Uploaden'}
         </Button>
       </div>
 

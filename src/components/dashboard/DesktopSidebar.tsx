@@ -1,12 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Menu, Sparkles, ChevronLeft, Shield, Loader2 } from 'lucide-react'
+import { Menu, Sparkles, ChevronLeft, Shield, Loader2, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscriptionTier } from '@/hooks/use-subscription-tier'
 
 import { cn } from '@/lib/utils'
-import { bottomNavItems, navigationItems, adminNavItems, canAccessModule } from '@/components/dashboard/navigation'
+import { bottomNavItems, navigationItems, adminNavItems, canAccessModule, type NavigationItem } from '@/components/dashboard/navigation'
+import SidebarEditor from './SidebarEditor'
+
+interface EditableNavigationItem extends NavigationItem {
+  id: string
+  visible: boolean
+  order: number
+}
 
 export default function DesktopSidebar({
   open,
@@ -27,6 +34,49 @@ export default function DesktopSidebar({
 }) {
   const { tier, loading: tierLoading } = useSubscriptionTier()
   const [loadingModules, setLoadingModules] = useState(true)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [customNavItems, setCustomNavItems] = useState<EditableNavigationItem[]>([])
+  const [customBottomItems, setCustomBottomItems] = useState<EditableNavigationItem[]>([])
+
+  // Load custom order and visibility from localStorage
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('sidebar-order')
+    const savedVisibility = localStorage.getItem('sidebar-visibility')
+    
+    let parsedOrder: string[] = []
+    let parsedVisibility: Record<string, boolean> = {}
+    
+    try {
+      if (savedOrder) parsedOrder = JSON.parse(savedOrder)
+      if (savedVisibility) parsedVisibility = JSON.parse(savedVisibility)
+    } catch (error) {
+      console.error('Error parsing saved sidebar config:', error)
+    }
+
+    // Process navigation items
+    const processedNavItems = navigationItems.map((item, index) => ({
+      ...item,
+      id: item.page || item.label.toLowerCase().replace(/\s+/g, '-'),
+      visible: parsedVisibility[item.page || item.label] !== false,
+      order: parsedOrder.indexOf(item.page || item.label) !== -1 
+        ? parsedOrder.indexOf(item.page || item.label) 
+        : index
+    })).sort((a, b) => a.order - b.order)
+
+    // Process bottom items
+    const processedBottomItems = bottomNavItems.map((item, index) => ({
+      ...item,
+      id: item.page || item.label.toLowerCase().replace(/\s+/g, '-'),
+      visible: parsedVisibility[item.page || item.label] !== false,
+      order: parsedOrder.indexOf(item.page || item.label) !== -1 
+        ? parsedOrder.indexOf(item.page || item.label) 
+        : navigationItems.length + index
+    })).sort((a, b) => a.order - b.order)
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCustomNavItems(processedNavItems)
+    setCustomBottomItems(processedBottomItems)
+  }, [])
 
   useEffect(() => {
     // Simulate module loading delay for consistency
@@ -36,12 +86,36 @@ export default function DesktopSidebar({
     }
   }, [tierLoading])
 
-  // Filter navigatie op basis van subscription tier
+  // Filter navigatie op basis van subscription tier en custom visibility
   // Admins zien ALTIJD alle items voor beheerdoeleinden
-  const filteredNavItems = navigationItems.filter(item => {
+  const filteredNavItems = (customNavItems.length > 0 ? customNavItems : navigationItems).filter(item => {
+    if (!item.visible && customNavItems.length > 0) return false
     if (isAdmin) return true
     return canAccessModule(tier, item.minTier)
   })
+
+  const filteredBottomItems = (customBottomItems.length > 0 ? customBottomItems : bottomNavItems).filter(item => {
+    if (!item.visible && customBottomItems.length > 0) return false
+    // Logout button always visible
+    if (!item.page) return true
+    // Filter by tier
+    if (isAdmin) return true
+    return canAccessModule(tier, item.minTier)
+  })
+
+  const handleSaveEditor = (items: EditableNavigationItem[]) => {
+    // Separate nav and bottom items
+    const navItems = items.filter(item => 
+      navigationItems.some(navItem => navItem.page === item.page || navItem.label === item.label)
+    )
+    const bottomItems = items.filter(item => 
+      bottomNavItems.some(bottomItem => bottomItem.page === item.page || bottomItem.label === item.label)
+    )
+
+    setCustomNavItems(navItems)
+    setCustomBottomItems(bottomItems)
+    setEditorOpen(false)
+  }
 
   return (
     <>
@@ -78,14 +152,25 @@ export default function DesktopSidebar({
               <p className="text-xs text-sidebar-foreground/60">Business Suite</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onToggleOpen}
-            className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50"
-            aria-label="Zijbalk inklappen"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setEditorOpen(true)}
+              className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50"
+              aria-label="Sidebar bewerken"
+              title="Sidebar bewerken"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleOpen}
+              className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50"
+              aria-label="Zijbalk inklappen"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <nav aria-label="Hoofdnavigatie" className="flex-1 p-3 overflow-y-auto custom-scrollbar">
@@ -178,15 +263,7 @@ export default function DesktopSidebar({
             Tools
           </p>
           <div className="space-y-1">
-            {bottomNavItems
-              .filter(item => {
-                // Logout button always visible
-                if (!item.page) return true
-                // Filter by tier
-                if (isAdmin) return true
-                return canAccessModule(tier, item.minTier)
-              })
-              .map((item) => (
+            {filteredBottomItems.map((item) => (
               <button
                 key={item.label}
                 type="button"
@@ -226,6 +303,12 @@ export default function DesktopSidebar({
             ))}
           </div>
         </div>
+
+        <SidebarEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          onSave={handleSaveEditor}
+        />
       </aside>
     </>
   )

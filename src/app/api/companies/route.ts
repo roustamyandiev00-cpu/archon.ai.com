@@ -93,7 +93,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const payload = await listSupabaseCompanies({ status, sector, search, userId: user.id })
-    return NextResponse.json(payload)
+    return NextResponse.json(payload, {
+      headers: {
+        'Cache-Control': 'public, max-age=120, stale-while-revalidate=300'
+      }
+    })
   } catch (error) {
     logger.apiError('/api/companies', 'GET', error)
     return handleApiError(error, 'Kon bedrijven niet laden. Probeer het later opnieuw.')

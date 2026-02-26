@@ -48,39 +48,46 @@
 :root {
   --radius: 0.625rem;
   color-scheme: light;
-  --background: #DCE6F4;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  /* Pipedrive-stijl light mode: mintgroen hero, paars accent */
+  --background: #FAFBFC;
+  --foreground: #1F2937;
+  --card: rgba(255, 255, 255, 0.95);
+  --card-foreground: #1F2937;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --inverse: #ffffff;
-  --inverse-foreground: #111827;
-  --primary: #2E6AFE;
+  --popover-foreground: #1F2937;
+  --inverse: #1F2937;
+  --inverse-foreground: #FFFFFF;
+  --primary: #6861F2;
   --primary-foreground: #FFFFFF;
-  --secondary: #E7F0FC;
-  --secondary-foreground: #0F172A;
-  --muted: rgba(15, 23, 42, 0.13);
-  --muted-foreground: #4B5563;
-  --accent: rgba(47, 107, 255, 0.18);
-  --accent-foreground: #0F172A;
+  --secondary: #F8FAFC;
+  --secondary-foreground: #374151;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: rgba(104, 97, 242, 0.08);
+  --accent-foreground: #374151;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #6F87AA;
-  --input: #6A84A8;
-  --ring: rgba(47, 107, 255, 0.58);
+  --border: #E2E8F0;
+  --input: #F1F5F9;
+  --ring: rgba(104, 97, 242, 0.55);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: rgba(16, 20, 28, 0.90);
-  --sidebar-foreground: rgba(255, 255, 255, 0.90);
-  --sidebar-primary: #2E6AFE;
+  /* Sidebar - lichtere versie voor light mode */
+  --sidebar: rgba(248, 250, 252, 0.95);
+  --sidebar-foreground: rgba(30, 41, 59, 0.90);
+  --sidebar-primary: #6861F2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(30, 41, 59, 0.06);
+  --sidebar-accent-foreground: rgba(30, 41, 59, 0.92);
+  --sidebar-border: rgba(30, 41, 59, 0.12);
+  --sidebar-ring: rgba(104, 97, 242, 0.55);
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: rgba(255, 255, 255, 0.92);
   --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: rgba(47, 107, 255, 0.55);
+  --sidebar-ring: rgba(104, 97, 242, 0.55);
 }
 
 .dark {
@@ -93,18 +100,18 @@
   --popover-foreground: rgba(255, 255, 255, 0.92);
   --inverse: #ffffff;
   --inverse-foreground: #111827;
-  --primary: #2E6AFE;
+  --primary: #6861F2;
   --primary-foreground: #FFFFFF;
   --secondary: rgba(255, 255, 255, 0.06);
   --secondary-foreground: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.06);
   --muted-foreground: rgba(255, 255, 255, 0.70);
-  --accent: rgba(47, 107, 255, 0.12);
+  --accent: rgba(104, 97, 242, 0.12);
   --accent-foreground: rgba(255, 255, 255, 0.92);
   --destructive: oklch(0.704 0.191 22.216);
   --border: rgba(255, 255, 255, 0.12);
   --input: rgba(255, 255, 255, 0.16);
-  --ring: rgba(47, 107, 255, 0.55);
+  --ring: rgba(104, 97, 242, 0.55);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -112,12 +119,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: rgba(16, 20, 28, 0.90);
   --sidebar-foreground: rgba(255, 255, 255, 0.90);
-  --sidebar-primary: #2E6AFE;
+  --sidebar-primary: #6861F2;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: rgba(255, 255, 255, 0.92);
   --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: rgba(47, 107, 255, 0.55);
+  --sidebar-ring: rgba(104, 97, 242, 0.55);
 }
 
 @layer base {
@@ -145,11 +152,18 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
+    /* Light mode: subtiele gradient achtergrond */
     background:
-      radial-gradient(ellipse at 35% 20%, rgba(255, 255, 255, 0.30) 0%, rgba(220, 229, 243, 0.0) 55%),
-      radial-gradient(ellipse at 15% 65%, rgba(210, 223, 242, 0.84) 0%, rgba(210, 223, 242, 0.0) 60%),
-      linear-gradient(135deg, #DCE6F4 0%, #D1DDF0 100%);
+      radial-gradient(ellipse at 50% 0%, rgba(104, 97, 242, 0.03) 0%, rgba(104, 97, 242, 0.00) 50%),
+      linear-gradient(180deg, #FAFBFC 0%, #F8FAFC 100%);
     z-index: -2;
+  }
+
+  .dark body::before {
+    /* Dark mode: mintgroen tint in hero area */
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(215, 249, 211, 0.60) 0%, rgba(215, 249, 211, 0.00) 50%),
+      linear-gradient(180deg, #0B0F14 0%, #0F1419 100%);
   }
 
   body::after {
@@ -160,12 +174,9 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
+    /* Pipedrive stijl: subtiele paars accent */
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.00) 55%),
-      linear-gradient(135deg,
-        rgba(47, 107, 255, 0.10) 0%,
-        rgba(47, 107, 255, 0.05) 50%,
-        rgba(17, 24, 39, 0.06) 100%);
+      radial-gradient(ellipse at 80% 20%, rgba(104, 97, 242, 0.06) 0%, rgba(104, 97, 242, 0.00) 40%);
     z-index: -1;
   }
 
@@ -285,51 +296,51 @@
   }
 
   html:not(.dark) .bg-card\/30 {
-    background-color: rgba(255, 255, 255, 0.82);
+    background-color: rgba(255, 255, 255, 0.70);
   }
 
   html:not(.dark) .bg-card\/40 {
-    background-color: rgba(255, 255, 255, 0.88);
+    background-color: rgba(255, 255, 255, 0.75);
   }
 
   html:not(.dark) .bg-card\/50 {
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: rgba(255, 255, 255, 0.80);
   }
 
   html:not(.dark) .bg-card\/60 {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.85);
   }
 
   html:not(.dark) .bg-card\/70 {
-    background-color: rgba(255, 255, 255, 0.97);
+    background-color: rgba(255, 255, 255, 0.90);
   }
 
   html:not(.dark) .bg-card\/75 {
-    background-color: rgba(255, 255, 255, 0.98);
+    background-color: rgba(255, 255, 255, 0.92);
   }
 
   html:not(.dark) .bg-background\/20 {
-    background-color: rgba(222, 231, 244, 0.84);
+    background-color: rgba(255, 255, 255, 0.98);
   }
 
   html:not(.dark) .bg-background\/30 {
-    background-color: rgba(220, 229, 243, 0.90);
+    background-color: rgba(249, 250, 251, 0.96);
   }
 
   html:not(.dark) .bg-background\/40 {
-    background-color: rgba(217, 227, 242, 0.94);
+    background-color: rgba(249, 250, 251, 0.94);
   }
 
   html:not(.dark) .bg-background\/50 {
-    background-color: rgba(214, 225, 241, 0.96);
+    background-color: rgba(243, 244, 246, 0.96);
   }
 
   html:not(.dark) .bg-background\/60 {
-    background-color: rgba(210, 222, 239, 0.98);
+    background-color: rgba(243, 244, 246, 0.98);
   }
 
   html:not(.dark) .bg-background\/80 {
-    background-color: rgba(205, 218, 237, 0.99);
+    background-color: rgba(229, 231, 235, 0.99);
   }
 
   html:not(.dark) .bg-muted\/30 {

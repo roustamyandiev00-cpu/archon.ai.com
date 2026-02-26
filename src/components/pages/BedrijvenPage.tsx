@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, memo, useCallback } from 'react'
 import {
   Building2,
   Search,
@@ -108,7 +108,7 @@ function TableLoadingRows() {
   ))
 }
 
-export default function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
+export function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const [searchQuery, setSearchQuery] = useDashboardQueryText('bedrijven_q')
   const [statusFilter, setStatusFilter] = useDashboardQueryEnum(
     'bedrijven_status',
@@ -594,3 +594,5 @@ export default function BedrijvenPage({ autoOpenCreate }: { autoOpenCreate?: boo
     </div>
   )
 }
+
+export default memo(BedrijvenPage)

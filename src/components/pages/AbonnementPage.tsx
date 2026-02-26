@@ -83,37 +83,37 @@ export default function AbonnementPage() {
       </div>
 
       {/* Current Plan Card */}
-      <div className="relative overflow-hidden bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 rounded-2xl p-6 text-primary-foreground">
         {/* Animated Background */}
-        <div className="absolute inset-0 bg-linear-to-r from-blue-500/20 via-sky-500/20 to-emerald-500/15 animate-pulse" />
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] bg-size-[250px_250px]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/30 to-accent/15 animate-pulse" />
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] bg-[length:250px_250px]" />
 
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-linear-to-br from-blue-500 to-sky-600 shadow-lg shadow-blue-500/25">
-              <Crown className="w-8 h-8 text-white" />
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+              <Crown className="w-8 h-8 text-primary-foreground" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Badge className="bg-linear-to-r from-amber-400 to-orange-400 text-amber-950 border-0 font-semibold">
+                <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-amber-950 border-0 font-semibold">
                   <Sparkles className="w-3 h-3 mr-1" />
                   PRO PLAN
                 </Badge>
               </div>
-              <p className="text-3xl font-bold">€{currentPlan.prijs}<span className="text-lg font-normal text-white/70">/maand</span></p>
+              <p className="text-3xl font-bold">€{currentPlan.prijs}<span className="text-lg font-normal text-primary-foreground/70">/maand</span></p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-8">
             <div>
-              <p className="text-sm text-white/70 mb-1">Volgende factuur</p>
+              <p className="text-sm text-primary-foreground/70 mb-1">Volgende factuur</p>
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-white/60" />
+                <Calendar className="w-4 h-4 text-primary-foreground/60" />
                 <span className="font-medium">{currentPlan.volgendeFactuur}</span>
               </div>
             </div>
             <div>
-              <p className="text-sm text-white/70 mb-2">Gebruikers</p>
+              <p className="text-sm text-primary-foreground/70 mb-2">Gebruikers</p>
               <div className="flex items-center gap-3">
                 <Progress value={(currentPlan.gebruikers / currentPlan.gebruikersLimiet) * 100} className="w-24 h-2" />
                 <span className="text-sm">{currentPlan.gebruikers}/{currentPlan.gebruikersLimiet}</span>
@@ -131,12 +131,12 @@ export default function AbonnementPage() {
         </div>
 
         {/* Features */}
-        <div className="relative mt-6 pt-6 border-t border-white/10">
+        <div className="relative mt-6 pt-6 border-t border-primary-foreground/10">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {currentPlan.features.map((feature) => (
               <div key={feature} className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm text-white/80">{feature}</span>
+                <span className="text-sm text-primary-foreground/80">{feature}</span>
               </div>
             ))}
           </div>

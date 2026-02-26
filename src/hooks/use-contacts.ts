@@ -43,7 +43,10 @@ export function useContacts(limit = 25, offset = 0) {
   const query = useQuery({
     queryKey: ['contacts', limit, offset],
     queryFn: () => fetchContacts(limit, offset),
-    staleTime: 30000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minuten
+    gcTime: 10 * 60 * 1000, // 10 minuten
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 
   const mutation = useMutation({

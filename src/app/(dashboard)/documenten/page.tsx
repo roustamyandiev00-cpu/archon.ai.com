@@ -15,14 +15,16 @@ import {
   Plus,
   Filter,
   FolderClosed,
-  Sparkles
+  Sparkles,
+  FolderKanban,
+  Building2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { ArchonInlineLoader, ArchonLoader } from "@/components/archon-loader";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,6 +33,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface UserFile {
+  name: string;
+  id: string;
+  updated_at: string;
+  created_at: string;
+  last_accessed_at: string;
+  metadata: {
+    size: number;
+    mimetype: string;
+  };
+}
+
+interface Project {
+  id: number;
+  naam: string;
+  status: string;
+}
 
 interface UserFile {
   name: string;
@@ -46,17 +73,41 @@ interface UserFile {
 
 export default function DocumentenPage() {
   const [files, setFiles] = useState<UserFile[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState<string>("all");
   const [userId, setUserId] = useState<string | null>(null);
 
-  const fetchFiles = useCallback(async (uid: string) => {
+  const fetchProjects = useCallback(async (uid: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('projecten')
+        .select('id, naam, status')
+        .eq('user_id', uid)
+        .order('naam');
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  }, []);
+
+  const fetchFiles = useCallback(async (uid: string, projectId?: string) => {
     try {
       setLoading(true);
+      
+      // Determine the folder path based on project selection
+      let folderPath = uid;
+      if (projectId && projectId !== "all") {
+        folderPath = `${uid}/projects/${projectId}`;
+      }
+
       const { data, error } = await supabase.storage
         .from("user-assets")
-        .list(uid, {
+        .list(folderPath, {
           limit: 100,
           offset: 0,
           sortBy: { column: "created_at", order: "desc" },
@@ -66,7 +117,11 @@ export default function DocumentenPage() {
       setFiles(data as any || []);
     } catch (error) {
       console.error("Error fetching files:", error);
-      toast.error("Kon documenten niet ophalen");
+      toast({
+        title: "Fout",
+        description: "Kon documenten niet ophalen",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -74,14 +129,35 @@ export default function DocumentenPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        fetchFiles(user.id);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Auth error:', error)
+          return
+        }
+        
+        if (session?.user) {
+          setUserId(session.user.id)
+          fetchProjects(session.user.id)
+          fetchFiles(session.user.id, selectedProject)
+        } else {
+          console.log('No authenticated user found')
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        setLoading(false)
       }
-    };
-    checkAuth();
-  }, [fetchFiles]);
+    }
+    checkAuth()
+  }, [fetchFiles, fetchProjects, selectedProject])
+
+  // Refetch files when project selection changes
+  useEffect(() => {
+    if (userId) {
+      fetchFiles(userId, selectedProject)
+    }
+  }, [selectedProject, userId, fetchFiles])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,22 +168,35 @@ export default function DocumentenPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "document");
+      
+      // Add project context if a specific project is selected
+      if (selectedProject && selectedProject !== "all") {
+        formData.append("projectId", selectedProject);
+      }
 
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
+        credentials: 'include', // Send auth cookies
       });
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success("Document succesvol geüpload");
-        fetchFiles(userId);
+        toast({
+          title: "Succes",
+          description: "Document succesvol geüpload",
+        });
+        fetchFiles(userId, selectedProject);
       } else {
         throw new Error(result.error || "Upload mislukt");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      toast({
+        title: "Fout",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }
@@ -117,25 +206,38 @@ export default function DocumentenPage() {
     if (!userId || !confirm("Weet je zeker dat je dit document wilt verwijderen?")) return;
 
     try {
+      // Determine the correct file path based on current project selection
+      let filePath = `${userId}/${filename}`;
+      if (selectedProject && selectedProject !== "all") {
+        filePath = `${userId}/projects/${selectedProject}/${filename}`;
+      }
+
       const { error } = await supabase.storage
         .from("user-assets")
-        .remove([`${userId}/${filename}`]);
+        .remove([filePath]);
 
       if (error) throw error;
 
-      toast.success("Document verwijderd");
+      toast({
+        title: "Succes",
+        description: "Document verwijderd",
+      });
       setFiles(files.filter(f => f.name !== filename));
     } catch (error) {
       console.error("Error deleting file:", error);
-      toast.error("Kon document niet verwijderen");
+      toast({
+        title: "Fout",
+        description: "Kon document niet verwijderen",
+        variant: "destructive",
+      });
     }
   };
 
   const getFileIcon = (mimetype: string) => {
-    if (mimetype.includes("image")) return <ImageIcon className="w-8 h-8 text-blue-400" />;
-    if (mimetype.includes("pdf")) return <FileText className="w-8 h-8 text-red-400" />;
-    if (mimetype.includes("json") || mimetype.includes("javascript")) return <FileCode className="w-8 h-8 text-amber-400" />;
-    return <File className="w-8 h-8 text-slate-400" />;
+    if (mimetype.includes("image")) return <ImageIcon className="w-8 h-8 text-blue-500" />;
+    if (mimetype.includes("pdf")) return <FileText className="w-8 h-8 text-red-500" />;
+    if (mimetype.includes("json") || mimetype.includes("javascript")) return <FileCode className="w-8 h-8 text-amber-500" />;
+    return <File className="w-8 h-8 text-muted-foreground" />;
   };
 
   const formatSize = (bytes: number) => {
@@ -147,9 +249,15 @@ export default function DocumentenPage() {
   };
 
   const getPublicUrl = (filename: string) => {
+    // Determine the correct file path based on current project selection
+    let filePath = `${userId}/${filename}`;
+    if (selectedProject && selectedProject !== "all") {
+      filePath = `${userId}/projects/${selectedProject}/${filename}`;
+    }
+
     const { data: { publicUrl } } = supabase.storage
       .from("user-assets")
-      .getPublicUrl(`${userId}/${filename}`);
+      .getPublicUrl(filePath);
     return publicUrl;
   };
 
@@ -170,16 +278,39 @@ export default function DocumentenPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Mijn Documenten</h1>
-          <p className="text-slate-400">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Mijn Documenten</h1>
+          <p className="text-muted-foreground">Beheer al je bestanden in je persoonlijke ArchonPro kluis.</p>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Project Selector */}
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Selecteer project" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <FolderClosed className="w-4 h-4" />
+                  Alle documenten
+                </div>
+              </SelectItem>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <FolderKanban className="w-4 h-4" />
+                    {project.naam}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Input
             placeholder="Document zoeken..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-64 bg-slate-900/40 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:ring-amber-500/50"
+            className="w-full md:w-64"
           />
           <div className="relative">
             <input
@@ -192,7 +323,7 @@ export default function DocumentenPage() {
             <Button 
               asChild 
               disabled={uploading}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20"
+              className="font-medium"
             >
               <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
                 {uploading ? <ArchonInlineLoader size={18} /> : <Plus className="w-4 h-4" />}
@@ -204,45 +335,63 @@ export default function DocumentenPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-900/40 backdrop-blur-xl border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <FileText className="w-6 h-6 text-blue-400" />
+                <FileText className="w-6 h-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Totaal Bestanden</p>
-                <p className="text-2xl font-bold text-white">{files.length}</p>
+                <p className="text-sm text-muted-foreground">Totaal Bestanden</p>
+                <p className="text-2xl font-bold text-foreground">{files.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-900/40 backdrop-blur-xl border-white/10">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <Filter className="w-6 h-6 text-amber-400" />
+                <Filter className="w-6 h-6 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Opslag Gebruik</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-muted-foreground">Opslag Gebruik</p>
+                <p className="text-2xl font-bold text-foreground">
                   {formatSize(files.reduce((acc, curr) => acc + (curr.metadata?.size || 0), 0))}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-900/40 backdrop-blur-xl border-white/10">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <Sparkles className="w-6 h-6 text-emerald-400" />
+                <Sparkles className="w-6 h-6 text-emerald-500" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Ging Vandaag</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-muted-foreground">Ging Vandaag</p>
+                <p className="text-2xl font-bold text-foreground">
                   {files.filter(f => new Date(f.created_at).toDateString() === new Date().toDateString()).length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <FolderKanban className="w-6 h-6 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProject === "all" ? "Alle Projecten" : "Huidig Project"}
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  {selectedProject === "all" ? projects.length : 
+                   projects.find(p => p.id.toString() === selectedProject)?.naam || "Onbekend"}
                 </p>
               </div>
             </div>
@@ -261,29 +410,29 @@ export default function DocumentenPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className="group relative bg-slate-900/40 backdrop-blur-xl border-white/10 hover:border-amber-500/50 hover:bg-slate-800/40 transition-all duration-300">
+              <Card className="group relative hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                    <div className="p-3 rounded-xl bg-muted/50 border transition-colors">
                       {getFileIcon(file.metadata?.mimetype || "")}
                     </div>
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white -mr-2">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground -mr-2">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 bg-slate-900 border-white/10">
-                        <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-white/5" onClick={() => window.open(getPublicUrl(file.name), '_blank')}>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => window.open(getPublicUrl(file.name), '_blank')}>
                           <ExternalLink className="w-4 h-4 mr-2" /> Openen
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-white/5" asChild>
+                        <DropdownMenuItem asChild>
                           <a href={getPublicUrl(file.name)} download={file.name}>
                             <Download className="w-4 h-4 mr-2" /> Downloaden
                           </a>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-400 focus:text-red-300 focus:bg-red-500/10" onClick={() => handleDelete(file.name)}>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(file.name)}>
                           <Trash2 className="w-4 h-4 mr-2" /> Verwijderen
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -291,10 +440,10 @@ export default function DocumentenPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="font-semibold text-white truncate pr-6" title={file.name}>
+                    <h3 className="font-semibold text-foreground truncate pr-6" title={file.name}>
                       {file.name}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatSize(file.metadata?.size || 0)}</span>
                       <span>•</span>
                       <span>{new Date(file.created_at).toLocaleDateString()}</span>
@@ -305,7 +454,7 @@ export default function DocumentenPage() {
                   <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
                     <Button 
                       variant="secondary" 
-                      className="w-full bg-slate-950/50 border-white/10 text-white hover:bg-slate-800"
+                      className="w-full"
                       onClick={() => window.open(getPublicUrl(file.name), '_blank')}
                     >
                       Bekijken
@@ -318,10 +467,20 @@ export default function DocumentenPage() {
         </AnimatePresence>
 
         {filteredFiles.length === 0 && !loading && (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-500 bg-slate-900/20 rounded-3xl border-2 border-dashed border-white/5">
+          <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-3xl border-2 border-dashed border-border">
             <FolderClosed className="w-12 h-12 mb-4 opacity-20" />
-            <p className="text-lg font-medium">Geen documenten gevonden</p>
-            <p className="text-sm">Upload je eerste bestand om te beginnen.</p>
+            <p className="text-lg font-medium">
+              {selectedProject === "all" 
+                ? "Geen documenten gevonden" 
+                : `Geen documenten voor ${projects.find(p => p.id.toString() === selectedProject)?.naam || "dit project"}`
+              }
+            </p>
+            <p className="text-sm mt-1">
+              {selectedProject === "all"
+                ? "Upload je eerste bestand om te beginnen."
+                : "Upload bestanden voor dit project om ze hier te zien."
+              }
+            </p>
           </div>
         )}
       </div>

@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex dark">
+    <div className="min-h-screen flex">
       {/* Left Side - Marketing */}
       <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#0B0F14] via-[#0F1319] to-[#0B0F14] relative overflow-hidden">
         {/* Background effects */}

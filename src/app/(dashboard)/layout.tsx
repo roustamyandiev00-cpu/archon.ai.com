@@ -1,11 +1,12 @@
 ﻿'use client'
 
-import { useEffect, useMemo, useState, useTransition, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, useTransition, type ReactNode, Suspense, lazy } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabase'
 
 import StaticThreads from '@/components/StaticThreads'
+import AIAssistantPanel from '@/components/AIAssistantPanel'
 import DashboardCommandPalette from '@/components/dashboard/DashboardCommandPalette'
 import DashboardGlobalErrorBoundary from '@/components/dashboard/DashboardGlobalErrorBoundary'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
@@ -14,6 +15,7 @@ import DesktopSidebar from '@/components/dashboard/DesktopSidebar'
 import MobileSidebar from '@/components/dashboard/MobileSidebar'
 import { pageLabelById, validPages } from '@/components/dashboard/navigation'
 import QueryProvider from '@/components/providers/QueryProvider'
+import { PageLoader } from '@/components/ui/page-loader'
 import { toast } from '@/hooks/use-toast'
 
 const ROUTE_BACKED_PAGES = new Set<string>([
@@ -22,17 +24,16 @@ const ROUTE_BACKED_PAGES = new Set<string>([
   'ai-assistant',
   'agenda',
   'artikelen',
-  'betalingen',
   'bedrijven',
   'contacten',
-  'deals',
+  'documenten',
   'facturen',
-  'inkomsten',
   'instellingen',
   'offertes',
   'projecten',
+  'support',
   'timesheets',
-  'uitgaven',
+  'whatsapp',
   'admin',
   'admin/modules',
   'admin/integrations',
@@ -91,11 +92,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const activePageLabel = pageLabelById.get(activePage) ?? 'Dashboard'
 
   const toggleTheme = () => {
-    const isDark =
-      resolvedTheme === 'dark' ||
-      (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
-
-    setTheme(isDark ? 'light' : 'dark')
+    const currentTheme = resolvedTheme
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark'
+    console.log('Toggling theme from', currentTheme, 'to', nextTheme)
+    setTheme(nextTheme)
   }
   const toggleDesktopSidebar = () => setDesktopSidebarOpen((open) => !open)
 
@@ -345,7 +345,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="mx-auto w-full max-w-[1760px]">
             <div className="flex items-start gap-6">
               <main
-                className="flex-1 min-h-[calc(100dvh-10rem)]"
+                className="flex-1"
                 aria-busy={isRouteTransitionPending}
                 data-page-switching={isRouteTransitionPending ? 'true' : 'false'}
               >
@@ -356,9 +356,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </DashboardPageErrorBoundary>
               </main>
 
-              {/* Hide StaticThreads on pages that need full width for better focus and data display */}
-              {!['/whatsapp', '/ai-inbox', '/admin', '/projecten', '/facturen', '/offertes', '/agenda', '/inkomsten', '/uitgaven', '/betalingen', '/instellingen', '/abonnement'].some(path => pathname.includes(path)) && (
-                <div className="hidden xl:block w-96 shrink-0 sticky top-24 self-start">
+              {/* AI kaders alleen verbergen op pagina's waar het dubbelop zou zijn */}
+              {!['/whatsapp', '/instellingen'].some(path => pathname.includes(path)) && (
+                <div className="hidden xl:flex flex-col gap-4 w-auto shrink-0 sticky top-24 self-start">
+                  <AIAssistantPanel />
                   <StaticThreads />
                 </div>
               )}

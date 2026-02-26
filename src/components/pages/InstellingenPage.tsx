@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@supabase/supabase-js'
 import {
   User,
   Building2,
@@ -50,11 +49,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabase } from '@/lib/supabase'
 
 // Types
 interface UserProfile {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 
 function safeJson(res: Response) {
   return res
@@ -34,6 +34,14 @@ function groupByDay(items: any[], dateKey = 'datum') {
   return days.map((day) => ({ day, amount: Math.round((map.get(day) ?? 0) * 100) / 100 }))
 }
 
+// Cache voor dashboard data
+let dashboardCache: {
+  data: any
+  timestamp: number
+} | null = null
+
+const CACHE_DURATION = 2 * 60 * 1000 // 2 minuten
+
 export function useDashboardData() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,45 +51,62 @@ export function useDashboardData() {
   const [dealsData, setDealsData] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const response = await fetch('/api/dashboard/stats', { cache: 'no-store' })
-        const result = await response.json()
-
-        if (cancelled) return
-
-        if (result.success) {
-          setStats(result.stats)
-          setRevenueData(result.revenueData)
-          setDealsData(result.dealsData)
-          
-          // Fetch activities separately if needed, or use default
-          const actRes = await fetch('/api/activities')
-          const actData = await actRes.json()
-          setActivities(toArray(actData))
-        } else {
-          throw new Error(result.error || 'Kon dashboard data niet laden')
-        }
-      } catch (err: any) {
-        if (cancelled) return
-        console.error('Failed to load dashboard data', err)
-        setError(String(err?.message ?? err ?? 'unknown'))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+  const load = useCallback(async () => {
+    // Check cache eerst
+    if (dashboardCache && Date.now() - dashboardCache.timestamp < CACHE_DURATION) {
+      const cached = dashboardCache.data
+      setStats(cached.stats)
+      setRevenueData(cached.revenueData)
+      setDealsData(cached.dealsData)
+      setActivities(cached.activities)
+      setLoading(false)
+      return
     }
 
-    void load()
-    return () => {
-      cancelled = true
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/dashboard/stats', { 
+        cache: 'default',
+        headers: {
+          'Cache-Control': 'max-age=120' // 2 minuten browser cache
+        }
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        const data = {
+          stats: result.stats,
+          revenueData: groupByDay(toArray(result.revenueData)),
+          dealsData: toArray(result.dealsData),
+          activities: toArray(result.activities)
+        }
+
+        // Cache de data
+        dashboardCache = {
+          data,
+          timestamp: Date.now()
+        }
+
+        setStats(data.stats)
+        setRevenueData(data.revenueData)
+        setDealsData(data.dealsData)
+        setActivities(data.activities)
+      } else {
+        throw new Error(result.error || 'Kon dashboard data niet laden')
+      }
+    } catch (err: any) {
+      console.error('Failed to load dashboard data', err)
+      setError(String(err?.message ?? err ?? 'unknown'))
+    } finally {
+      setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
 
   return {
     loading,
@@ -90,6 +115,7 @@ export function useDashboardData() {
     revenueData,
     dealsData,
     activities,
+    refetch: load,
   }
 }
 

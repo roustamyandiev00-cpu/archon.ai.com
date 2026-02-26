@@ -8,6 +8,7 @@ import {
 } from '@/app/api/finance/finance-utils'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import logger from '@/lib/logger'
+import { createProjectDocumentFolder } from '@/lib/project-utils'
 import { normalizeProjectRow, projectStatusValues } from './project-utils'
 
 const CreateProjectSchema = z.object({
@@ -129,12 +130,23 @@ export async function POST(request: Request) {
 
     if (insertResult.error) throw insertResult.error
 
-    const companyMap = await mapCompanyNamesById(supabase as any, [(insertResult.data as any).bedrijf_id])
+    const projectData = insertResult.data as any
+    const projectId = projectData.id
+
+    // Automatisch een document map aanmaken voor het nieuwe project
+    const folderCreated = await createProjectDocumentFolder(projectId, validated.naam)
+    
+    if (!folderCreated) {
+      // Log de waarschuwing maar laat het project aanmaken slagen
+      logger.warn(`Document map kon niet worden aangemaakt voor project ${projectId}: ${validated.naam}`)
+    }
+
+    const companyMap = await mapCompanyNamesById(supabase as any, [projectData.bedrijf_id])
 
     return NextResponse.json(
       normalizeProjectRow({
-        ...insertResult.data,
-        companyName: companyMap.get(Number((insertResult.data as any).bedrijf_id)) ?? null,
+        ...projectData,
+        companyName: companyMap.get(Number(projectData.bedrijf_id)) ?? null,
       }),
       { status: 201 }
     )

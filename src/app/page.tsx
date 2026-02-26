@@ -186,7 +186,10 @@ export default function Dashboard() {
   const activePageLabel = pageLabelById.get(activePage) ?? 'Dashboard'
   const pageSwitching = pagePreloading || isPageTransitionPending
   const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+    const currentTheme = resolvedTheme
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark'
+    console.log('Main page toggling theme from', currentTheme, 'to', nextTheme)
+    setTheme(nextTheme)
   }
   const toggleDesktopSidebar = () => setDesktopSidebarOpen((open) => !open)
 

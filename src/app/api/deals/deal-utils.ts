@@ -25,24 +25,14 @@ export function toIsoDate(value: string | null | undefined): string | null {
 }
 
 export async function detectDealsSchemaVariant(supabase: any): Promise<DealsSchemaVariant> {
-  const probe = await supabase.from('deals').select('id, titel').limit(1)
-  if (!probe.error) return 'dutch'
-
-  const message = String(probe.error.message ?? '')
-  if (message.toLowerCase().includes('column deals.titel does not exist')) {
-    return 'english'
-  }
-
-  throw probe.error
+  // Database heeft Nederlandse kolommen: titel, waarde, stadium, etc.
+  return 'dutch'
 }
 
 export function selectColumnsForVariant(variant: DealsSchemaVariant) {
-  if (variant === 'dutch') {
-    return 'id, titel, waarde, stadium, deadline, kans, bedrijf_id, notities, created_at'
-  }
-
-  // English schema: notes and deadline may not exist in all deployments — omit to avoid 500
-  return 'id, title, amount, stage, probability, company_id, created_at'
+  // Database kolommen: id, titel, waarde, stadium, deadline, kans, bedrijf_id, created_at
+  // notities bestaat NIET
+  return 'id, titel, waarde, stadium, deadline, kans, bedrijf_id, created_at'
 }
 
 export function normalizeDealRow(row: any) {
@@ -54,6 +44,7 @@ export function normalizeDealRow(row: any) {
   const stageRaw = row.stadium ?? row.stage
   const probabilityRaw = row.kans ?? row.probability
   const notesRaw = row.notities ?? row.notes
+  const deadlineRaw = row.deadline ?? row.expected_close_date
 
   return {
     id: String(row.id),
@@ -63,7 +54,7 @@ export function normalizeDealRow(row: any) {
     waarde: Number(amountRaw ?? 0),
     stadium: (stageRaw ?? 'Lead') as DealStage,
     kans: Number(probabilityRaw ?? 0),
-    deadline: row.deadline ? String(row.deadline).slice(0, 10) : null,
+    deadline: deadlineRaw ? String(deadlineRaw).slice(0, 10) : null,
     notities: notesRaw ? String(notesRaw) : null,
     createdAt: row.created_at ? String(row.created_at) : null,
   }

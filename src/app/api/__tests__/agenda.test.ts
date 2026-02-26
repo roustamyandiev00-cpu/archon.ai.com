@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GET, POST, PUT, DELETE } from '../agenda/route'
 

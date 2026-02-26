@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, memo } from 'react'
 import {
   Building2,
   Calendar,
@@ -94,7 +94,7 @@ function nextStatus(current: ProjectStatus): ProjectStatus {
   return 'Actief'
 }
 
-export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
+export function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const [searchQuery, setSearchQuery] = useDashboardQueryText('projecten_q')
   const [statusFilter, setStatusFilter] = useDashboardQueryEnum(
     'projecten_status',
@@ -738,3 +738,5 @@ export default function ProjectenPage({ autoOpenCreate }: { autoOpenCreate?: boo
     </div>
   )
 }
+
+export default memo(ProjectenPage)

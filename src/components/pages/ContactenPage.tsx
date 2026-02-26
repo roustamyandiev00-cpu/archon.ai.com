@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, memo, useCallback } from 'react'
 import {
   Building2,
   Eye,
@@ -127,7 +127,7 @@ function StatusBadge({ status }: { status: ContactStatus | null }) {
   )
 }
 
-export default function ContactenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
+export function ContactenPage({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const [searchQuery, setSearchQuery] = useDashboardQueryText('contacten_q')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -565,3 +565,5 @@ export default function ContactenPage({ autoOpenCreate }: { autoOpenCreate?: boo
     </div>
   )
 }
+
+export default memo(ContactenPage)
